@@ -16,14 +16,14 @@ Generate Batch -> Copy Prompt -> Paste Result -> Parse -> Edit EP -> Save -> Cop
 npm install
 ```
 
-หรือบน Windows สามารถดับเบิลคลิก `Open-GHOSTFACTORY-Studio.vbs` ได้เลย ถ้ายังไม่มี `node_modules` สคริปต์จะติดตั้ง dependency ให้อัตโนมัติ
+หรือบน Windows สามารถดับเบิลคลิก `launchers/windows/Open-GHOSTFACTORY-Studio.vbs` ได้เลย ถ้ายังไม่มี `node_modules` สคริปต์จะติดตั้ง dependency ให้อัตโนมัติ
 
 ## วิธีรัน
 
 แบบกดใช้งานเหมือนโปรแกรมบน Windows:
 
 ```txt
-ดับเบิลคลิก Open-GHOSTFACTORY-Studio.vbs
+ดับเบิลคลิก launchers/windows/Open-GHOSTFACTORY-Studio.vbs
 ```
 
 ไฟล์นี้จะเปิด server แบบ background แล้วเปิด Browser ให้อัตโนมัติที่ `http://127.0.0.1:3000`
@@ -31,10 +31,10 @@ npm install
 ถ้าต้องการปิดโปรแกรม:
 
 ```txt
-ดับเบิลคลิก Close-GHOSTFACTORY-Studio.vbs
+ดับเบิลคลิก launchers/windows/Close-GHOSTFACTORY-Studio.vbs
 ```
 
-ถ้า Windows บล็อกไฟล์ `.vbs` ให้ใช้ `Start-GHOSTFACTORY-Studio.bat` และ `Stop-GHOSTFACTORY-Studio.bat` แทน
+ถ้า Windows บล็อกไฟล์ `.vbs` ให้ใช้ `launchers/windows/Start-GHOSTFACTORY-Studio.bat` และ `launchers/windows/Stop-GHOSTFACTORY-Studio.bat` แทน
 
 แบบรันด้วย terminal:
 
@@ -76,7 +76,7 @@ npm install
 npm run dev
 ```
 
-หรือเปิดด้วย `Open-GHOSTFACTORY-Studio.vbs` บน Windows
+หรือเปิดด้วย `launchers/windows/Open-GHOSTFACTORY-Studio.vbs` บน Windows
 
 ## วิธีสร้าง Daily Batch
 
