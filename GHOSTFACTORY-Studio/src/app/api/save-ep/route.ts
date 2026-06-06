@@ -52,8 +52,8 @@ function normalizeEp(ep: GhostEp, duplicateCheck: GhostEp["duplicateCheck"]): Gh
 }
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as GhostEp & { duplicateSimilarityThresholdOverride?: number; outputRootOverride?: string };
-  const { duplicateSimilarityThresholdOverride, outputRootOverride, ...ep } = body;
+  const body = (await request.json()) as GhostEp & { allowDuplicateSave?: boolean; duplicateSimilarityThresholdOverride?: number; outputRootOverride?: string };
+  const { allowDuplicateSave, duplicateSimilarityThresholdOverride, outputRootOverride, ...ep } = body;
   const history = await getEpHistory();
   if (history.some((item) => item.id === ep.id)) {
     return NextResponse.json(
@@ -72,7 +72,7 @@ export async function POST(request: Request) {
 
   const duplicateCheck = await checkDuplicate(ep, duplicateSimilarityThresholdOverride);
 
-  if (duplicateCheck.isDuplicate) {
+  if (duplicateCheck.isDuplicate && !allowDuplicateSave) {
     return NextResponse.json(
       {
         error: "EP นี้ซ้ำหรือใกล้เคียงกับ EP ที่เคยมี",

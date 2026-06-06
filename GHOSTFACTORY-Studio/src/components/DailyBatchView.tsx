@@ -516,12 +516,24 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
 
     const checked = await checkDuplicateOnly(createEp);
     console.log("[GF_SAVE_TRACE] duplicate-check", checked.duplicateCheck);
+    let allowDuplicateSave = false;
     if (checked.duplicateCheck.isDuplicate) {
+      if (options.skipConfirm) {
+        replaceEp(checked, sourceId);
+        setSaveState("duplicate");
+        setEpSaveStates((current) => ({ ...current, [sourceId]: "duplicate" }));
+        setFeedback({ kind: "warning", message: `Duplicate found: ${checked.duplicateCheck.matchedTitle}` });
+        return "duplicate";
+      }
+      allowDuplicateSave = window.confirm(`Duplicate found: ${checked.duplicateCheck.matchedTitle ?? checked.duplicateCheck.matchedEpId ?? "existing EP"}.\nSave anyway?`);
+      if (!allowDuplicateSave) {
+        replaceEp(checked, sourceId);
+        setSaveState("duplicate");
+        setEpSaveStates((current) => ({ ...current, [sourceId]: "duplicate" }));
+        setFeedback({ kind: "warning", message: `Duplicate found: ${checked.duplicateCheck.matchedTitle}` });
+        return "duplicate";
+      }
       replaceEp(checked, sourceId);
-      setSaveState("duplicate");
-      setEpSaveStates((current) => ({ ...current, [sourceId]: "duplicate" }));
-      setFeedback({ kind: "warning", message: `Duplicate found: ${checked.duplicateCheck.matchedTitle}` });
-      return "duplicate";
     }
 
     const response = await fetch("/api/save-ep", {
@@ -529,6 +541,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         ...checked,
+        allowDuplicateSave,
         duplicateSimilarityThresholdOverride: generationSetup.duplicateSimilarityThreshold,
         outputRootOverride: generationSetup.outputRoot
       })
@@ -758,7 +771,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                       <p className="text-xs text-[#64748B]">Created: {ep.date}</p>
                       <div className="flex flex-wrap gap-2">
                         <button className="btn h-9 px-3" onClick={() => { selectEp(ep); setModalEpId(ep.id); }} type="button">View Details</button>
-                        <button className="btn btn-primary h-9 px-3" disabled={rowState === "saving" || rowState === "saved"} onClick={(event) => { event.stopPropagation(); selectEp(ep); void saveToLibrary(ep); }} type="button">{rowState === "saved" ? "Saved" : rowState === "saving" ? "Saving..." : "Save"}</button>
+                        <button className="btn btn-primary h-9 px-3" disabled={rowState === "saving"} onClick={(event) => { event.stopPropagation(); selectEp(ep); void saveToLibrary(ep); }} type="button">{rowState === "saved" ? "Save Again" : rowState === "duplicate" ? "Save Anyway" : rowState === "saving" ? "Saving..." : "Save"}</button>
                       </div>
                     </div>
                   </article>

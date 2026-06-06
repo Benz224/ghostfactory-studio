@@ -2,6 +2,7 @@
 
 import { Archive, Clipboard, Copy, Edit3, RefreshCw, Save, Search, Trash2, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { ImagePicker, ImagePreview } from "@/components/ImagePicker";
 import { checklistCounts, checklistForEp } from "@/lib/checklist";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import type { EpStatus, GhostCharacter, GhostEp } from "@/lib/types";
@@ -82,18 +83,23 @@ function EpDetailModal({
   onClose,
   onCopy,
   onDuplicate,
-  onSaveChecklist,
+  onSaveEp,
   onArchive
 }: {
   ep: GhostEp;
   onClose: () => void;
   onCopy: (text: string, label: string) => void;
   onDuplicate: (ep: GhostEp) => void;
-  onSaveChecklist: (ep: GhostEp) => void;
+  onSaveEp: (ep: GhostEp) => void;
   onArchive: (ep: GhostEp) => void;
 }) {
   const [draft, setDraft] = useState({ ...ep, checklist: checklistForEp(ep) });
+  const [editMode, setEditMode] = useState(false);
   const checklist = checklistForEp(draft);
+
+  function updateDraft(patch: Partial<GhostEp>) {
+    setDraft((current) => ({ ...current, ...patch }));
+  }
 
   function setFrame(frameId: string, value: boolean) {
     setDraft({ ...draft, checklist: { ...checklist, frames: { ...checklist.frames, [frameId]: value } } });
@@ -101,6 +107,14 @@ function EpDetailModal({
 
   function setVideo(videoId: string, value: boolean) {
     setDraft({ ...draft, checklist: { ...checklist, videos: { ...checklist.videos, [videoId]: value } } });
+  }
+
+  function updateFrame(frameId: string, patch: Partial<GhostEp["frames"][number]>) {
+    updateDraft({ frames: draft.frames.map((frame) => frame.frameId === frameId ? { ...frame, ...patch } : frame) });
+  }
+
+  function updateVideo(videoId: string, patch: Partial<GhostEp["videos"][number]>) {
+    updateDraft({ videos: draft.videos.map((video) => video.videoId === videoId ? { ...video, ...patch } : video) });
   }
 
   return (
@@ -115,10 +129,42 @@ function EpDetailModal({
             </div>
             <h2 className="mt-2 text-2xl font-semibold">{draft.title || draft.id}</h2>
           </div>
-          <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
+          <div className="flex gap-2">
+            <button className="btn px-3" onClick={() => setEditMode((value) => !value)} type="button"><Edit3 size={18} />{editMode ? "Preview" : "Edit"}</button>
+            <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
+          </div>
         </header>
 
         <main className="flex-1 space-y-5 overflow-y-auto p-5">
+          {editMode ? (
+            <section className="grid gap-4 rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-4 lg:grid-cols-[260px,1fr]">
+              <ImagePicker
+                label="EP Image"
+                note="Use this as the image for this EP."
+                value={draft.thumbnailImage}
+                onChange={(thumbnailImage) => updateDraft({ thumbnailImage })}
+              />
+              <div className="grid gap-3 md:grid-cols-2">
+                <label className="text-sm font-semibold md:col-span-2">Title<input className="control mt-1" value={draft.title} onChange={(event) => updateDraft({ title: event.target.value })} /></label>
+                <label className="text-sm font-semibold">Category<input className="control mt-1" value={draft.category} onChange={(event) => updateDraft({ category: event.target.value })} /></label>
+                <label className="text-sm font-semibold">Status
+                  <select className="control mt-1" value={draft.status} onChange={(event) => updateDraft({ status: event.target.value as EpStatus })}>
+                    {statusOptions.filter((item) => item.value).map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                  </select>
+                </label>
+                <label className="text-sm font-semibold md:col-span-2">Hook<textarea className="control mt-1 min-h-24" value={draft.hook} onChange={(event) => updateDraft({ hook: event.target.value })} /></label>
+                <label className="text-sm font-semibold md:col-span-2">Story<textarea className="control mt-1 min-h-32" value={draft.story} onChange={(event) => updateDraft({ story: event.target.value })} /></label>
+                <label className="text-sm font-semibold md:col-span-2">Voice Script<textarea className="control mt-1 min-h-36" value={draft.voiceScript} onChange={(event) => updateDraft({ voiceScript: event.target.value })} /></label>
+                <label className="text-sm font-semibold md:col-span-2">Caption<textarea className="control mt-1 min-h-28" value={draft.caption} onChange={(event) => updateDraft({ caption: event.target.value })} /></label>
+                <label className="text-sm font-semibold md:col-span-2">Hashtags<input className="control mt-1" value={(draft.hashtags ?? []).join(" ")} onChange={(event) => updateDraft({ hashtags: event.target.value.split(/\s+/).filter(Boolean).map((tag) => tag.startsWith("#") ? tag : `#${tag}`) })} /></label>
+              </div>
+            </section>
+          ) : draft.thumbnailImage ? (
+            <section className="max-w-sm">
+              <ImagePreview className="aspect-video" label="EP Image" src={draft.thumbnailImage} />
+            </section>
+          ) : null}
+
           <section>
             <h3 className="mb-3 font-semibold">General</h3>
             <div className="grid gap-3 text-sm md:grid-cols-5">
@@ -155,7 +201,25 @@ function EpDetailModal({
                   </label>
                   <button className="btn h-9 px-3" onClick={() => onCopy(framePromptText(draft, frame.frameId), `Copy Frame Prompt ${frame.frameId}`)} type="button">Copy Frame Prompt</button>
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt || "No frame prompt."}</p>
+                {editMode ? (
+                  <div className="grid gap-4 md:grid-cols-[220px,1fr]">
+                    <ImagePicker
+                      label={`${frame.frameId} Image`}
+                      note="Optional image for this frame."
+                      value={draft.frameImages?.[frame.frameId] ?? ""}
+                      onChange={(value) => updateDraft({ frameImages: { ...(draft.frameImages ?? {}), [frame.frameId]: value } })}
+                    />
+                    <div className="space-y-3">
+                      <input className="control" value={frame.title} onChange={(event) => updateFrame(frame.frameId, { title: event.target.value })} placeholder="Frame title" />
+                      <textarea className="control min-h-36" value={frame.imagePrompt} onChange={(event) => updateFrame(frame.frameId, { imagePrompt: event.target.value })} />
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-3 md:grid-cols-[180px,1fr]">
+                    {draft.frameImages?.[frame.frameId] ? <ImagePreview className="aspect-square" label={`${frame.frameId} Image`} src={draft.frameImages[frame.frameId]} /> : null}
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt || "No frame prompt."}</p>
+                  </div>
+                )}
               </article>
             ))}
           </section>
@@ -174,7 +238,21 @@ function EpDetailModal({
                   </label>
                   <button className="btn h-9 px-3" onClick={() => onCopy(videoPromptText(draft, video.videoId), `Copy Video Prompt ${video.videoId}`)} type="button">Copy Video Prompt</button>
                 </div>
-                <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.prompt || "No video prompt."}</p>
+                {editMode ? (
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <input className="control" value={video.fromFrame} onChange={(event) => updateVideo(video.videoId, { fromFrame: event.target.value })} placeholder="From frame" />
+                    <input className="control" value={video.toFrame} onChange={(event) => updateVideo(video.videoId, { toFrame: event.target.value })} placeholder="To frame" />
+                    <input className="control" min="1" type="number" value={video.durationSec} onChange={(event) => updateVideo(video.videoId, { durationSec: Number(event.target.value) })} />
+                    <textarea className="control min-h-32 md:col-span-3" value={video.prompt} onChange={(event) => updateVideo(video.videoId, { prompt: event.target.value })} />
+                    <input className="control" value={video.camera} onChange={(event) => updateVideo(video.videoId, { camera: event.target.value })} placeholder="Camera" />
+                    <input className="control" value={video.motion} onChange={(event) => updateVideo(video.videoId, { motion: event.target.value })} placeholder="Motion" />
+                    <input className="control" value={video.audio} onChange={(event) => updateVideo(video.videoId, { audio: event.target.value })} placeholder="Audio" />
+                    <input className="control md:col-span-2" value={video.dialogue} onChange={(event) => updateVideo(video.videoId, { dialogue: event.target.value })} placeholder="Dialogue" />
+                    <input className="control" value={video.mood} onChange={(event) => updateVideo(video.videoId, { mood: event.target.value })} placeholder="Mood" />
+                  </div>
+                ) : (
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.prompt || "No video prompt."}</p>
+                )}
               </article>
             ))}
           </section>
@@ -193,7 +271,7 @@ function EpDetailModal({
           <button className="btn" onClick={() => onCopy(packageText(draft), `Copy Entire EP ${draft.id}`)} type="button"><Copy size={15} />Copy Entire EP</button>
           <button className="btn" onClick={() => onDuplicate(draft)} type="button">Duplicate</button>
           <button className="btn" onClick={() => onArchive(draft)} type="button"><Archive size={15} />Archive</button>
-          <button className="btn btn-primary" onClick={() => onSaveChecklist(draft)} type="button"><Save size={15} />Save Status</button>
+          <button className="btn btn-primary" onClick={() => onSaveEp(draft)} type="button"><Save size={15} />Save EP</button>
           <button className="btn" onClick={onClose} type="button">Close</button>
         </footer>
       </div>
@@ -261,7 +339,7 @@ export default function LibraryPage() {
     const response = await fetch("/api/update-ep", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ epId: ep.id, patch: { checklist: ep.checklist, status: ep.status } })
+      body: JSON.stringify({ epId: ep.id, patch: ep })
     });
     const data = await response.json();
     if (!response.ok) {
@@ -270,7 +348,7 @@ export default function LibraryPage() {
     }
     setEps((current) => current.map((item) => item.id === data.ep.id ? data.ep : item));
     setSelectedEp(data.ep);
-    setFeedback({ kind: "success", message: "EP status saved" });
+    setFeedback({ kind: "success", message: "EP saved" });
   }
 
   async function archiveEp(ep: GhostEp) {
@@ -349,7 +427,8 @@ export default function LibraryPage() {
           const counts = checklistCounts(checklist);
           const character = characters.find((item) => item.id === ep.characterId);
           return (
-            <article className="grid cursor-pointer gap-3 border-b border-[#E2E8F0] p-4 transition last:border-b-0 hover:bg-[#F8FAFC] lg:grid-cols-[minmax(220px,1fr)_150px_150px_190px_160px]" key={ep.id} onClick={() => setSelectedEp({ ...ep, checklist })}>
+            <article className="grid cursor-pointer gap-3 border-b border-[#E2E8F0] p-4 transition last:border-b-0 hover:bg-[#F8FAFC] lg:grid-cols-[84px_minmax(220px,1fr)_150px_150px_190px_160px]" key={ep.id} onClick={() => setSelectedEp({ ...ep, checklist })}>
+              <ImagePreview className="aspect-square rounded-[8px]" label="EP Image" src={ep.thumbnailImage || Object.values(ep.frameImages ?? {}).find(Boolean)} />
               <div className="min-w-0">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-semibold text-[#0F172A]">{ep.id}</h2>
@@ -392,7 +471,7 @@ export default function LibraryPage() {
           onClose={() => setSelectedEp(null)}
           onCopy={(text, label) => copyWithFeedback(text, label, setFeedback)}
           onDuplicate={(ep) => void duplicateEp(ep)}
-          onSaveChecklist={(ep) => void updateEp(ep)}
+          onSaveEp={(ep) => void updateEp(ep)}
           onArchive={(ep) => void archiveEp(ep)}
         />
       ) : null}
