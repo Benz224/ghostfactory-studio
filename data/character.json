@@ -1,0 +1,43 @@
+{
+  "name": "Meow",
+  "description": "แมวส้มลายเสือ ขนฟู หน้าตาน่ารัก แสดงอารมณ์เก่ง สามารถเป็นได้ทุกบทบาท ไม่มีอาชีพประจำ ไม่มี Timeline ตายตัว แต่ละ EP เป็นเรื่องแยกกันได้",
+  "characterLock": "Meow, fluffy orange tabby cat, orange striped fur, cute expressive face, high quality fur, Pixar-quality 3D animation",
+  "forbiddenChanges": [
+    "ห้ามเปลี่ยนสีขน",
+    "ห้ามเปลี่ยนชนิดสัตว์",
+    "ห้ามทำให้กลายเป็นคน"
+  ],
+  "globalNegativeRules": [
+    "no subtitles",
+    "no caption overlay",
+    "no text overlay",
+    "no watermark",
+    "no logo",
+    "no background music by default",
+    "vertical 9:16",
+    "commercial quality visuals"
+  ],
+  "visualStyle": "Pixar-quality 3D animation, high quality fur, cinematic lighting, cute expressions, smooth camera movement, vertical 9:16, commercial quality visuals",
+  "contentStyle": [
+    "Comedy",
+    "Horror Comedy",
+    "Cute Horror",
+    "Slice of Life",
+    "Sigma Cat",
+    "Cat Logic",
+    "Fake Documentary",
+    "Fake Educational",
+    "POV",
+    "Meme",
+    "Random Absurd Humor"
+  ],
+  "rules": [
+    "ไม่มี Subtitle",
+    "ไม่มี Caption Overlay",
+    "ไม่มี Text Overlay",
+    "ไม่มี Watermark",
+    "ไม่มี Logo",
+    "ค่าเริ่มต้นไม่มีเพลงพื้นหลัง",
+    "เน้นตลก น่ารัก ไร้สาระ หักมุม ดูง่าย เข้าใจภายในไม่กี่วินาที"
+  ]
+}

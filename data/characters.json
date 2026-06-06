@@ -1,0 +1,38 @@
+[
+  {
+    "id": "meow",
+    "name": "Meow",
+    "type": "cat",
+    "description": "fluffy orange tabby cat with orange striped fur, cute expressive face, high quality fur",
+    "visualStyle": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+    "personality": [
+      "cute",
+      "funny",
+      "absurd",
+      "expressive"
+    ],
+    "rules": [
+      "always keep the same orange tabby cat identity",
+      "never change fur color",
+      "never change species",
+      "never turn into a human"
+    ],
+    "negativeRules": [
+      "no subtitles",
+      "no caption overlay",
+      "no text overlay",
+      "no watermark",
+      "no logo"
+    ],
+    "imageUrl": "",
+    "referenceImages": [],
+    "expressions": [],
+    "poses": [],
+    "voicePreset": "Thai Boy",
+    "defaultLanguage": "Thai",
+    "languagePreference": "Thai",
+    "createdAt": "2026-06-05T02:49:42.765Z",
+    "updatedAt": "2026-06-05T02:50:14.473Z",
+    "isDefault": true
+  }
+]

@@ -1,0 +1,10 @@
+{
+  "daily24sCount": 3,
+  "daily16sCount": 3,
+  "creditMode": "normal",
+  "autoImageGeneration": false,
+  "aiMode": "manual",
+  "defaultLanguage": "thai",
+  "outputRoot": "output",
+  "duplicateSimilarityThreshold": 0.72
+}

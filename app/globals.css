@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: #F8FAFC;
+  color: #0F172A;
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+.control {
+  @apply h-12 w-full rounded-[16px] border border-[#E2E8F0] bg-white px-4 text-sm text-[#0F172A] outline-none transition placeholder:text-[#94A3B8] focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/10;
+}
+
+textarea.control {
+  @apply h-auto py-3 leading-6;
+}
+
+.btn {
+  @apply inline-flex h-11 items-center justify-center gap-2 rounded-[14px] border border-[#E2E8F0] bg-white px-4 text-sm font-semibold text-[#0F172A] shadow-sm transition hover:border-[#CBD5E1] hover:bg-[#F8FAFC] disabled:cursor-not-allowed disabled:opacity-50;
+}
+
+.btn-primary {
+  @apply border-[#2563EB] bg-[#2563EB] text-white hover:border-[#3B82F6] hover:bg-[#3B82F6];
+}
+
+.btn-dark {
+  @apply border-[#0F172A] bg-[#0F172A] text-white hover:bg-[#1E293B];
+}
+
+.panel {
+  @apply rounded-[22px] border border-[#E2E8F0] bg-white p-5 shadow-[0_12px_30px_rgba(15,23,42,0.04)];
+}
+
+.studio-card {
+  @apply rounded-[24px] border border-[#E2E8F0] bg-white p-5 shadow-[0_18px_45px_rgba(15,23,42,0.05)] transition;
+}
+
+.soft-badge {
+  @apply rounded-full bg-[#EFF6FF] px-3 py-1 text-xs font-semibold text-[#2563EB];
+}
+
+.muted {
+  @apply text-[#64748B];
+}
+
+.thumb {
+  @apply flex aspect-[16/10] items-center justify-center overflow-hidden rounded-[18px] bg-[#EFF6FF];
+}

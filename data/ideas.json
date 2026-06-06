@@ -1,0 +1,82 @@
+[
+  {
+    "id": "idea-1",
+    "title": "Cat vs Cockroach",
+    "category": "Comedy",
+    "tags": [
+      "cat",
+      "vs",
+      "cockroach"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.298Z"
+  },
+  {
+    "id": "idea-2",
+    "title": "Detective Cat",
+    "category": "Comedy",
+    "tags": [
+      "detective",
+      "cat"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.298Z"
+  },
+  {
+    "id": "idea-3",
+    "title": "Sigma Cat",
+    "category": "Comedy",
+    "tags": [
+      "sigma",
+      "cat"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.298Z"
+  },
+  {
+    "id": "idea-4",
+    "title": "Morning Routine",
+    "category": "Comedy",
+    "tags": [
+      "morning",
+      "routine"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.298Z"
+  },
+  {
+    "id": "idea-5",
+    "title": "Product Review",
+    "category": "Affiliate",
+    "tags": [
+      "product",
+      "review"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.298Z"
+  },
+  {
+    "id": "idea-6",
+    "title": "Cute Daily Life",
+    "category": "Comedy",
+    "tags": [
+      "cute",
+      "daily",
+      "life"
+    ],
+    "note": "",
+    "usedCount": 0,
+    "createdAt": "2026-06-05T04:10:02.298Z",
+    "updatedAt": "2026-06-05T04:10:02.299Z"
+  }
+]

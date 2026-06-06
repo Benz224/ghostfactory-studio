@@ -1,0 +1,298 @@
+[
+  {
+    "id": "cute-daily-life",
+    "name": "Cute Daily Life",
+    "category": "Comedy",
+    "goal": "Create a cute and easy-to-understand short video",
+    "structure": [
+      "hook",
+      "simple action",
+      "cute reaction",
+      "small twist"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "cute, funny, simple",
+    "isDefault": true,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "cat-logic",
+    "name": "Cat Logic",
+    "category": "Cat Logic",
+    "goal": "Create absurd logic from a cat perspective",
+    "structure": [
+      "hook",
+      "cat misunderstanding",
+      "confident reaction",
+      "absurd twist"
+    ],
+    "bestFor": [
+      "cat",
+      "mascot"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "funny, absurd, confident",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "sigma-cat",
+    "name": "Sigma Cat",
+    "category": "Sigma Cat",
+    "goal": "Create a cool character moment with a funny break",
+    "structure": [
+      "cool entrance",
+      "silent confidence",
+      "unexpected weakness",
+      "recovery"
+    ],
+    "bestFor": [
+      "cat",
+      "mascot"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "cool, meme, deadpan",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "horror-comedy",
+    "name": "Horror Comedy",
+    "category": "Horror Comedy",
+    "goal": "Create a scary setup that becomes cute or ridiculous",
+    "structure": [
+      "creepy hook",
+      "suspense",
+      "Meow reaction",
+      "funny reveal"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot"
+    ],
+    "defaultFrameCount": 4,
+    "defaultVideoCount": 3,
+    "tone": "cute horror, funny, safe",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "fake-documentary",
+    "name": "Fake Documentary",
+    "category": "Fake Documentary",
+    "goal": "Create a mock documentary about a tiny absurd event",
+    "structure": [
+      "serious narration",
+      "tiny subject",
+      "over-analysis",
+      "ridiculous conclusion"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "object"
+    ],
+    "defaultFrameCount": 4,
+    "defaultVideoCount": 3,
+    "tone": "dry, cinematic, absurd",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "pov",
+    "name": "POV",
+    "category": "POV",
+    "goal": "Create a first-person relatable short scene",
+    "structure": [
+      "POV hook",
+      "relatable problem",
+      "character action",
+      "quick payoff"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "human"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "relatable, quick, funny",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "product-review",
+    "name": "Product Review",
+    "category": "Review",
+    "goal": "Create an entertaining review without hard selling",
+    "structure": [
+      "problem hook",
+      "product encounter",
+      "honest reaction",
+      "soft takeaway"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "creator"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "helpful, playful, honest",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "problem-solution",
+    "name": "Problem Solution",
+    "category": "Educational",
+    "goal": "Show a clear everyday problem and simple solution",
+    "structure": [
+      "pain point",
+      "failed attempt",
+      "solution",
+      "small result"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "creator"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "clear, useful, light",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "affiliate-soft-sell",
+    "name": "Affiliate Soft Sell",
+    "category": "Affiliate",
+    "goal": "Create fun-first affiliate content with a soft CTA",
+    "structure": [
+      "3-second hook",
+      "problem",
+      "character reaction",
+      "product as solution",
+      "soft CTA"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "creator"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "fun first, helpful, soft sell",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  },
+  {
+    "id": "top-3-product-reasons",
+    "name": "Top 3 Product Reasons",
+    "category": "Affiliate",
+    "goal": "Give three simple reasons to consider a product",
+    "structure": [
+      "hook",
+      "reason 1",
+      "reason 2",
+      "reason 3",
+      "soft CTA"
+    ],
+    "bestFor": [
+      "cat",
+      "dog",
+      "mascot",
+      "creator"
+    ],
+    "defaultFrameCount": 4,
+    "defaultVideoCount": 3,
+    "tone": "useful, fast, soft sell",
+    "isDefault": false,
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ]
+  }
+]

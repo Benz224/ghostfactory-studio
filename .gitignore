@@ -1,0 +1,14 @@
+.next
+node_modules
+out
+output/*
+!output/.gitkeep
+data/daily-batches/*.json
+public/uploads/*
+!public/uploads/.gitkeep
+.env*.local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+.ghostfactory

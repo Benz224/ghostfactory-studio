@@ -1,0 +1,245 @@
+export type FramePrompt = {
+  frameId: string;
+  title: string;
+  imagePrompt: string;
+};
+
+export type VideoPrompt = {
+  videoId: string;
+  fromFrame: string;
+  toFrame: string;
+  durationSec: number;
+  prompt: string;
+  camera: string;
+  motion: string;
+  audio: string;
+  dialogue: string;
+  mood: string;
+};
+
+export type ProductionChecklist = {
+  frames: Record<string, boolean>;
+  videos: Record<string, boolean>;
+  editedDone: boolean;
+  postedDone: boolean;
+  imageF1Done?: boolean;
+  imageF2Done?: boolean;
+  imageF3Done?: boolean;
+  imageF4Done?: boolean;
+  videoV1Done?: boolean;
+  videoV2Done?: boolean;
+  videoV3Done?: boolean;
+};
+
+export type EpStatus = "idea" | "prompt_ready" | "frame_ready" | "video_ready" | "posted" | "archived";
+
+export type ContentGoal = "Entertainment" | "Affiliate" | "Educational" | "Review";
+
+export type SpokenLanguage = "Thai" | "English" | "Japanese" | "Korean" | "Chinese" | "No Dialogue";
+
+export type AffiliateBrief = {
+  productName: string;
+  productProblem: string;
+  productBenefit: string;
+  ctaText: string;
+};
+
+export type GhostCharacter = {
+  id: string;
+  name: string;
+  type: string;
+  description: string;
+  visualStyle: string;
+  personality: string[];
+  rules: string[];
+  negativeRules: string[];
+  imageUrl?: string;
+  imagePath?: string;
+  referenceImages?: string[];
+  expressions?: string[];
+  poses?: string[];
+  voicePreset?: string;
+  defaultLanguage?: SpokenLanguage;
+  languagePreference?: SpokenLanguage;
+  createdAt?: string;
+  updatedAt?: string;
+  isDefault: boolean;
+};
+
+export type GhostTemplate = {
+  id: string;
+  name: string;
+  category: string;
+  goal: string;
+  structure: string[];
+  bestFor: string[];
+  defaultFrameCount: number;
+  defaultVideoCount: number;
+  tone: string;
+  languageSupport?: SpokenLanguage[];
+  isDefault: boolean;
+};
+
+export type ParseHealth = {
+  score: number;
+  parsedFields: string[];
+  missing: string[];
+  status: "ok" | "warning";
+};
+
+export type ParseDebug = {
+  epLabel: string;
+  title: string;
+  format: string;
+  category: string;
+  viralScore: number;
+  story: string;
+  hook: string;
+  framesCount: number;
+  videosCount: number;
+  parsedFields: string[];
+  missingFields: string[];
+};
+
+export type GhostEp = {
+  id: string;
+  date: string;
+  format: string;
+  durationSec?: number;
+  status: EpStatus;
+  projectId?: string;
+  characterId: string;
+  characterName: string;
+  templateId: string;
+  templateName: string;
+  contentGoal: ContentGoal;
+  language: SpokenLanguage;
+  thumbnailImage?: string;
+  frameImages?: Record<string, string>;
+  promptVersions?: PromptVersion[];
+  plannedPostDate?: string;
+  postedDate?: string;
+  analytics?: EpAnalytics;
+  title: string;
+  story: string;
+  hook: string;
+  category: string;
+  frames: FramePrompt[];
+  videos: VideoPrompt[];
+  voiceScript: string;
+  soundEffects: string;
+  caption: string;
+  hashtags: string[];
+  checklist: ProductionChecklist;
+  viralScore: number;
+  duplicateCheck: {
+    isDuplicate: boolean;
+    similarityScore: number;
+    matchedEpId?: string;
+    matchedTitle?: string;
+  };
+  parseHealth: ParseHealth;
+  parseDebug?: ParseDebug;
+  createdAt: string;
+  updatedAt?: string;
+};
+
+export type PromptVersion = {
+  id: string;
+  label: string;
+  prompt: string;
+  createdAt: string;
+};
+
+export type EpAnalytics = {
+  views: number;
+  likes: number;
+  comments: number;
+  shares: number;
+  saves: number;
+  revenue: number;
+  affiliateClicks: number;
+};
+
+export type Idea = {
+  id: string;
+  title: string;
+  category: string;
+  tags: string[];
+  note: string;
+  usedCount: number;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Project = {
+  id: string;
+  name: string;
+  description: string;
+  settings: Record<string, unknown>;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type Settings = {
+  daily24sCount: number;
+  daily16sCount: number;
+  creditMode: "low" | "normal" | "high";
+  autoImageGeneration: boolean;
+  aiMode: "manual";
+  defaultLanguage: "thai" | "english";
+  outputRoot: string;
+  duplicateSimilarityThreshold: number;
+};
+
+export type GenerationSetup = {
+  aiMode: "manual" | "openai_api" | "image_generation";
+  autoImageGeneration: boolean;
+  creditMode: "low" | "medium" | "high";
+  customFramesEnabled: boolean;
+  durationPerVideoSec: number;
+  duplicateCheckEnabled: boolean;
+  duplicateSimilarityThreshold: number;
+  framesPerEpisode: number;
+  framePromptsOnly: boolean;
+  outputRoot: string;
+  saveAfterGeneration: boolean;
+  saveOnlySelectedEp: boolean;
+  totalEpisodes: number;
+  videosPerEpisode: number;
+};
+
+export type CharacterProfile = {
+  name: string;
+  description: string;
+  characterLock: string;
+  forbiddenChanges: string[];
+  globalNegativeRules: string[];
+  visualStyle: string;
+  contentStyle: string[];
+  rules: string[];
+};
+
+export type GeneratorSelection = {
+  character: GhostCharacter;
+  template: GhostTemplate;
+  contentGoal: ContentGoal;
+  language: SpokenLanguage;
+  generationSetup?: GenerationSetup;
+  affiliateBrief?: AffiliateBrief;
+};
+
+export type DailyBatch = {
+  id: string;
+  date: string;
+  eps: GhostEp[];
+  createdAt: string;
+};
+
+export type DuplicateResult = GhostEp["duplicateCheck"];
+
+export type IdeaMemory = {
+  categories: Record<string, number>;
+  recentKeywords: string[];
+  recentTwists: string[];
+};
