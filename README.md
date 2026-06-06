@@ -1,6 +1,24 @@
 # GHOSTFACTORY Studio
 
-GHOSTFACTORY Studio คือ Local-first Web App สำหรับผลิต TikTok/Reels/Shorts แบบ Multi Character + Multi Template Content Factory โดย Meow ยังเป็น default character เดิม ระบบทำงานแบบ Manual AI Mode 100% ไม่มี Login, Supabase, Cloud, Payment หรือ AI API
+GHOSTFACTORY Studio คือ Local-first web app สำหรับผลิต TikTok/Reels/Shorts แบบ Multi Character + Multi Template Content Factory ระบบทำงานแบบ Manual AI Mode 100% ไม่มี login, Supabase, cloud database, payment หรือ AI API
+
+Repository: `https://github.com/Benz224/ghostfactory-studio`
+
+## จุดเด่น
+
+- สร้าง daily content batch สำหรับ short-form video
+- จัดการ character, template, idea bank และ project ในเครื่อง
+- Copy prompt ไปใช้กับ ChatGPT, Nano Banana 2, Google Flow หรือเครื่องมือ AI อื่นได้
+- Parse ผลลัพธ์จาก ChatGPT กลับมาเป็น EP cards
+- เช็ค prompt ซ้ำด้วย local history
+- Export prompt package เป็นไฟล์ใน `output/`
+- ใช้งานแบบ local-first ข้อมูลอยู่ใน JSON files ของโปรเจกต์
+
+## Requirements
+
+- Node.js 20 หรือใหม่กว่า
+- npm
+- Windows 10/11 ถ้าต้องการใช้ launcher แบบดับเบิลคลิก
 
 Workflow หลัก:
 
@@ -10,15 +28,22 @@ Generate Batch -> Copy Prompt -> Paste Result -> Parse -> Edit EP -> Save -> Cop
 
 ระบบบังคับ Character Lock ตามตัวละครที่เลือก เช่น Meow เป็น `fluffy orange tabby cat, orange striped fur, cute expressive face, high quality fur, Pixar-quality 3D animation` และเติม negative rules ใน Image/Video Prompt เพื่อกัน subtitle, text overlay, watermark, logo และ format ที่ไม่ใช่ vertical 9:16
 
-## วิธีติดตั้ง
+## Quick Start
 
 ```bash
+git clone https://github.com/Benz224/ghostfactory-studio.git
+cd ghostfactory-studio
 npm install
+npm run dev
 ```
 
-หรือบน Windows สามารถดับเบิลคลิก `launchers/windows/Open-GHOSTFACTORY-Studio.vbs` ได้เลย ถ้ายังไม่มี `node_modules` สคริปต์จะติดตั้ง dependency ให้อัตโนมัติ
+จากนั้นเปิด:
 
-## วิธีรัน
+```txt
+http://localhost:3000
+```
+
+## Windows Launcher
 
 แบบกดใช้งานเหมือนโปรแกรมบน Windows:
 
@@ -36,19 +61,31 @@ npm install
 
 ถ้า Windows บล็อกไฟล์ `.vbs` ให้ใช้ `launchers/windows/Start-GHOSTFACTORY-Studio.bat` และ `launchers/windows/Stop-GHOSTFACTORY-Studio.bat` แทน
 
-แบบรันด้วย terminal:
+Launcher จะติดตั้ง dependency ให้เองถ้ายังไม่มี `node_modules`
+
+## Scripts
 
 ```bash
 npm run dev
+npm run build
+npm start
 ```
 
-จากนั้นเปิด Browser ที่:
+## Project Structure
 
 ```txt
-http://localhost:3000
+app/                 Next.js app routes and API routes
+components/          UI components
+data/                Seed/local JSON data
+docs/                Documentation and changelog
+launchers/windows/   Double-click launchers for Windows
+lib/                 Core storage, prompt, duplicate, generator logic
+output/              Generated prompt exports, ignored except .gitkeep
+public/              Static files and local uploads
+scripts/             PowerShell start/stop scripts
 ```
 
-## โครงสร้างข้อมูล
+## Local Data
 
 - `data/settings.json` เก็บค่า config เช่นจำนวน EP ต่อวันและ duplicate threshold
 - `data/character.json` เก็บ character default ของ Meow
@@ -59,7 +96,7 @@ http://localhost:3000
 - `data/daily-batches/` เก็บ batch template รายวัน
 - `output/YYYY-MM-DD/24s/EP-ID/prompts.md` หรือ `output/YYYY-MM-DD/16s/EP-ID/prompts.md` เก็บ markdown export ของแต่ละ EP
 
-## สำหรับอัปขึ้น GitHub
+## GitHub Hygiene
 
 Repo นี้ตั้งค่าให้เก็บเฉพาะ source code และ seed data ที่จำเป็นสำหรับเริ่มใช้งานใหม่
 
@@ -68,15 +105,6 @@ Repo นี้ตั้งค่าให้เก็บเฉพาะ source c
 - ไม่อัป batch ที่สร้างเองใน `data/daily-batches/`
 - ไม่อัปไฟล์ upload ส่วนตัวใน `public/uploads/`
 - เก็บ `package-lock.json` เพื่อให้ติดตั้ง dependency ได้ตรงกัน
-
-หลัง clone repo ให้รัน:
-
-```bash
-npm install
-npm run dev
-```
-
-หรือเปิดด้วย `launchers/windows/Open-GHOSTFACTORY-Studio.vbs` บน Windows
 
 ## วิธีสร้าง Daily Batch
 
