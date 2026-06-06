@@ -8,13 +8,13 @@
 
 ### App Shell
 
-- เปลี่ยน `app/layout.tsx` จาก top navigation เป็น sidebar ซ้ายบน desktop และ top compact nav บน mobile
+- เปลี่ยน `src/app/layout.tsx` จาก top navigation เป็น sidebar ซ้ายบน desktop และ top compact nav บน mobile
 - ใช้ navigation หลัก 3 จุด: Generator, Library, Settings
 - ใช้ color system ใหม่ตาม palette ที่กำหนดเท่านั้น
 
 ### Generator Workspace
 
-- เปลี่ยน `components/DailyBatchView.tsx` เป็น workspace แบบ card grid
+- เปลี่ยน `src/components/DailyBatchView.tsx` เป็น workspace แบบ card grid
 - เพิ่ม top action bar หลัก 4 ปุ่ม: Generate, Save, Export, Library
 - EP แสดงเป็น card ใหญ่ ไม่แสดง prompt ยาวใน card
 - Card แสดงเฉพาะ title, category, hook, story summary, frame count, video count, status และ actions
@@ -25,32 +25,32 @@
 
 ### Home
 
-- เปลี่ยน `app/page.tsx` จากหน้าสถิติเป็น creative entry point
+- เปลี่ยน `src/app/page.tsx` จากหน้าสถิติเป็น creative entry point
 - แสดง workflow แบบเข้าใจเร็ว: Generate, Copy Prompt, Create Clips, Mark Done
 - ลด metric/dashboard language ออกจาก first screen
 
 ### Library
 
-- ปรับ `app/library/page.tsx` ให้ card-based และใช้ visual style เดียวกับ Studio
+- ปรับ `src/app/library/page.tsx` ให้ card-based และใช้ visual style เดียวกับ Studio
 - ยังคง search/filter/status/checklist/copy prompt เดิมไว้
 - ลดความรู้สึกเป็น admin list ด้วย soft cards, badge และ palette ใหม่
 
 ### Settings
 
-- ปรับ `components/SettingsForm.tsx` และ `app/settings/page.tsx` ให้เข้ากับ visual system ใหม่
+- ปรับ `src/components/SettingsForm.tsx` และ `src/app/settings/page.tsx` ให้เข้ากับ visual system ใหม่
 - ยังคงบันทึก local `data/settings.json` เหมือนเดิม
 
 ## File ที่แก้
 
-- `app/layout.tsx`
-- `app/globals.css`
-- `app/page.tsx`
-- `app/generator/page.tsx`
-- `app/library/page.tsx`
-- `app/settings/page.tsx`
-- `components/DailyBatchView.tsx`
-- `components/PromptBlock.tsx`
-- `components/SettingsForm.tsx`
+- `src/app/layout.tsx`
+- `src/app/globals.css`
+- `src/app/page.tsx`
+- `src/app/generator/page.tsx`
+- `src/app/library/page.tsx`
+- `src/app/settings/page.tsx`
+- `src/components/DailyBatchView.tsx`
+- `src/components/PromptBlock.tsx`
+- `src/components/SettingsForm.tsx`
 - `tailwind.config.ts`
 - `package.json`
 - `package-lock.json`

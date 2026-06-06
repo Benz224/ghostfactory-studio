@@ -74,15 +74,13 @@ npm start
 ## Project Structure
 
 ```txt
-app/                 Next.js app routes and API routes
-components/          UI components
 data/                Seed/local JSON data
 docs/                Documentation and changelog
 launchers/windows/   Double-click launchers for Windows
-lib/                 Core storage, prompt, duplicate, generator logic
-output/              Generated prompt exports, ignored except .gitkeep
-public/              Static files and local uploads
 scripts/             PowerShell start/stop scripts
+src/app/             Next.js app routes and API routes
+src/components/      UI components
+src/lib/             Core storage, prompt, duplicate, generator logic
 ```
 
 ## Local Data
