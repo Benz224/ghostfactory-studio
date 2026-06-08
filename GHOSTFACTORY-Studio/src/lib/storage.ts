@@ -193,6 +193,7 @@ export const defaultIdeaMemory: IdeaMemory = {
 export type EpisodeMemoryEntry = {
   epId: string;
   title: string;
+  storyArchetype?: string;
   centralIdea: string;
   storyBeats: string[];
   coreConflict: string;
@@ -314,6 +315,8 @@ const defaultContinuitySelfCheck = {
 
 const defaultQualityReview = {
   storyQualityScore: 0,
+  storyDepthScore: 0,
+  promptDetailScore: 0,
   storyBeatContinuityScore: 0,
   visualContinuityScore: 0,
   videoContinuityScore: 0,
@@ -617,20 +620,36 @@ export async function saveEpisodeMemory(memory: EpisodeMemoryEntry[]) {
   await writeJsonFile(paths.episodeMemory, memory.slice(0, 500));
 }
 
+function isMeaningfulMemoryPhrase(value: string) {
+  const text = value.trim();
+  if (text.length < 3) return false;
+  return !/^(same continuous scene|same room|main story prop|same time of day|cinematic lighting|continuous cinematic camera|continuous environment audio|controlled progression|curiosity\s*->\s*reaction|curious\s*->\s*tense\s*->\s*payoff|opening hook|initial beat position|final beat position|story beat|connector \d+)$/i.test(text);
+}
+
+function cleanMemoryPhrase(value = "") {
+  const text = value
+    .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, "")
+    .replace(/\b(Observation|Goal|Problem|Escalation|Payoff):\s*/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return isMeaningfulMemoryPhrase(text) ? text : "";
+}
+
 export async function updateEpisodeMemoryFromEp(ep: GhostEp) {
   const memory = await getEpisodeMemory();
-  const endingMechanic = ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "";
+  const endingMechanic = cleanMemoryPhrase(ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "");
   const entry: EpisodeMemoryEntry = {
     epId: ep.id,
-    title: ep.title,
-    centralIdea: ep.coreIdea?.centralIdea ?? "",
-    storyBeats: (ep.storyBeats ?? []).map((beat) => beat.beat).filter(Boolean),
-    coreConflict: ep.coreIdea?.coreConflict ?? "",
-    hookMechanic: ep.coreIdea?.hookMechanic || ep.hook,
+    title: cleanMemoryPhrase(ep.title),
+    storyArchetype: cleanMemoryPhrase(ep.storyArchetype ?? ""),
+    centralIdea: cleanMemoryPhrase(ep.coreIdea?.centralIdea ?? ""),
+    storyBeats: (ep.storyBeats ?? []).map((beat) => cleanMemoryPhrase(beat.beat)).filter(Boolean),
+    coreConflict: cleanMemoryPhrase(ep.coreIdea?.coreConflict ?? ""),
+    hookMechanic: cleanMemoryPhrase(ep.coreIdea?.hookMechanic || ep.hook),
     endingMechanic,
-    location: ep.episodeState?.primaryLocation || ep.episodeState?.location || "",
-    mainObject: ep.episodeState?.mainProps || ep.episodeState?.props || "",
-    template: ep.templateName || ep.category,
+    location: cleanMemoryPhrase(ep.episodeState?.primaryLocation || ep.episodeState?.location || ""),
+    mainObject: cleanMemoryPhrase(ep.episodeState?.mainProps || ep.episodeState?.props || ""),
+    template: cleanMemoryPhrase(ep.templateName || ep.category),
     createdAt: new Date().toISOString()
   };
   const next = [entry, ...memory.filter((item) => item.epId !== ep.id)];
@@ -656,6 +675,7 @@ function extractKeywords(ep: GhostEp) {
       .replace(/^#+/, "")
       .trim())
     .filter((phrase) => phrase.length >= 2)
+    .filter(isMeaningfulMemoryPhrase)
     .slice(0, 30);
 }
 
@@ -830,25 +850,13 @@ function safeSegment(input: string) {
 }
 
 export function createMarkdown(ep: GhostEp) {
-  const storyBeats = (ep.storyBeats ?? [])
-    .map((beat) => `- ${beat.beatId}: ${beat.role ? `${beat.role} / ` : ""}${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
-    .join("\n");
-  const visualStates = (ep.visualStates ?? [])
-    .map(
-      (state) =>
-        `### ${state.frameId}\nlocationLayout: ${state.locationLayout}\ncharacterPosition: ${state.characterPosition}\ncharacterFacingDirection: ${state.characterFacingDirection}\ncameraPosition: ${state.cameraPosition}\ncameraAngle: ${state.cameraAngle}\ncameraDistance: ${state.cameraDistance}\nmainPropPosition: ${state.mainPropPosition}\nlightingDirection: ${state.lightingDirection}\nemotionState: ${state.emotionState}\nactionState: ${state.actionState}`
-    )
-    .join("\n\n");
-  const dialogueOutline = (ep.dialogueOutline ?? [])
-    .map((item) => `- ${item.videoId}: intent=${item.dialogueIntent}; intensity=${item.emotionalIntensity}; speechPattern=${item.speechPattern}; forbiddenToneShift=${item.forbiddenToneShift}`)
-    .join("\n");
   const frames = ep.frames
-    .map((frame) => `### ${frame.frameId}\nTitle: ${frame.title}\nImage Prompt: ${frame.imagePrompt}`)
+    .map((frame) => `### ${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
     .join("\n\n");
   const videos = ep.videos
     .map(
       (video) =>
-        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${video.videoPrompt}`
+        `### ${video.videoId}\n${video.videoPrompt}`
         + `\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
@@ -882,73 +890,6 @@ ${ep.category}
 ## Viral Score
 ${ep.viralScore}
 
-## Core Idea
-centralIdea: ${ep.coreIdea?.centralIdea ?? ""}
-coreConflict: ${ep.coreIdea?.coreConflict ?? ""}
-hookMechanic: ${ep.coreIdea?.hookMechanic ?? ""}
-payoffMechanic: ${ep.coreIdea?.payoffMechanic ?? ""}
-emotionTarget: ${ep.coreIdea?.emotionTarget ?? ""}
-noveltyAngle: ${ep.coreIdea?.noveltyAngle ?? ""}
-templateLogic: ${ep.coreIdea?.templateLogic ?? ""}
-
-## Story Beats
-${storyBeats}
-
-## Episode State
-primaryLocation: ${ep.episodeState?.primaryLocation ?? ""}
-location: ${ep.episodeState?.location ?? ""}
-timeOfDay: ${ep.episodeState?.timeOfDay ?? ""}
-lightingStyle: ${ep.episodeState?.lightingStyle ?? ""}
-mainProps: ${ep.episodeState?.mainProps ?? ""}
-continuityAnchor: ${ep.episodeState?.continuityAnchor ?? ""}
-characterStartPosition: ${ep.episodeState?.characterStartPosition ?? ""}
-characterEndPosition: ${ep.episodeState?.characterEndPosition ?? ""}
-lighting: ${ep.episodeState?.lighting ?? ""}
-props: ${ep.episodeState?.props ?? ""}
-voice: ${ep.episodeState?.voice ?? ""}
-camera: ${ep.episodeState?.camera ?? ""}
-cameraLanguage: ${ep.episodeState?.cameraLanguage ?? ""}
-environmentAudio: ${ep.episodeState?.environmentAudio ?? ""}
-visualAnchor: ${ep.episodeState?.visualAnchor ?? ""}
-emotionProgression: ${ep.episodeState?.emotionProgression ?? ""}
-
-## Character Anchor
-${ep.characterAnchor ?? ""}
-
-## Voice Profile
-preset: ${ep.voiceProfile?.preset ?? ""}
-gender: ${ep.voiceProfile?.gender ?? ""}
-age: ${ep.voiceProfile?.age ?? ""}
-tone: ${ep.voiceProfile?.tone ?? ""}
-energy: ${ep.voiceProfile?.energy ?? ""}
-speakingSpeed: ${ep.voiceProfile?.speakingSpeed ?? ""}
-accent: ${ep.voiceProfile?.accent ?? ""}
-personality: ${ep.voiceProfile?.personality ?? ""}
-sentenceLength: ${ep.voiceProfile?.sentenceLength ?? ""}
-vocabularyStyle: ${ep.voiceProfile?.vocabularyStyle ?? ""}
-emotionalRange: ${ep.voiceProfile?.emotionalRange ?? ""}
-
-## Visual States
-${visualStates}
-
-## Dialogue Outline
-${dialogueOutline}
-
-## Quality Review
-storyQualityScore: ${ep.qualityReview?.storyQualityScore ?? 0}
-storyBeatContinuityScore: ${ep.qualityReview?.storyBeatContinuityScore ?? 0}
-visualContinuityScore: ${ep.qualityReview?.visualContinuityScore ?? 0}
-videoContinuityScore: ${ep.qualityReview?.videoContinuityScore ?? 0}
-dialogueConsistencyScore: ${ep.qualityReview?.dialogueConsistencyScore ?? 0}
-voiceContinuityScore: ${ep.qualityReview?.voiceContinuityScore ?? 0}
-noveltyScore: ${ep.qualityReview?.noveltyScore ?? 0}
-templateMatchScore: ${ep.qualityReview?.templateMatchScore ?? 0}
-characterConsistencyScore: ${ep.qualityReview?.characterConsistencyScore ?? 0}
-episodeCompletenessScore: ${ep.qualityReview?.episodeCompletenessScore ?? 0}
-threshold: ${ep.qualityReview?.threshold ?? 85}
-passed: ${ep.qualityReview?.passed ?? false}
-notes: ${ep.qualityReview?.notes ?? ""}
-
 ## Story
 ${ep.story}
 
@@ -974,23 +915,6 @@ ${ep.caption}
 
 ## Hashtags
 ${ep.hashtags.join(" ")}
-
-## Parse Health
-score: ${ep.parseHealth?.score ?? 0}
-status: ${ep.parseHealth?.status ?? "warning"}
-missing: ${ep.parseHealth?.missing?.join(", ") ?? ""}
-
-## Duplicate Check
-isDuplicate: ${ep.duplicateCheck.isDuplicate}
-similarityScore: ${ep.duplicateCheck.similarityScore}
-matchedEpId: ${ep.duplicateCheck.matchedEpId ?? ""}
-matchedTitle: ${ep.duplicateCheck.matchedTitle ?? ""}
-
-## Production Checklist
-${ep.frames.map((frame) => `- [${ep.checklist.frames?.[frame.frameId] ? "x" : " "}] สร้างรูป ${frame.frameId}`).join("\n")}
-${ep.videos.map((video) => `- [${ep.checklist.videos?.[video.videoId] ? "x" : " "}] สร้าง ${video.videoId}`).join("\n")}
-- [${ep.checklist.editedDone ? "x" : " "}] ตัดต่อ
-- [${ep.checklist.postedDone ? "x" : " "}] โพสต์
 `;
 }
 
@@ -1002,7 +926,7 @@ export function videosText(ep: GhostEp) {
   return ep.videos
     .map(
       (video) =>
-        `${video.videoId}\n${video.videoPrompt}`
+        `${video.videoId}\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 }

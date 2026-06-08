@@ -121,6 +121,8 @@ export type ContinuitySelfCheck = {
 
 export type QualityReview = {
   storyQualityScore: number;
+  storyDepthScore: number;
+  promptDetailScore: number;
   storyBeatContinuityScore: number;
   visualContinuityScore: number;
   videoContinuityScore: number;
@@ -239,6 +241,7 @@ export type GhostEp = {
   postedDate?: string;
   analytics?: EpAnalytics;
   title: string;
+  storyArchetype?: string;
   coreIdea?: CoreIdea;
   storyBeats?: StoryBeat[];
   episodeState?: EpisodeState;

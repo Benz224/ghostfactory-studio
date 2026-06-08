@@ -92,23 +92,47 @@ function videoText(ep: GhostEp, videoId?: string) {
   const videos = videoId ? ep.videos.filter((video) => video.videoId === videoId) : ep.videos;
   return videos
     .filter((video) => video.videoPrompt.trim())
-    .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}`)
+    .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
 }
 
+function qualityWarnings(ep: GhostEp) {
+  const review = ep.qualityReview;
+  if (!review) return [];
+  const threshold = review.threshold || 85;
+  return [
+    review.storyDepthScore < threshold ? `Story Depth ${review.storyDepthScore}` : "",
+    review.promptDetailScore < threshold ? `Prompt Detail ${review.promptDetailScore}` : "",
+    review.templateMatchScore < threshold ? `Template Match ${review.templateMatchScore}` : "",
+    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : ""
+  ].filter(Boolean);
+}
+
+function repeatedItems(items: string[]) {
+  const counts = new Map<string, number>();
+  items.map((item) => item.trim()).filter(Boolean).forEach((item) => counts.set(item, (counts.get(item) ?? 0) + 1));
+  return Array.from(counts.entries()).filter(([, count]) => count > 1).sort((a, b) => b[1] - a[1]);
+}
+
+function analyticsList(title: string, items: string[]) {
+  const counts = repeatedItems(items);
+  return `${title}:\n${counts.length ? counts.map(([item, count]) => `- ${item} (${count})`).join("\n") : "- none"}`;
+}
+
+function debugAnalyticsText(eps: GhostEp[]) {
+  return [
+    analyticsList("Story Archetype Usage", eps.map((ep) => ep.storyArchetype ?? "")),
+    analyticsList("Repeated Hooks", eps.map((ep) => ep.coreIdea?.hookMechanic || ep.hook)),
+    analyticsList("Repeated Payoffs", eps.map((ep) => ep.coreIdea?.payoffMechanic ?? "")),
+    analyticsList("Repeated Main Props", eps.map((ep) => ep.episodeState?.mainProps || ep.episodeState?.props || "")),
+    analyticsList("Repeated Mechanics", eps.map((ep) => ep.coreIdea?.noveltyAngle || ep.coreIdea?.templateLogic || "")),
+    analyticsList("Used Concepts", eps.map((ep) => ep.coreIdea?.centralIdea || ep.title)),
+    analyticsList("Used Locations", eps.map((ep) => ep.episodeState?.primaryLocation || ep.episodeState?.location || "")),
+    analyticsList("Used Endings", eps.map((ep) => ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ""))
+  ].join("\n\n");
+}
+
 function packageText(ep: GhostEp) {
-  const coreIdea = ep.coreIdea
-    ? Object.entries(ep.coreIdea).map(([key, value]) => `${key}: ${value}`).join("\n")
-    : "";
-  const episodeState = ep.episodeState
-    ? Object.entries(ep.episodeState).map(([key, value]) => `${key}: ${value}`).join("\n")
-    : "";
-  const voiceProfile = ep.voiceProfile
-    ? Object.entries(ep.voiceProfile).map(([key, value]) => `${key}: ${value}`).join("\n")
-    : "";
-  const qualityReview = ep.qualityReview
-    ? Object.entries(ep.qualityReview).map(([key, value]) => `${key}: ${value}`).join("\n")
-    : "";
   return [
     `${ep.id} ${ep.title}`,
     `Language: ${ep.language}`,
@@ -119,17 +143,8 @@ function packageText(ep: GhostEp) {
     `Category: ${ep.category}`,
     `Hook: ${ep.hook}`,
     "",
-    "Core Idea",
-    coreIdea,
-    "",
-    "Episode State",
-    episodeState,
-    "",
-    "Voice Profile",
-    voiceProfile,
-    "",
-    "Quality Review",
-    qualityReview,
+    "Story",
+    ep.story,
     "",
     "Frames",
     frameText(ep),
@@ -177,6 +192,7 @@ function EpResultModal({
   onSave: (ep: GhostEp) => void;
   onCopy: (text: string, label: string) => void;
 }) {
+  const warnings = qualityWarnings(ep);
   return (
     <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
       <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
@@ -188,8 +204,11 @@ function EpResultModal({
               <span>{ep.format}</span>
               <span>{ep.category}</span>
               <span>{saveState}</span>
+              {ep.storyArchetype ? <span>Archetype: {ep.storyArchetype}</span> : null}
+              {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-0.5 text-amber-700">Quality warning</span> : null}
             </div>
             <h2 className="mt-2 text-2xl font-semibold text-[#0F172A]">{ep.title || "Untitled EP"}</h2>
+            {warnings.length ? <p className="mt-2 text-xs font-semibold text-amber-700">Check before save: {warnings.join(", ")}</p> : null}
           </div>
           <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
         </header>
@@ -635,7 +654,12 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     });
     setSavedLibraryId(data.ep.id);
     setModalEpId(data.ep.id);
-    toast.success("Saved to Library");
+    const warnings = qualityWarnings(data.ep);
+    if (warnings.length) {
+      setFeedback({ kind: "warning", message: `Saved to Library with quality warnings: ${warnings.join(", ")}` });
+    } else {
+      toast.success("Saved to Library");
+    }
     return "saved";
   }
 
@@ -803,6 +827,12 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
             <summary className="cursor-pointer text-sm font-semibold text-[#0F172A]">Developer / Raw Output</summary>
             <textarea className="control mt-3 min-h-36 resize-none" value={rawResult} onChange={(event) => setRawResult(event.target.value)} placeholder="Paste AI Result here..." />
           </details>
+          {batch?.eps.length ? (
+            <details className="rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-[#0F172A]">Creator Debug Analytics</summary>
+              <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-[12px] bg-white p-3 text-xs leading-5 text-[#64748B]">{debugAnalyticsText(batch.eps)}</pre>
+            </details>
+          ) : null}
 
           {batch?.eps.length ? (
             <div className="space-y-3">
@@ -810,6 +840,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                 const active = currentEp?.id === ep.id;
                 const rowState = epSaveStates[ep.id] ?? (ep.duplicateCheck.isDuplicate ? "duplicate" : "unsaved");
                 const durationLabel = ep.durationSec ? `${ep.durationSec}s` : ep.format;
+                const warnings = qualityWarnings(ep);
                 return (
                   <article
                     className={`w-full rounded-[20px] border p-4 text-left transition ${active ? "border-[#2563EB] bg-[#EFF6FF] ring-2 ring-[#BFDBFE]" : "border-[#E2E8F0] bg-white hover:border-[#BFDBFE]"}`}
@@ -825,8 +856,11 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                       <span className="text-xs font-semibold text-[#64748B]">|</span>
                       <span className="text-xs font-semibold text-[#64748B]">{ep.category || "Uncategorized"}</span>
                       {rowState !== "unsaved" ? <span className="soft-badge">{rowState}</span> : null}
+                      {ep.storyArchetype ? <span className="soft-badge">{ep.storyArchetype}</span> : null}
+                      {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Quality warning</span> : null}
                     </div>
                     <h3 className="mt-2 line-clamp-2 text-base font-semibold text-[#0F172A]">{ep.title || ep.id}</h3>
+                    {warnings.length ? <p className="mt-1 text-xs font-semibold text-amber-700">{warnings.join(", ")}</p> : null}
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-[#64748B]">Created: {ep.date}</p>
                       <div className="flex flex-wrap gap-2">

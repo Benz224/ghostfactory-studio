@@ -68,6 +68,9 @@ Prompt Scope:
 - Write creative content only.
 - GHOSTFACTORY code loads character assets, template config, continuity, voice lock, quality review, and final prompt assembly.
 - Do not recreate character anchor, template rules, quality scores, or memory logic.
+- Do not generate abstract summaries.
+- Never write Story as "Observation / Problem / Payoff".
+- Story must describe visible events in chronological order.
 
 ${buildCharacterLock(character)}
 
@@ -89,8 +92,14 @@ Batch Settings:
 Content Draft Rules:
 - Generate multiple EP options in one batch.
 - Create exactly ${videosPerEpisode} videos and ${framesPerEpisode} frames per EP.
-- Keep imagePrompt and videoPrompt concise. Code will assemble final structured prompts.
+- Every EP must include Hook, Goal, Obstacle, Escalation, and Payoff in the story.
+- Avoid flat structure: Observation -> Action -> End.
+- Use: Observation -> Goal -> Problem -> Escalation -> Payoff.
+- imagePrompt must be 40-80 words and include character action, emotion, environment, main prop, composition, camera framing, lighting, and visual mood.
+- videoPrompt must be 70-140 words and include start state, transition action, end state, camera movement, character movement, prop movement, environment audio, and emotional progression.
+- Do not output one-line object descriptions or short one-line video prompts.
 - Do not add subtitles, caption overlay, text overlay, watermark, or logo.
+- Do not output SECTION labels, Character Anchor, Episode State, Voice Profile, Quality Review, Core Idea debug, templateLogic, continuity notes, actionState, emotionState, dialogueIntent, or "From the previous beat".
 ${affiliateInstructions(contentGoal, affiliateBrief)}
 
 Output Rules:
@@ -169,8 +178,12 @@ Rules:
 ${character.rules.map((rule) => `- ${rule}`).join("\n")}
 ${globalRules.map((rule) => `- ${rule}`).join("\n")}
 - แต่ละ Prompt ต้องละเอียดพอสำหรับสร้างภาพ/วิดีโอ
-- Frame Prompt และ Video Prompt เขียนแบบสั้น ชัดเจน
-- ระบบ GHOSTFACTORY จะประกอบ Character Anchor, Continuity, Voice Lock, Prompt Sections และ Quality Review ใน code เอง
+- Frame Prompt ต้องเป็น creative image prompt 40-80 words เท่านั้น
+- Video Prompt ต้องเป็น creative video prompt 70-140 words เท่านั้น
+- Story ต้องเป็นเหตุการณ์ที่เห็นได้แบบเรียงเวลา และมี Hook, Goal, Obstacle, Escalation, Payoff
+- ห้ามเขียน Story แบบ Observation / Action / End หรือ Observation / Problem / Payoff
+- ระบบ GHOSTFACTORY จะประกอบ Character Anchor, Continuity, Voice Lock, Prompt Assembly และ Quality Review ใน code เอง
+- ห้ามใส่ Core Idea, Episode State, Voice Profile, Quality Review, storyBeat, actionState, emotionState, dialogueIntent, SECTION labels, หรือ From the previous beat ลง output
 
 วันนี้ให้สร้าง 6 EP:
 - 3 EP แบบ 24 วินาที ใช้ F1-F4 และ V1-V3
@@ -183,9 +196,6 @@ Format:
 Category:
 Viral Score:
 Story:
-Core Idea:
-Episode State:
-Voice Profile:
 Hook:
 
 Frames:
@@ -225,7 +235,6 @@ Duration:
 Video Prompt:
 
 Voice Script:
-Quality Review:
 Sound Effects:
 Caption:
 Hashtags:
@@ -281,12 +290,20 @@ JSON schema:
 }
 
 function cleanMemoryPhrase(value?: string) {
-  return value?.replace(/\s+/g, " ").trim();
+  return value
+    ?.replace(/From the previous beat\s*\([^)]*\),?\s*/gi, "")
+    .replace(/\b(Observation|Goal|Problem|Escalation|Payoff):\s*/gi, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function isUsefulMemoryPhrase(value: string) {
+  return Boolean(value) && !/^(same continuous scene|same room|main story prop|same time of day|cinematic lighting|continuous cinematic camera|continuous environment audio|controlled progression|curiosity\s*->\s*reaction|curious\s*->\s*tense\s*->\s*payoff|opening hook|initial beat position|final beat position|story beat|connector \d+)$/i.test(value);
 }
 
 function addUniquePhrase(list: string[], value?: string, max = 90) {
   const phrase = cleanMemoryPhrase(value);
-  if (!phrase) return;
+  if (!phrase || !isUsefulMemoryPhrase(phrase)) return;
   const clipped = phrase.length > max ? `${phrase.slice(0, max).trim()}...` : phrase;
   if (!list.some((item) => item.toLowerCase() === clipped.toLowerCase())) {
     list.push(clipped);

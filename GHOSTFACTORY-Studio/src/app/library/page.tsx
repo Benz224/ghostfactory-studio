@@ -36,8 +36,20 @@ function videoPromptText(ep: GhostEp, videoId?: string) {
   return (ep.videos ?? [])
     .filter((video) => !videoId || video.videoId === videoId)
     .filter((video) => video.videoPrompt.trim())
-    .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}`)
+    .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
+}
+
+function qualityWarnings(ep: GhostEp) {
+  const review = ep.qualityReview;
+  if (!review) return [];
+  const threshold = review.threshold || 85;
+  return [
+    review.storyDepthScore < threshold ? `Story Depth ${review.storyDepthScore}` : "",
+    review.promptDetailScore < threshold ? `Prompt Detail ${review.promptDetailScore}` : "",
+    review.templateMatchScore < threshold ? `Template Match ${review.templateMatchScore}` : "",
+    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : ""
+  ].filter(Boolean);
 }
 
 function packageText(ep: GhostEp) {
@@ -97,6 +109,7 @@ function EpDetailModal({
   const [draft, setDraft] = useState({ ...ep, checklist: checklistForEp(ep) });
   const [editMode, setEditMode] = useState(false);
   const checklist = checklistForEp(draft);
+  const warnings = qualityWarnings(draft);
 
   function updateDraft(patch: Partial<GhostEp>) {
     setDraft((current) => ({ ...current, ...patch }));
@@ -127,8 +140,11 @@ function EpDetailModal({
               <span>{draft.id}</span>
               <span>{displayDuration(draft)}</span>
               <span>{draft.status}</span>
+              {draft.storyArchetype ? <span>Archetype: {draft.storyArchetype}</span> : null}
+              {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-0.5 text-amber-700">Quality warning</span> : null}
             </div>
             <h2 className="mt-2 text-2xl font-semibold">{draft.title || draft.id}</h2>
+            {warnings.length ? <p className="mt-2 text-xs font-semibold text-amber-700">Check before save: {warnings.join(", ")}</p> : null}
           </div>
           <div className="flex gap-2">
             <button className="btn px-3" onClick={() => setEditMode((value) => !value)} type="button"><Edit3 size={18} />{editMode ? "Preview" : "Edit"}</button>
@@ -349,7 +365,8 @@ export default function LibraryPage() {
     }
     setEps((current) => current.map((item) => item.id === data.ep.id ? data.ep : item));
     setSelectedEp(data.ep);
-    setFeedback({ kind: "success", message: "EP saved" });
+    const warnings = qualityWarnings(data.ep);
+    setFeedback({ kind: warnings.length ? "warning" : "success", message: warnings.length ? `EP saved with quality warnings: ${warnings.join(", ")}` : "EP saved" });
   }
 
   async function archiveEp(ep: GhostEp) {
@@ -427,6 +444,7 @@ export default function LibraryPage() {
           const checklist = checklistForEp(ep);
           const counts = checklistCounts(checklist);
           const character = characters.find((item) => item.id === ep.characterId);
+          const warnings = qualityWarnings(ep);
           return (
             <article className="grid cursor-pointer gap-3 border-b border-[#E2E8F0] p-4 transition last:border-b-0 hover:bg-[#F8FAFC] lg:grid-cols-[84px_minmax(220px,1fr)_150px_150px_190px_160px]" key={ep.id} onClick={() => setSelectedEp({ ...ep, checklist })}>
               <ImagePreview className="aspect-square rounded-[8px]" label="EP Image" src={ep.thumbnailImage || Object.values(ep.frameImages ?? {}).find(Boolean)} />
@@ -434,8 +452,11 @@ export default function LibraryPage() {
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="font-semibold text-[#0F172A]">{ep.id}</h2>
                   <span className="soft-badge">{ep.status}</span>
+                  {ep.storyArchetype ? <span className="soft-badge">{ep.storyArchetype}</span> : null}
+                  {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Quality warning</span> : null}
                 </div>
                 <p className="mt-1 truncate text-sm font-semibold text-[#334155]">{ep.title || "Untitled EP"}</p>
+                {warnings.length ? <p className="mt-1 truncate text-xs font-semibold text-amber-700">{warnings.join(", ")}</p> : null}
                 <p className="mt-1 text-xs text-[#64748B]">Date: {ep.date}</p>
               </div>
               <div className="text-sm">
