@@ -96,10 +96,13 @@ Content Draft Rules:
 - Avoid flat structure: Observation -> Action -> End.
 - Use: Observation -> Goal -> Problem -> Escalation -> Payoff.
 - imagePrompt must be 40-80 words and include character action, emotion, environment, main prop, composition, camera framing, lighting, and visual mood.
-- videoPrompt must be 70-140 words and include start state, transition action, end state, camera movement, character movement, prop movement, environment audio, and emotional progression.
+- videoPrompt must be 70-140 words and include opening visual, motion progression, final visual, camera movement, character movement, prop movement, environment audio, and emotional change.
 - Do not output one-line object descriptions or short one-line video prompts.
 - Do not add subtitles, caption overlay, text overlay, watermark, or logo.
 - Do not output SECTION labels, Character Anchor, Episode State, Voice Profile, Quality Review, Core Idea debug, templateLogic, continuity notes, actionState, emotionState, dialogueIntent, or "From the previous beat".
+- Do not output labels such as Observation:, Goal:, Obstacle:, Escalation:, Payoff:, Story Beat:, or Beat: inside story, imagePrompt, or videoPrompt.
+- Do not use placeholder phrases such as main story prop, same continuous scene, least useful object nearby, human expectation, cat inspection, overthinking, absurd cat decision, continuity anchor, visual anchor, or emotion progression.
+- Write production-ready story and prompts directly, using concrete objects and locations.
 ${affiliateInstructions(contentGoal, affiliateBrief)}
 
 Output Rules:
@@ -184,6 +187,8 @@ ${globalRules.map((rule) => `- ${rule}`).join("\n")}
 - ห้ามเขียน Story แบบ Observation / Action / End หรือ Observation / Problem / Payoff
 - ระบบ GHOSTFACTORY จะประกอบ Character Anchor, Continuity, Voice Lock, Prompt Assembly และ Quality Review ใน code เอง
 - ห้ามใส่ Core Idea, Episode State, Voice Profile, Quality Review, storyBeat, actionState, emotionState, dialogueIntent, SECTION labels, หรือ From the previous beat ลง output
+- ห้ามใช้คำ placeholder เช่น main story prop, same continuous scene, least useful object nearby, continuity anchor, visual anchor, emotion progression
+- ห้ามใส่หัวข้อ Observation:, Goal:, Obstacle:, Escalation:, Payoff:, Story Beat:, Beat: ใน Story / Image Prompt / Video Prompt
 
 วันนี้ให้สร้าง 6 EP:
 - 3 EP แบบ 24 วินาที ใช้ F1-F4 และ V1-V3

@@ -1,4 +1,4 @@
-import type { CharacterProfile, ContentGoal, ContinuityAnchor, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeState, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VisualState, VoiceProfile } from "./types";
+import type { CharacterProfile, ContentGoal, ContinuityAnchor, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeFacts, EpisodeState, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VisualState, VoiceProfile } from "./types";
 import { createChecklistFromParts } from "./checklist";
 import { frameCountForTemplatePack, getTemplatePack } from "./template-packs";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
@@ -9,6 +9,8 @@ const CHARACTER_LOCK =
 const DEFAULT_CHARACTER_ANCHOR = buildCharacterAnchorFromAsset(getCharacterAsset("meow"));
 const GLOBAL_NEGATIVE_RULES =
   "no subtitles, no caption overlay, no text overlay, no watermark, no logo, no background music by default, vertical 9:16, commercial quality visuals";
+const productionBlockedPattern =
+  /\b(Observation|Problem|Obstacle|Payoff|Goal|Escalation|Story Beat|Beat)\s*:|Main Story Prop|main story prop|least useful object nearby|same continuous scene|previous beat|from the previous beat|human expectation|cat inspection|overthinking|absurd cat decision|template logic|continuity anchor|visual anchor|emotion progression|matching\s+F\d+|\btransition\b|start state\s*:|end state\s*:/i;
 const storyArchetypePool = [
   "Investigation",
   "Mission",
@@ -731,28 +733,42 @@ function stripAssemblySections(prompt: string) {
     .trim();
 }
 
-function leanPrompt(prompt: string) {
+export function leanPrompt(prompt: string) {
   return stripAssemblySections(prompt)
     .replace(CHARACTER_LOCK, "")
     .replace(GLOBAL_NEGATIVE_RULES, "")
     .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, "")
-    .replace(/\b(actionState|emotionState|dialogueIntent|storyBeat|emotionalIntensity):\s*[^.。!?\n]+/gi, "")
-    .replace(/\b(hook|evidence|escalation|realization|payoff|final approach|first action)\s*:\s*[\s\S]*?(?=\b(?:Meow|A fluffy|The fluffy|The camera|An orange|A small|Camera)\b)/gi, "")
+    .replace(/\b(actionState|emotionState|dialogueIntent|storyBeat|emotionalIntensity|template logic|continuity anchor|visual anchor|emotion progression):\s*[^.。!?\n]+/gi, "")
+    .replace(/\b(Observation|Problem|Obstacle|Payoff|Goal|Escalation|Story Beat|Beat|hook|evidence|realization|final approach|first action)\s*:\s*/gi, "")
     .replace(/\s*\.?\s*$/, "")
     .replace(/^\s*[.,;:-]\s*/, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
+function hasProductionBlockedText(text: string) {
+  return productionBlockedPattern.test(text);
+}
+
+function sanitizeProductionText(text: string) {
+  return leanPrompt(text)
+    .replace(/\b(main story prop|least useful object nearby|same continuous scene|previous beat|human expectation|cat inspection|overthinking|absurd cat decision|template logic|continuity anchor|visual anchor|emotion progression)\b/gi, "")
+    .replace(/\bmatching\s+F\d+\b/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/^\s*[.,;:-]\s*/, "")
+    .trim();
+}
+
 export function renderImagePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index = ep.frames.findIndex((item) => item.frameId === frame.frameId)) {
-  void ep;
-  void index;
-  return leanPrompt(frame.imagePrompt);
+  const clean = sanitizeProductionText(frame.imagePrompt);
+  if (countWords(clean) >= 40 && !hasProductionBlockedText(clean) && !hasInternalPromptLeak(clean)) return clean;
+  return productionFramePrompt(ep, frame, Math.max(0, index));
 }
 
 export function renderVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
-  void ep;
-  return leanPrompt(video.videoPrompt);
+  const clean = sanitizeProductionText(video.videoPrompt);
+  if (countWords(clean) >= 70 && !hasProductionBlockedText(clean) && !hasInternalPromptLeak(clean)) return clean;
+  return productionVideoPrompt(ep, video, Math.max(0, ep.videos.findIndex((item) => item.videoId === video.videoId)));
 }
 
 export function assembleEpPrompts(ep: GhostEp): GhostEp {
@@ -777,20 +793,20 @@ export function leanEpOutput(ep: GhostEp): GhostEp {
     ...ep,
     frames: ep.frames.map((frame) => ({
       frameId: frame.frameId,
-      title: frame.title,
-      imagePrompt: leanPrompt(frame.imagePrompt)
+      title: sanitizeProductionText(frame.title),
+      imagePrompt: renderImagePrompt(ep, frame)
     })),
     videos: ep.videos.map((video) => ({
       videoId: video.videoId,
       fromFrame: video.fromFrame,
       toFrame: video.toFrame,
       durationSec: video.durationSec,
-      videoPrompt: leanPrompt(video.videoPrompt),
-      camera: video.camera,
-      motion: video.motion,
-      audio: video.audio,
+      videoPrompt: renderVideoPrompt(ep, video),
+      camera: sanitizeProductionText(video.camera),
+      motion: sanitizeProductionText(video.motion),
+      audio: sanitizeProductionText(video.audio),
       dialogue: video.dialogue,
-      mood: video.mood
+      mood: sanitizeProductionText(video.mood)
     }))
   };
 }
@@ -834,11 +850,11 @@ function beatFunctions(ep: GhostEp, frameCount: number) {
 }
 
 function mainObjectForEp(ep: GhostEp) {
-  return ep.episodeState?.mainProps || ep.episodeState?.props || ep.coreIdea?.hookMechanic || "main object";
+  return safeFact(ep.episodeState?.mainProps || ep.episodeState?.props || ep.coreIdea?.hookMechanic || "", "cardboard box");
 }
 
 function locationForEp(ep: GhostEp) {
-  return ep.episodeState?.primaryLocation || ep.episodeState?.location || "same room";
+  return safeFact(ep.episodeState?.primaryLocation || ep.episodeState?.location || "", "bedroom");
 }
 
 function catLogicPayoffObject(ep: GhostEp) {
@@ -846,7 +862,83 @@ function catLogicPayoffObject(ep: GhostEp) {
   if (/bed|cushion|pillow|ที่นอน|เบาะ|หมอน/.test(source)) return "the remote control beside it";
   if (/toy|ของเล่น|ball|ลูกบอล/.test(source)) return "the empty box";
   if (/feeder|food|อาหาร|ชาม/.test(source)) return "the paper bag near the bowl";
-  return "the least useful object nearby";
+  if (/curtain|ม่าน|sunlight|แดด/.test(source)) return "the closed curtain";
+  if (/basket|laundry|ตะกร้า/.test(source)) return "the laundry basket handle";
+  if (/fan|พัดลม/.test(source)) return "the cool tile beside the fan";
+  return "the cardboard box beside the furniture";
+}
+
+function safeFact(value: string, fallback: string) {
+  const clean = sanitizeProductionText(value);
+  return clean && !hasProductionBlockedText(clean) ? clean : fallback;
+}
+
+function extractObjectFromText(text: string) {
+  const candidates = [
+    ["curtain", /curtain|ม่าน/i],
+    ["sunlight", /sunlight|แดด|แสงแดด/i],
+    ["cardboard box", /cardboard box|box|กล่อง/i],
+    ["laundry basket", /laundry basket|basket|ตะกร้า/i],
+    ["electric fan", /fan|พัดลม/i],
+    ["food bowl", /food bowl|bowl|ชาม/i],
+    ["soft cat bed", /cat bed|bed|cushion|pillow|ที่นอน|เบาะ|หมอน/i],
+    ["toy ball", /toy|ball|ของเล่น|ลูกบอล/i],
+    ["wooden door", /door|ประตู/i],
+    ["remote control", /remote|รีโมท/i]
+  ] as const;
+  return candidates.find(([, pattern]) => pattern.test(text))?.[0] ?? "";
+}
+
+function extractLocationFromText(text: string) {
+  const candidates = [
+    ["bedroom", /bedroom|bed room|ห้องนอน/i],
+    ["living room", /living room|ห้องนั่งเล่น/i],
+    ["kitchen", /kitchen|ครัว/i],
+    ["old wooden hallway", /hallway|corridor|ทางเดิน/i],
+    ["laundry corner", /laundry|ซักผ้า/i],
+    ["sunny window corner", /window|curtain|หน้าต่าง|ม่าน/i]
+  ] as const;
+  return candidates.find(([, pattern]) => pattern.test(text))?.[0] ?? "";
+}
+
+function slugFact(value: string, fallback: string) {
+  const slug = sanitizeProductionText(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9ก-๙]+/gi, "_")
+    .replace(/^_+|_+$/g, "")
+    .slice(0, 80);
+  return slug || fallback;
+}
+
+export function parseEpisodeFacts(ep: GhostEp): EpisodeFacts {
+  const source = [
+    ep.title,
+    ep.hook,
+    ep.story,
+    ep.coreIdea?.centralIdea,
+    ep.coreIdea?.hookMechanic,
+    ep.coreIdea?.payoffMechanic,
+    ep.episodeState?.mainProps,
+    ep.episodeState?.props,
+    ep.episodeState?.location,
+    ep.episodeState?.primaryLocation,
+    ...ep.frames.map((frame) => `${frame.title} ${frame.imagePrompt}`),
+    ...ep.videos.map((video) => video.videoPrompt)
+  ].join(" ");
+  const mainObject = safeFact(
+    extractObjectFromText(`${ep.episodeState?.mainProps || ep.episodeState?.props || ""} ${source}`) || ep.episodeState?.mainProps || ep.episodeState?.props || "",
+    "cardboard box"
+  );
+  const secondaryObject = safeFact(
+    extractObjectFromText(source.replace(new RegExp(mainObject.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "ig"), "")),
+    /curtain|window/i.test(mainObject) ? "morning sunlight" : "warm sunlight"
+  );
+  const location = safeFact(extractLocationFromText(source) || ep.episodeState?.primaryLocation || ep.episodeState?.location || "", "bedroom");
+  const storyArchetype = safeFact(selectStoryArchetype(ep), "Daily Life");
+  const hookType = /human|viewer|expect|มนุษย์|คน/i.test(source) ? "human_vs_cat" : /sound|voice|เสียง|horror|nightmare/i.test(source) ? "strange_evidence" : "cat_logic";
+  const endingMechanic = slugFact(ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.videos[ep.videos.length - 1]?.videoPrompt || "", `${mainObject.replace(/\s+/g, "_")}_cat_payoff`);
+  const catLogicType = /sleep|nap|นอน/i.test(source) ? "protect_sleep" : /box|กล่อง/i.test(source) ? "box_priority" : /sun|light|curtain|แดด|ม่าน/i.test(source) ? "control_light" : "cat_rules_win";
+  return { mainObject, secondaryObject, location, hookType, endingMechanic, storyArchetype, catLogicType };
 }
 
 function archetypeStoryPlan(ep: GhostEp) {
@@ -1102,40 +1194,42 @@ export function generateStoryBeats(ep: GhostEp): StoryBeat[] {
 export function generateEpisodeState(ep: GhostEp): EpisodeState {
   const old = { ...defaultEpisodeState(), ...(ep.episodeState ?? {}) };
   const firstFrameText = stripAssemblySections(ep.frames[0]?.imagePrompt ?? "");
-  const location = old.primaryLocation || old.location || old.continuityAnchor || "same continuous scene";
-  const lighting = old.lightingStyle || old.lighting || "cinematic lighting";
-  const props = old.mainProps || old.props || "main story prop";
-  const camera = old.cameraLanguage || old.camera || "continuous cinematic camera";
+  const detectedLocation = extractLocationFromText(`${old.primaryLocation} ${old.location} ${old.continuityAnchor} ${firstFrameText}`);
+  const detectedObject = extractObjectFromText(`${old.mainProps} ${old.props} ${firstFrameText} ${ep.story} ${ep.hook}`);
+  const location = safeFact(old.primaryLocation || old.location || detectedLocation, "bedroom");
+  const lighting = safeFact(old.lightingStyle || old.lighting, "warm morning sunlight");
+  const props = safeFact(old.mainProps || old.props || detectedObject, "cardboard box");
+  const camera = safeFact(old.cameraLanguage || old.camera, "low cinematic camera");
   return {
     ...old,
     primaryLocation: location,
     location,
-    timeOfDay: old.timeOfDay || "same time of day",
+    timeOfDay: old.timeOfDay || "morning",
     lightingStyle: lighting,
     mainProps: props,
     continuityAnchor: old.continuityAnchor || `${location}, ${props}`,
-    characterStartPosition: old.characterStartPosition || "initial beat position",
-    characterEndPosition: old.characterEndPosition || "final beat position",
+    characterStartPosition: old.characterStartPosition || `near the ${props}`,
+    characterEndPosition: old.characterEndPosition || `settled beside the ${props}`,
     lighting,
     props,
     voice: old.voice || ep.voiceProfile?.preset || ep.characterName,
     camera,
     cameraLanguage: camera,
-    environmentAudio: old.environmentAudio || "continuous environment audio",
+    environmentAudio: old.environmentAudio || "soft room tone and tiny paw steps",
     visualAnchor: old.visualAnchor || props || firstFrameText,
-    emotionProgression: old.emotionProgression || ep.coreIdea?.emotionTarget || "curious -> tense -> payoff"
+    emotionProgression: old.emotionProgression || ep.coreIdea?.emotionTarget || "sleepy curiosity to proud confidence"
   };
 }
 
 export function generateContinuityAnchor(ep: GhostEp): ContinuityAnchor {
   const state = ep.episodeState ?? defaultEpisodeState();
   return {
-    location: state.primaryLocation || state.location || "same continuous scene",
-    mainProp: state.mainProps || state.props || "main story prop",
-    lighting: state.lightingStyle || state.lighting || "cinematic lighting",
-    timeOfDay: state.timeOfDay || "same time of day",
-    cameraStyle: state.cameraLanguage || state.camera || "continuous cinematic camera",
-    emotionArc: state.emotionProgression || ep.coreIdea?.emotionTarget || "controlled progression"
+    location: safeFact(state.primaryLocation || state.location, "bedroom"),
+    mainProp: safeFact(state.mainProps || state.props, "cardboard box"),
+    lighting: safeFact(state.lightingStyle || state.lighting, "warm morning sunlight"),
+    timeOfDay: state.timeOfDay || "morning",
+    cameraStyle: safeFact(state.cameraLanguage || state.camera, "low cinematic camera"),
+    emotionArc: safeFact(state.emotionProgression || ep.coreIdea?.emotionTarget || "", "sleepy curiosity to proud confidence")
   };
 }
 
@@ -1450,7 +1544,7 @@ function promptDetailScore(ep: GhostEp) {
   const frameScores = ep.frames.map((frame) => {
     const text = leanPrompt(frame.imagePrompt);
     const count = countWords(text);
-    const hasLeak = hasInternalPromptLeak(text);
+    const hasLeak = hasInternalPromptLeak(text) || hasProductionBlockedText(text);
     const lengthScore = count >= 40 && count <= 90 ? 1 : count >= 28 ? 0.65 : 0.25;
     const detailSignals = [
       /meow|cat|แมว/i,
@@ -1465,7 +1559,7 @@ function promptDetailScore(ep: GhostEp) {
   const videoScores = ep.videos.map((video) => {
     const text = leanPrompt(video.videoPrompt);
     const count = countWords(text);
-    const hasLeak = hasInternalPromptLeak(text);
+    const hasLeak = hasInternalPromptLeak(text) || hasProductionBlockedText(text);
     const lengthScore = count >= 70 && count <= 150 ? 1 : count >= 45 ? 0.65 : 0.25;
     const detailSignals = [
       /start|begins|initial|จาก|เริ่ม/i,
@@ -1482,12 +1576,25 @@ function promptDetailScore(ep: GhostEp) {
   return scores.length ? Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length) : 0;
 }
 
+function productionLeakCount(ep: GhostEp) {
+  const fields = [
+    ep.story,
+    ep.hook,
+    ep.caption,
+    ep.soundEffects,
+    ...ep.frames.map((frame) => `${frame.title} ${frame.imagePrompt}`),
+    ...ep.videos.map((video) => `${video.videoPrompt} ${video.camera} ${video.motion} ${video.audio} ${video.mood}`)
+  ];
+  return fields.filter((field) => hasProductionBlockedText(field)).length;
+}
+
 function enforcePromptLength(ep: GhostEp): GhostEp {
+  const facts = parseEpisodeFacts(ep);
   const frames = ep.frames.map((frame, index) => {
     const clean = leanPrompt(frame.imagePrompt);
     return {
       ...frame,
-      imagePrompt: countWords(clean) < 40 || hasInternalPromptLeak(clean) ? expandFramePrompt(clean, ep, frame, index) : clean
+      imagePrompt: countWords(clean) < 40 || hasInternalPromptLeak(clean) || hasProductionBlockedText(clean) ? productionFramePrompt(ep, frame, index, facts) : clean
     };
   });
   const frameFixedEp = { ...ep, frames };
@@ -1495,8 +1602,8 @@ function enforcePromptLength(ep: GhostEp): GhostEp {
     const clean = leanPrompt(video.videoPrompt);
     return {
       ...video,
-      videoPrompt: countWords(clean) < 70 || hasInternalPromptLeak(clean) ? expandVideoPrompt(clean, frameFixedEp, video) : clean,
-      motion: video.motion?.trim() || clean || `Meow moves from ${video.fromFrame} to ${video.toFrame} in the same scene.`
+      videoPrompt: countWords(clean) < 70 || hasInternalPromptLeak(clean) || hasProductionBlockedText(clean) ? productionVideoPrompt(frameFixedEp, video, index, facts) : clean,
+      motion: sanitizeProductionText(video.motion?.trim() || clean || `Meow moves with careful curiosity around the ${facts.mainObject}.`)
     };
   });
   return { ...frameFixedEp, videos };
@@ -1507,27 +1614,30 @@ function isAbstractStory(story: string) {
   return /^(observation|problem|payoff)\b|observation\s*[-→>\/]+|problem\s*[-→>\/]+|payoff\s*[-→>\/]+/i.test(text) || countWords(story) < 35;
 }
 
+function storyHasNarrativeShape(story: string) {
+  const text = story.toLowerCase();
+  const beginning = /morning|night|inside|opens|places|starts|appears|notices|ยาม|ตอน|ในห้อง|เริ่ม|เห็น/.test(text);
+  const action = /walk|move|pull|tap|sniff|test|grab|circle|steps|เดิน|ดึง|แตะ|ขยับ|สำรวจ/.test(text);
+  const reaction = /react|eyes|expression|suspicious|surprised|proud|sleepy|annoyed|สงสัย|ตกใจ|ภูมิใจ|ง่วง/.test(text);
+  const ending = /end|finally|settles|claims|returns|leaves|wins|victorious|สุดท้าย|จบ|กลับ|ชนะ/.test(text);
+  return beginning && action && reaction && ending;
+}
+
+function needsStoryRewrite(story: string) {
+  const clean = sanitizeProductionText(story);
+  return countWords(clean) < 50 || hasProductionBlockedText(story) || !storyHasNarrativeShape(clean);
+}
+
 function expandFramePrompt(prompt: string, ep: GhostEp, frame: GhostEp["frames"][number], index: number) {
   const base = leanPrompt(prompt);
-  if (countWords(base) >= 40 && !hasInternalPromptLeak(base)) return base;
-  const object = mainObjectForEp(ep);
-  const location = locationForEp(ep);
-  const lighting = ep.continuityAnchor?.lighting || ep.episodeState?.lightingStyle || "soft cinematic lighting";
-  const mood = ep.storyBeats?.[index]?.role || "focused story moment";
-  return leanPrompt(`${base || frame.title || "Meow reacts to the main story object"} in ${location}, with ${object} clearly visible as the main prop. Meow shows a specific action and readable emotion, framed in a balanced vertical 9:16 composition with medium cinematic camera distance, visible environment details, ${lighting}, natural shadows, and a polished ${mood} mood.`);
+  if (countWords(base) >= 40 && !hasInternalPromptLeak(base) && !hasProductionBlockedText(base)) return base;
+  return productionFramePrompt(ep, frame, index);
 }
 
 function expandVideoPrompt(prompt: string, ep: GhostEp, video: GhostEp["videos"][number]) {
   const base = leanPrompt(prompt);
-  if (countWords(base) >= 70 && !hasInternalPromptLeak(base)) return base;
-  const object = mainObjectForEp(ep);
-  const location = locationForEp(ep);
-  const audio = ep.episodeState?.environmentAudio || video.audio || "soft room tone";
-  const fromFrame = ep.frames.find((frame) => frame.frameId === video.fromFrame);
-  const toFrame = ep.frames.find((frame) => frame.frameId === video.toFrame);
-  const start = leanPrompt(fromFrame?.imagePrompt || fromFrame?.title || `${video.fromFrame} setup`);
-  const end = leanPrompt(toFrame?.imagePrompt || toFrame?.title || `${video.toFrame} result`);
-  return leanPrompt(`${base || "Meow continues the action without changing scene."} The shot starts with Meow in ${location}, matching ${video.fromFrame}: ${start}. Meow transitions toward ${object} through one visible movement, keeping the same personality and emotional progression. The camera moves smoothly with a slow cinematic follow, the prop stays in the same scene, ${audio} continues underneath, and the shot ends on ${video.toFrame}: ${end}.`);
+  if (countWords(base) >= 70 && !hasInternalPromptLeak(base) && !hasProductionBlockedText(base)) return base;
+  return productionVideoPrompt(ep, video, ep.videos.findIndex((item) => item.videoId === video.videoId));
 }
 
 function coreIdeaConsistencyScore(ep: GhostEp) {
@@ -1547,6 +1657,41 @@ function coreIdeaConsistencyScore(ep: GhostEp) {
   return scoreFromRatio(Math.min(1, tokenOverlapRatio(idea, content) * 2.5));
 }
 
+function productionStory(ep: GhostEp, facts = parseEpisodeFacts(ep)) {
+  return [
+    `Morning light settles inside the ${facts.location} while a human leaves the ${facts.mainObject} in the perfect spot for normal use.`,
+    `Meow notices it immediately, narrows his sleepy eyes, and decides the object has interrupted the private rule system of the room.`,
+    `He walks closer with careful little steps, sniffs the edge, taps it once, and reacts as if the ${facts.secondaryObject} has confirmed his suspicion.`,
+    `The situation becomes more serious when Meow tries a second method, changes his angle, and turns a tiny everyday problem into a full cat mission.`,
+    `By the end, Meow chooses his own solution, claims the space with quiet confidence, and leaves the human logic behind like it never mattered.`
+  ].join(" ");
+}
+
+function productionFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index: number, facts = parseEpisodeFacts(ep)) {
+  const actions = [
+    `Meow sitting near the ${facts.mainObject}, staring at it with suspicious sleepy eyes`,
+    `Meow stepping closer to the ${facts.mainObject}, one paw lifted as he studies the edge`,
+    `Meow testing the ${facts.mainObject} with a careful tap while his ears tilt forward`,
+    `Meow reacting dramatically beside the ${facts.mainObject}, tail raised and face determined`,
+    `Meow claiming the area near the ${facts.secondaryObject}, looking proud and completely serious`,
+    `Meow resting after solving the problem his own way, calm expression and fluffy orange fur glowing`
+  ];
+  const action = actions[index] ?? actions[actions.length - 1];
+  return `${action} inside a detailed ${facts.location}, the ${facts.secondaryObject} visible in the background, clear character emotion, warm natural lighting, soft shadows, balanced vertical 9:16 composition, medium cinematic camera framing, polished Pixar-quality 3D animation, high quality fur detail, cozy production-ready visual mood.`;
+}
+
+function productionVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number], index: number, facts = parseEpisodeFacts(ep)) {
+  const actions = [
+    `Meow slowly walks toward the ${facts.mainObject} while keeping his eyes locked on it, ears tilted forward with curious suspicion.`,
+    `Meow circles the ${facts.mainObject} once, sniffs the edge, and taps it with one paw as if testing a secret rule.`,
+    `Meow changes strategy, moves around the ${facts.secondaryObject}, and reacts with growing determination as the room stays quiet.`,
+    `Meow makes the final cat-logic decision, claims the space beside the ${facts.mainObject}, and settles with a proud sleepy expression.`,
+    `Meow finishes the tiny mission by relaxing near the ${facts.secondaryObject}, calm and victorious while the human solution is ignored.`
+  ];
+  const action = actions[index] ?? actions[actions.length - 1];
+  return `${action} The camera begins at a low medium angle in the ${facts.location}, then glides smoothly beside Meow as his body movement becomes more deliberate. Warm light falls across his orange striped fur, small dust particles drift in the air, and the ${facts.secondaryObject} remains visible as environmental context. The motion builds from cautious curiosity into confident cat logic, ending with Meow holding the frame in a polished Pixar-quality 3D animation style, vertical 9:16, cinematic lighting.`;
+}
+
 function conciseCreativeFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index: number) {
   const existing = leanPrompt(frame.imagePrompt);
   if (existing && !hasInternalPromptLeak(existing) && countWords(existing) >= 40) return existing;
@@ -1556,7 +1701,7 @@ function conciseCreativeFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number
   if (pack.id === "cute-daily-life") {
     const base = index === ep.frames.length - 1
       ? `Meow staring intensely at ${catLogicPayoffObject(ep)} with serious cat logic`
-      : `Meow inspecting ${object} with focused curiosity and a cute overthinking expression`;
+      : `Meow inspecting ${object} with focused curiosity and a cute thoughtful expression`;
     return expandFramePrompt(base, ep, frame, index);
   }
   if (pack.id === "sigma-cat") {
@@ -1615,8 +1760,9 @@ function conciseCreativeVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number
 export function runQualityReview(ep: GhostEp): QualityReview {
   const storyDepthScore = validateStoryDepth(ep.storyBeats ?? []).score;
   const promptDetailScoreValue = promptDetailScore(ep);
+  const leakPenalty = productionLeakCount(ep) ? 0.45 : 0;
   const storyQualityScore = scoreFromRatio(
-    (isAbstractStory(ep.story) ? 0 : 0.45) +
+    Math.max(0, (isAbstractStory(ep.story) || needsStoryRewrite(ep.story) ? 0 : 0.45) - leakPenalty) +
     (Math.min(1, countWords(ep.story) / 80) * 0.35) +
     ((storyDepthScore / 100) * 0.2)
   );
@@ -1756,31 +1902,45 @@ function applyStoryQualityFilter(ep: GhostEp): GhostEp {
 }
 
 export function sanitizeGeneratedEp(ep: GhostEp): GhostEp {
-  const lengthChecked = enforcePromptLength(ep);
+  return sanitizeProductionOutput(ep);
+}
+
+export function sanitizeProductionOutput(ep: GhostEp): GhostEp {
+  const facts = parseEpisodeFacts(ep);
+  const lengthChecked = enforcePromptLength({ ...ep, episodeFacts: facts });
+  const story = needsStoryRewrite(lengthChecked.story) ? productionStory(lengthChecked, facts) : sanitizeProductionText(lengthChecked.story);
+  const hook = hasProductionBlockedText(lengthChecked.hook) || !sanitizeProductionText(lengthChecked.hook)
+    ? `Meow notices the ${facts.mainObject} in the ${facts.location} and decides normal human logic is wrong.`
+    : sanitizeProductionText(lengthChecked.hook);
   const cleanFrames = lengthChecked.frames.map((frame) => ({
     frameId: frame.frameId,
     title: leanPrompt(frame.title),
-    imagePrompt: leanPrompt(frame.imagePrompt)
+    imagePrompt: renderImagePrompt({ ...lengthChecked, story, hook, episodeFacts: facts }, frame)
   }));
   const cleanVideos = lengthChecked.videos.map((video, index) => ({
     videoId: video.videoId || `V${index + 1}`,
     fromFrame: video.fromFrame || `F${index + 1}`,
     toFrame: video.toFrame || `F${index + 2}`,
     durationSec: Math.max(1, Number(video.durationSec || 8)),
-    videoPrompt: leanPrompt(video.videoPrompt),
-    camera: leanPrompt(video.camera),
-    motion: leanPrompt(video.motion),
-    audio: leanPrompt(video.audio),
+    videoPrompt: renderVideoPrompt({ ...lengthChecked, frames: cleanFrames, story, hook, episodeFacts: facts }, video),
+    camera: sanitizeProductionText(video.camera) || `low cinematic camera following Meow inside the ${facts.location}`,
+    motion: sanitizeProductionText(video.motion) || `Meow moves carefully around the ${facts.mainObject} with growing confidence`,
+    audio: sanitizeProductionText(video.audio) || `soft room tone, tiny paw steps, gentle fabric rustle`,
     dialogue: ep.language === "No Dialogue" ? "" : video.dialogue.trim(),
-    mood: leanPrompt(video.mood)
+    mood: sanitizeProductionText(video.mood) || "curious, cozy, lightly dramatic"
   }));
   const next: GhostEp = {
     ...ep,
+    story,
+    hook,
     storyArchetype: selectStoryArchetype(ep),
+    episodeFacts: facts,
     frames: cleanFrames,
     videos: cleanVideos,
     durationSec: cleanVideos.reduce((sum, video) => sum + video.durationSec, 0) || ep.durationSec,
     voiceScript: buildVoiceScriptFromDialogue(cleanVideos, "", ep.language),
+    soundEffects: sanitizeProductionText(ep.soundEffects),
+    caption: sanitizeProductionText(ep.caption),
     hashtags: Array.isArray(ep.hashtags) ? ep.hashtags.map((tag) => String(tag).trim()).filter(Boolean) : []
   };
   next.qualityReview = runQualityReview(next);

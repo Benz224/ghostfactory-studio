@@ -2,7 +2,8 @@ import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
-import type { CharacterProfile, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
+import { sanitizeProductionOutput } from "./ep-generator";
+import type { CharacterProfile, EpisodeFacts, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
 const dataDir = path.join(root, "data");
@@ -194,6 +195,10 @@ export type EpisodeMemoryEntry = {
   epId: string;
   title: string;
   storyArchetype?: string;
+  episodeFacts?: EpisodeFacts;
+  secondaryObject?: string;
+  hookType?: string;
+  catLogicType?: string;
   centralIdea: string;
   storyBeats: string[];
   coreConflict: string;
@@ -623,7 +628,7 @@ export async function saveEpisodeMemory(memory: EpisodeMemoryEntry[]) {
 function isMeaningfulMemoryPhrase(value: string) {
   const text = value.trim();
   if (text.length < 3) return false;
-  return !/^(same continuous scene|same room|main story prop|same time of day|cinematic lighting|continuous cinematic camera|continuous environment audio|controlled progression|curiosity\s*->\s*reaction|curious\s*->\s*tense\s*->\s*payoff|opening hook|initial beat position|final beat position|story beat|connector \d+)$/i.test(text);
+  return !/^(same continuous scene|same room|main story prop|least useful object nearby|same time of day|cinematic lighting|continuous cinematic camera|continuous environment audio|controlled progression|curiosity\s*->\s*reaction|curious\s*->\s*tense\s*->\s*payoff|opening hook|initial beat position|final beat position|story beat|connector \d+)$/i.test(text);
 }
 
 function cleanMemoryPhrase(value = "") {
@@ -637,22 +642,28 @@ function cleanMemoryPhrase(value = "") {
 
 export async function updateEpisodeMemoryFromEp(ep: GhostEp) {
   const memory = await getEpisodeMemory();
-  const endingMechanic = cleanMemoryPhrase(ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "");
+  const cleanEp = sanitizeProductionOutput(ep);
+  const facts = cleanEp.episodeFacts;
+  const endingMechanic = cleanMemoryPhrase(facts?.endingMechanic || cleanEp.coreIdea?.payoffMechanic || cleanEp.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "");
   const entry: EpisodeMemoryEntry = {
-    epId: ep.id,
-    title: cleanMemoryPhrase(ep.title),
-    storyArchetype: cleanMemoryPhrase(ep.storyArchetype ?? ""),
-    centralIdea: cleanMemoryPhrase(ep.coreIdea?.centralIdea ?? ""),
-    storyBeats: (ep.storyBeats ?? []).map((beat) => cleanMemoryPhrase(beat.beat)).filter(Boolean),
-    coreConflict: cleanMemoryPhrase(ep.coreIdea?.coreConflict ?? ""),
-    hookMechanic: cleanMemoryPhrase(ep.coreIdea?.hookMechanic || ep.hook),
+    epId: cleanEp.id,
+    title: cleanMemoryPhrase(cleanEp.title),
+    storyArchetype: cleanMemoryPhrase(facts?.storyArchetype || cleanEp.storyArchetype || ""),
+    episodeFacts: facts,
+    secondaryObject: cleanMemoryPhrase(facts?.secondaryObject ?? ""),
+    hookType: cleanMemoryPhrase(facts?.hookType ?? ""),
+    catLogicType: cleanMemoryPhrase(facts?.catLogicType ?? ""),
+    centralIdea: cleanMemoryPhrase(cleanEp.coreIdea?.centralIdea ?? ""),
+    storyBeats: (cleanEp.storyBeats ?? []).map((beat) => cleanMemoryPhrase(beat.beat)).filter(Boolean),
+    coreConflict: cleanMemoryPhrase(cleanEp.coreIdea?.coreConflict ?? ""),
+    hookMechanic: cleanMemoryPhrase(facts?.hookType || cleanEp.coreIdea?.hookMechanic || cleanEp.hook),
     endingMechanic,
-    location: cleanMemoryPhrase(ep.episodeState?.primaryLocation || ep.episodeState?.location || ""),
-    mainObject: cleanMemoryPhrase(ep.episodeState?.mainProps || ep.episodeState?.props || ""),
-    template: cleanMemoryPhrase(ep.templateName || ep.category),
+    location: cleanMemoryPhrase(facts?.location || cleanEp.episodeState?.primaryLocation || cleanEp.episodeState?.location || ""),
+    mainObject: cleanMemoryPhrase(facts?.mainObject || cleanEp.episodeState?.mainProps || cleanEp.episodeState?.props || ""),
+    template: cleanMemoryPhrase(cleanEp.templateName || cleanEp.category),
     createdAt: new Date().toISOString()
   };
-  const next = [entry, ...memory.filter((item) => item.epId !== ep.id)];
+  const next = [entry, ...memory.filter((item) => item.epId !== cleanEp.id)];
   await saveEpisodeMemory(next);
   return entry;
 }
@@ -842,7 +853,8 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     createdAt: ep.createdAt || new Date().toISOString(),
     updatedAt: ep.updatedAt || ep.createdAt || new Date().toISOString()
   };
-  return { ...normalized, checklist: checklistForEp(normalized) };
+  const production = sanitizeProductionOutput({ ...normalized, checklist: checklistForEp(normalized) });
+  return { ...production, checklist: checklistForEp(production) };
 }
 
 function safeSegment(input: string) {
@@ -850,10 +862,11 @@ function safeSegment(input: string) {
 }
 
 export function createMarkdown(ep: GhostEp) {
-  const frames = ep.frames
+  const production = sanitizeProductionOutput(ep);
+  const frames = production.frames
     .map((frame) => `### ${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
     .join("\n\n");
-  const videos = ep.videos
+  const videos = production.videos
     .map(
       (video) =>
         `### ${video.videoId}\n${video.videoPrompt}`
@@ -861,40 +874,40 @@ export function createMarkdown(ep: GhostEp) {
     )
     .join("\n\n");
 
-  return `# ${ep.title}
+  return `# ${production.title}
 
 ## Format
-${ep.format}
+${production.format}
 
 ## Status
-${ep.status}
+${production.status}
 
 ## Character
-${ep.characterName} (${ep.characterId})
+${production.characterName} (${production.characterId})
 
 ## Template
-${ep.templateName} (${ep.templateId})
+${production.templateName} (${production.templateId})
 
 ## Content Goal
-${ep.contentGoal}
+${production.contentGoal}
 
 ## Spoken Language
-${ep.language}
+${production.language}
 
 ## Thumbnail Image
-${ep.thumbnailImage ? "stored in ep.json" : ""}
+${production.thumbnailImage ? "stored in ep.json" : ""}
 
 ## Category
-${ep.category}
+${production.category}
 
 ## Viral Score
-${ep.viralScore}
+${production.viralScore}
 
 ## Story
-${ep.story}
+${production.story}
 
 ## Hook
-${ep.hook}
+${production.hook}
 
 ## Frames
 
@@ -905,25 +918,27 @@ ${frames}
 ${videos}
 
 ## Voice Script
-${ep.voiceScript}
+${production.voiceScript}
 
 ## Sound Effects
-${ep.soundEffects}
+${production.soundEffects}
 
 ## Caption
-${ep.caption}
+${production.caption}
 
 ## Hashtags
-${ep.hashtags.join(" ")}
+${production.hashtags.join(" ")}
 `;
 }
 
 export function framesText(ep: GhostEp) {
-  return ep.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
+  const production = sanitizeProductionOutput(ep);
+  return production.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
 }
 
 export function videosText(ep: GhostEp) {
-  return ep.videos
+  const production = sanitizeProductionOutput(ep);
+  return production.videos
     .map(
       (video) =>
         `${video.videoId}\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
@@ -933,16 +948,17 @@ export function videosText(ep: GhostEp) {
 
 export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) {
   const settings = await getSettings();
-  const epDir = path.join(root, outputRootOverride || settings.outputRoot, ep.date, ep.format, safeSegment(ep.id));
+  const production = sanitizeProductionOutput(ep);
+  const epDir = path.join(root, outputRootOverride || settings.outputRoot, production.date, production.format, safeSegment(production.id));
   await fs.mkdir(epDir, { recursive: true });
   const filePath = path.join(epDir, "prompts.md");
-  await fs.writeFile(filePath, createMarkdown(ep), "utf8");
+  await fs.writeFile(filePath, createMarkdown(production), "utf8");
   await Promise.all([
-    fs.writeFile(path.join(epDir, "frames.txt"), framesText(ep), "utf8"),
-    fs.writeFile(path.join(epDir, "videos.txt"), videosText(ep), "utf8"),
-    fs.writeFile(path.join(epDir, "caption.txt"), `${ep.caption}\n\n${ep.hashtags.join(" ")}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "voice-script.txt"), `${ep.voiceScript}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(ep, null, 2)}\n`, "utf8")
+    fs.writeFile(path.join(epDir, "frames.txt"), framesText(production), "utf8"),
+    fs.writeFile(path.join(epDir, "videos.txt"), videosText(production), "utf8"),
+    fs.writeFile(path.join(epDir, "caption.txt"), `${production.caption}\n\n${production.hashtags.join(" ")}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "voice-script.txt"), `${production.voiceScript}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(production, null, 2)}\n`, "utf8")
   ]);
   return { epDir, markdownPath: filePath };
 }

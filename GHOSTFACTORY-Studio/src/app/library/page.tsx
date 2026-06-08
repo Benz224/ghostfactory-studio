@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ImagePicker, ImagePreview } from "@/components/ImagePicker";
 import { checklistCounts, checklistForEp } from "@/lib/checklist";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
-import { renderImagePrompt, renderVideoPrompt } from "@/lib/ep-generator";
+import { renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
 import type { EpStatus, GhostCharacter, GhostEp } from "@/lib/types";
 
 type SortMode = "newest" | "oldest" | "viral" | "duration";
@@ -53,31 +53,32 @@ function qualityWarnings(ep: GhostEp) {
 }
 
 function packageText(ep: GhostEp) {
+  const production = sanitizeProductionOutput(ep);
   return [
-    `${ep.id} ${ep.title}`,
-    `Duration: ${displayDuration(ep)}`,
-    `Category: ${ep.category}`,
-    `Character: ${ep.characterName}`,
-    `Template: ${ep.templateName}`,
-    `Date: ${ep.date}`,
+    `${production.id} ${production.title}`,
+    `Duration: ${displayDuration(production)}`,
+    `Category: ${production.category}`,
+    `Character: ${production.characterName}`,
+    `Template: ${production.templateName}`,
+    `Date: ${production.date}`,
     "",
     "Hook",
-    ep.hook,
+    production.hook,
     "",
     "Story",
-    ep.story,
+    production.story,
     "",
     "Frames",
-    framePromptText(ep),
+    framePromptText(production),
     "",
     "Videos",
-    videoPromptText(ep),
+    videoPromptText(production),
     "",
     "Voice Script",
-    ep.voiceScript,
+    production.voiceScript,
     "",
     "Caption",
-    `${ep.caption}\n${(ep.hashtags ?? []).join(" ")}`
+    `${production.caption}\n${(production.hashtags ?? []).join(" ")}`
   ].join("\n");
 }
 

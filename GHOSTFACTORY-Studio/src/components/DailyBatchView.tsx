@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
-import { calculateParseHealth, parseDailyResult, renderImagePrompt, renderVideoPrompt } from "@/lib/ep-generator";
+import { calculateParseHealth, parseDailyResult, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -133,33 +133,34 @@ function debugAnalyticsText(eps: GhostEp[]) {
 }
 
 function packageText(ep: GhostEp) {
+  const production = sanitizeProductionOutput(ep);
   return [
-    `${ep.id} ${ep.title}`,
-    `Language: ${ep.language}`,
-    `Thumbnail: ${ep.thumbnailImage ? "Available" : "None"}`,
-    `Character: ${ep.characterName}`,
-    `Template: ${ep.templateName}`,
-    `Goal: ${ep.contentGoal}`,
-    `Category: ${ep.category}`,
-    `Hook: ${ep.hook}`,
+    `${production.id} ${production.title}`,
+    `Language: ${production.language}`,
+    `Thumbnail: ${production.thumbnailImage ? "Available" : "None"}`,
+    `Character: ${production.characterName}`,
+    `Template: ${production.templateName}`,
+    `Purpose: ${production.contentGoal}`,
+    `Category: ${production.category}`,
+    `Hook: ${production.hook}`,
     "",
     "Story",
-    ep.story,
+    production.story,
     "",
     "Frames",
-    frameText(ep),
+    frameText(production),
     "",
     "Videos",
-    videoText(ep),
+    videoText(production),
     "",
     "Voice Script",
-    ep.voiceScript,
+    production.voiceScript,
     "",
     "Sound Effects",
-    ep.soundEffects,
+    production.soundEffects,
     "",
     "Caption",
-    `${ep.caption}\n${ep.hashtags.join(" ")}`
+    `${production.caption}\n${production.hashtags.join(" ")}`
   ].join("\n");
 }
 
@@ -192,7 +193,8 @@ function EpResultModal({
   onSave: (ep: GhostEp) => void;
   onCopy: (text: string, label: string) => void;
 }) {
-  const warnings = qualityWarnings(ep);
+  const production = sanitizeProductionOutput(ep);
+  const warnings = qualityWarnings(production);
   return (
     <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
       <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
@@ -200,14 +202,14 @@ function EpResultModal({
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#64748B]">
               <span>{epNumber}</span>
-              <span>{ep.id}</span>
-              <span>{ep.format}</span>
-              <span>{ep.category}</span>
+              <span>{production.id}</span>
+              <span>{production.format}</span>
+              <span>{production.category}</span>
               <span>{saveState}</span>
-              {ep.storyArchetype ? <span>Archetype: {ep.storyArchetype}</span> : null}
+              {production.storyArchetype ? <span>Archetype: {production.storyArchetype}</span> : null}
               {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-0.5 text-amber-700">Quality warning</span> : null}
             </div>
-            <h2 className="mt-2 text-2xl font-semibold text-[#0F172A]">{ep.title || "Untitled EP"}</h2>
+            <h2 className="mt-2 text-2xl font-semibold text-[#0F172A]">{production.title || "Untitled EP"}</h2>
             {warnings.length ? <p className="mt-2 text-xs font-semibold text-amber-700">Check before save: {warnings.join(", ")}</p> : null}
           </div>
           <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
@@ -217,9 +219,9 @@ function EpResultModal({
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Summary</h3>
             <div className="grid gap-3 text-sm md:grid-cols-3">
-              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Created</div><div className="font-semibold">{ep.date}</div></div>
-              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Viral Score</div><div className="font-semibold">{ep.viralScore ?? 0}</div></div>
-              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Duration</div><div className="font-semibold">{ep.durationSec ? `${ep.durationSec}s` : ep.format}</div></div>
+              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Created</div><div className="font-semibold">{production.date}</div></div>
+              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Viral Score</div><div className="font-semibold">{production.viralScore ?? 0}</div></div>
+              <div className="rounded-[16px] bg-white p-3"><div className="text-xs text-[#64748B]">Duration</div><div className="font-semibold">{production.durationSec ? `${production.durationSec}s` : production.format}</div></div>
             </div>
           </section>
 
@@ -227,16 +229,16 @@ function EpResultModal({
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Story</h3>
-                <CopyButton label="Story" onClick={() => onCopy(ep.story, `Copy Story ${ep.id}`)} />
+                <CopyButton label="Story" onClick={() => onCopy(production.story, `Copy Story ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.story || "No story."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.story || "No story."}</p>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Hook</h3>
-                <CopyButton label="Hook" onClick={() => onCopy(ep.hook, `Copy Hook ${ep.id}`)} />
+                <CopyButton label="Hook" onClick={() => onCopy(production.hook, `Copy Hook ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.hook || "No hook."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.hook || "No hook."}</p>
             </div>
           </section>
 
@@ -244,25 +246,25 @@ function EpResultModal({
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <h3 className="mb-3 font-semibold">Core Idea</h3>
               <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(ep.coreIdea ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+                {Object.entries(production.coreIdea ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
               </div>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <h3 className="mb-3 font-semibold">Episode State</h3>
               <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(ep.episodeState ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+                {Object.entries(production.episodeState ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
               </div>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <h3 className="mb-3 font-semibold">Voice Profile</h3>
               <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(ep.voiceProfile ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+                {Object.entries(production.voiceProfile ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
               </div>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <h3 className="mb-3 font-semibold">Quality Review</h3>
               <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(ep.qualityReview ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {String(value || "-")}</div>)}
+                {Object.entries(production.qualityReview ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {String(value || "-")}</div>)}
               </div>
             </div>
           </section>
@@ -270,8 +272,8 @@ function EpResultModal({
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Frames</h3>
             <div className="grid gap-3 md:grid-cols-2">
-              {ep.frames.map((frame, index) => {
-                const renderedPrompt = renderImagePrompt(ep, frame, index);
+              {production.frames.map((frame, index) => {
+                const renderedPrompt = renderImagePrompt(production, frame, index);
                 return (
                 <article className="rounded-[18px] bg-white p-3" key={frame.frameId}>
                   <div className="mb-2 flex items-center justify-between gap-2">
@@ -288,8 +290,8 @@ function EpResultModal({
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Videos</h3>
             <div className="grid gap-3">
-              {ep.videos.map((video) => {
-                const renderedPrompt = renderVideoPrompt(ep, video);
+              {production.videos.map((video) => {
+                const renderedPrompt = renderVideoPrompt(production, video);
                 return (
                 <article className="rounded-[18px] bg-white p-3" key={video.videoId}>
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
@@ -314,16 +316,16 @@ function EpResultModal({
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Voice Script</h3>
-                <CopyButton label="Voice" onClick={() => onCopy(ep.voiceScript, `Copy Voice Script ${ep.id}`)} />
+                <CopyButton label="Voice" onClick={() => onCopy(production.voiceScript, `Copy Voice Script ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.voiceScript || "No voice script."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.voiceScript || "No voice script."}</p>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Sound Effects</h3>
-                <CopyButton label="SFX" onClick={() => onCopy(ep.soundEffects, `Copy Sound Effects ${ep.id}`)} />
+                <CopyButton label="SFX" onClick={() => onCopy(production.soundEffects, `Copy Sound Effects ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.soundEffects || "No sound effects."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.soundEffects || "No sound effects."}</p>
             </div>
           </section>
 
@@ -331,16 +333,16 @@ function EpResultModal({
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Caption</h3>
-                <CopyButton label="Caption" onClick={() => onCopy(ep.caption, `Copy Caption ${ep.id}`)} />
+                <CopyButton label="Caption" onClick={() => onCopy(production.caption, `Copy Caption ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.caption || "No caption."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.caption || "No caption."}</p>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Hashtags</h3>
-                <CopyButton label="Hashtags" onClick={() => onCopy(ep.hashtags.join(" "), `Copy Hashtags ${ep.id}`)} />
+                <CopyButton label="Hashtags" onClick={() => onCopy(production.hashtags.join(" "), `Copy Hashtags ${production.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm font-semibold leading-6 text-[#2563EB]">{ep.hashtags.join(" ") || "No hashtags."}</p>
+              <p className="whitespace-pre-wrap text-sm font-semibold leading-6 text-[#2563EB]">{production.hashtags.join(" ") || "No hashtags."}</p>
             </div>
           </section>
         </main>

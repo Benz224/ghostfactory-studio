@@ -137,6 +137,16 @@ export type QualityReview = {
   notes: string;
 };
 
+export type EpisodeFacts = {
+  mainObject: string;
+  secondaryObject: string;
+  location: string;
+  hookType: string;
+  endingMechanic: string;
+  storyArchetype: string;
+  catLogicType: string;
+};
+
 export type ProductionChecklist = {
   frames: Record<string, boolean>;
   videos: Record<string, boolean>;
@@ -242,6 +252,7 @@ export type GhostEp = {
   analytics?: EpAnalytics;
   title: string;
   storyArchetype?: string;
+  episodeFacts?: EpisodeFacts;
   coreIdea?: CoreIdea;
   storyBeats?: StoryBeat[];
   episodeState?: EpisodeState;
