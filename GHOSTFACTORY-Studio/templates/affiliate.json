@@ -1,0 +1,8 @@
+{
+  "id": "affiliate",
+  "match": ["affiliate", "soft sell"],
+  "coreConflict": "problem vs product solution",
+  "payoffMechanic": "product solves problem naturally",
+  "defaultComplexity": "medium",
+  "avoid": ["hard sell", "exaggerated claims", "guaranteed results"]
+}

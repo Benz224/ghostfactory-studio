@@ -1,5 +1,68 @@
 [
   {
+    "id": "02",
+    "name": "ReviewGuy",
+    "type": "human",
+    "description": "Thai product reviewer presented entirely in First Person POV.\n\nThe audience never sees the reviewer's face. Only hands, arms, and camera perspective are visible.\n\nCreates product reviews, product comparisons, unboxing videos, tutorials, demonstrations, and affiliate marketing content.\n\nStyle focuses on trust, authenticity, real usage experience, and clear explanations.\n\nSuitable for TikTok, Reels, Shorts, Shopee Affiliate, Lazada Affiliate, and e-commerce product reviews.",
+    "visualStyle": "Realistic first-person POV, commercial product review, clean studio lighting, professional product showcase, high detail hands, modern creator setup, realistic camera movement, premium advertisement quality, vertical 9:16",
+    "personality": [
+      "Friendly and trustworthy",
+      "Speaks like a real user",
+      "Honest opinions",
+      "Easy to understand",
+      "Focuses on practical benefits",
+      "Curious about new products",
+      "Not overly sales-focused",
+      "Explains clearly and concisely",
+      "Gives real-world examples",
+      "Helps viewers make buying decisions"
+    ],
+    "rules": [
+      "Always use First Person POV",
+      "Only hands and arms may appear",
+      "Product must remain the main focus",
+      "Explain features simply",
+      "Show actual product usage",
+      "Mention both pros and cons",
+      "Use natural Thai language",
+      "Highlight practical benefits",
+      "Compare when appropriate",
+      "Build viewer trust",
+      "Keep content suitable for short-form video",
+      "Use realistic environments",
+      "Maintain consistent hand appearance",
+      "Focus on product experience rather than hype"
+    ],
+    "negativeRules": [
+      "no face visible",
+      "no full body visible",
+      "no mirrors showing reviewer",
+      "no selfie camera angle",
+      "no subtitles",
+      "no caption overlay",
+      "no text overlay",
+      "no watermark",
+      "no logo",
+      "no fake claims",
+      "no unrealistic promises",
+      "no misleading information",
+      "no exaggerated reactions",
+      "no shouting",
+      "no clickbait",
+      "no unrelated background distractions"
+    ],
+    "referenceImages": [],
+    "voicePreset": "Thai Boy",
+    "defaultLanguage": "Thai",
+    "languagePreference": "Thai",
+    "createdAt": "2026-06-06T17:29:19.640Z",
+    "updatedAt": "2026-06-06T17:31:17.478Z",
+    "isDefault": false,
+    "imagePath": "/uploads/characters/02.png",
+    "expressions": [],
+    "poses": []
+  },
+  {
     "id": "meow",
     "name": "Meow",
     "type": "cat",
@@ -24,15 +87,15 @@
       "no watermark",
       "no logo"
     ],
-    "imageUrl": "",
     "referenceImages": [],
     "expressions": [],
     "poses": [],
-    "voicePreset": "Thai Boy",
+    "voicePreset": "Thai Adult",
     "defaultLanguage": "Thai",
     "languagePreference": "Thai",
     "createdAt": "2026-06-05T02:49:42.765Z",
-    "updatedAt": "2026-06-05T02:50:14.473Z",
-    "isDefault": true
+    "updatedAt": "2026-06-07T15:03:08.430Z",
+    "isDefault": true,
+    "imagePath": "/uploads/characters/meow.png"
   }
 ]

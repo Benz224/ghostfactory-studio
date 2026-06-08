@@ -1,13 +1,15 @@
 import { NextResponse } from "next/server";
 import path from "path";
-import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateIdeaMemoryFromEp } from "@/lib/storage";
+import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateEpisodeMemoryFromEp, updateIdeaMemoryFromEp } from "@/lib/storage";
 import { checkDuplicate } from "@/lib/duplicate-checker";
-import { ensureLockedPrompt } from "@/lib/ep-generator";
+import { calculateParseHealth, runInternalGeneratorPipeline } from "@/lib/ep-generator";
 import type { GhostEp } from "@/lib/types";
 
 function normalizeEp(ep: GhostEp, duplicateCheck: GhostEp["duplicateCheck"]): GhostEp {
+  const generated = runInternalGeneratorPipeline({ ...ep, duplicateCheck });
+  const parseHealth = calculateParseHealth(generated);
   return normalizeStoredEp({
-    ...ep,
+    ...generated,
     id: ep.id || `EP-${ep.date}-${Date.now()}`,
     date: ep.date || new Date().toISOString().slice(0, 10),
     status: "prompt_ready",
@@ -34,18 +36,14 @@ function normalizeEp(ep: GhostEp, duplicateCheck: GhostEp["duplicateCheck"]): Gh
       affiliateClicks: ep.analytics?.affiliateClicks ?? 0
     },
     category: ep.category || "Uncategorized",
-    frames: ep.frames.map((frame) => ({ ...frame, imagePrompt: ensureLockedPrompt(frame.imagePrompt) })),
-    videos: ep.videos.map((video) => ({ ...video, prompt: ensureLockedPrompt(video.prompt) })),
+    frames: generated.frames,
+    videos: generated.videos,
+    voiceScript: generated.voiceScript,
     hashtags: Array.isArray(ep.hashtags) ? ep.hashtags : [],
     checklist: ep.checklist,
     viralScore: Number(ep.viralScore || 0),
     duplicateCheck,
-    parseHealth: ep.parseHealth ?? {
-      score: 0,
-      parsedFields: [],
-      missing: [],
-      status: "warning"
-    },
+    parseHealth,
     createdAt: ep.createdAt || new Date().toISOString(),
     updatedAt: new Date().toISOString()
   });
@@ -86,6 +84,7 @@ export async function POST(request: Request) {
   await appendEpToHistory(cleanEp);
   const exported = await exportEpPackage(cleanEp, outputRootOverride);
   await updateIdeaMemoryFromEp(cleanEp);
+  await updateEpisodeMemoryFromEp(cleanEp);
   const relativeMarkdownPath = path.relative(process.cwd(), exported.markdownPath).replace(/\\/g, "/");
   const relativeExportDir = path.relative(process.cwd(), exported.epDir).replace(/\\/g, "/");
 

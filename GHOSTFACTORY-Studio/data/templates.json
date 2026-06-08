@@ -1,5 +1,67 @@
 [
   {
+    "id": "template-1780843486900",
+    "name": "Nightmare Protocol",
+    "category": "Extreme Horror",
+    "goal": "Create overwhelming fear and suspense from the first second.\nThe audience should feel that something is deeply wrong.\nNo comedy.\nNo happy ending.\nNo joke.\nNo twist.\nFocus on mystery, dread, and fear.",
+    "structure": [
+      "forbidden discovery",
+      "evidence",
+      "approach",
+      "manifestation"
+    ],
+    "bestFor": [
+      "shadow entity",
+      "haunted building",
+      "abandoned hospital",
+      "dark forest",
+      "unknown creature",
+      "forbidden room",
+      "ancient curse",
+      "paranormal activity",
+      "analog horror",
+      "backrooms"
+    ],
+    "defaultFrameCount": 4,
+    "defaultVideoCount": 3,
+    "tone": "terrifying oppressive nightmare mysterious cinematic dark unsettling",
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ],
+    "isDefault": false
+  },
+  {
+    "id": "01",
+    "name": "Anime Battle Standoff",
+    "category": "Anime",
+    "goal": "สร้างฉากเผชิญหน้าสไตล์อนิเมะ",
+    "structure": [
+      "encounter",
+      "power-up",
+      "twist"
+    ],
+    "bestFor": [
+      "anime, action comedy, sigma"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "epic, dramatic, intense, cinematic",
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ],
+    "isDefault": false
+  },
+  {
     "id": "cute-daily-life",
     "name": "Cute Daily Life",
     "category": "Comedy",

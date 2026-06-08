@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateIdeaMemoryFromEp } from "@/lib/storage";
+import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateEpisodeMemoryFromEp, updateIdeaMemoryFromEp } from "@/lib/storage";
 import type { GhostEp } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -25,5 +25,6 @@ export async function POST(request: Request) {
   await appendEpToHistory(copy);
   await exportEpPackage(copy, body.outputRootOverride);
   await updateIdeaMemoryFromEp(copy);
+  await updateEpisodeMemoryFromEp(copy);
   return NextResponse.json({ ep: copy });
 }

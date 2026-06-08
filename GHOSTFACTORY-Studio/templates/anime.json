@@ -1,0 +1,8 @@
+{
+  "id": "anime",
+  "match": ["anime", "battle"],
+  "coreConflict": "power escalation vs unexpected interruption",
+  "payoffMechanic": "epic moment or dramatic release",
+  "defaultComplexity": "complex",
+  "avoid": ["flat camera", "weak escalation"]
+}

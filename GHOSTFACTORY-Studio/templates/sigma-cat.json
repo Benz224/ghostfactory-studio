@@ -1,0 +1,8 @@
+{
+  "id": "sigma-cat",
+  "match": ["sigma"],
+  "coreConflict": "cool image vs ridiculous weakness",
+  "payoffMechanic": "deadpan recovery",
+  "defaultComplexity": "simple",
+  "avoid": ["overexplaining the joke", "breaking the cool setup too early"]
+}

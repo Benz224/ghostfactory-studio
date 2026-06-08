@@ -1,0 +1,8 @@
+{
+  "id": "educational",
+  "match": ["educational", "problem solution"],
+  "coreConflict": "misunderstanding vs simple explanation",
+  "payoffMechanic": "clear useful takeaway",
+  "defaultComplexity": "medium",
+  "avoid": ["jargon", "unclear lesson"]
+}

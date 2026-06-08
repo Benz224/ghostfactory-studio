@@ -2,6 +2,16 @@ export type FramePrompt = {
   frameId: string;
   title: string;
   imagePrompt: string;
+  frameState?: VisualState;
+};
+
+export type VideoState = {
+  videoId: string;
+  fromFrame: string;
+  toFrame: string;
+  startState: string;
+  transition: string;
+  endState: string;
 };
 
 export type VideoPrompt = {
@@ -9,12 +19,110 @@ export type VideoPrompt = {
   fromFrame: string;
   toFrame: string;
   durationSec: number;
-  prompt: string;
+  videoPrompt: string;
   camera: string;
   motion: string;
   audio: string;
   dialogue: string;
   mood: string;
+  videoState?: VideoState;
+};
+
+export type CoreIdea = {
+  centralIdea: string;
+  coreConflict: string;
+  hookMechanic: string;
+  payoffMechanic: string;
+  emotionTarget: string;
+  noveltyAngle: string;
+  templateLogic: string;
+};
+
+export type StoryBeat = {
+  beatId: string;
+  function: string;
+  beat: string;
+};
+
+export type EpisodeState = {
+  primaryLocation: string;
+  location: string;
+  timeOfDay: string;
+  lightingStyle: string;
+  mainProps: string;
+  continuityAnchor: string;
+  characterStartPosition: string;
+  characterEndPosition: string;
+  lighting: string;
+  props: string;
+  voice: string;
+  camera: string;
+  cameraLanguage: string;
+  environmentAudio: string;
+  visualAnchor: string;
+  emotionProgression: string;
+};
+
+export type VoiceProfile = {
+  preset: string;
+  gender: string;
+  age: string;
+  tone: string;
+  energy: string;
+  speakingSpeed: string;
+  accent: string;
+  personality: string;
+  sentenceLength: string;
+  vocabularyStyle: string;
+  emotionalRange: string;
+};
+
+export type VisualState = {
+  frameId: string;
+  locationLayout: string;
+  characterPosition: string;
+  characterFacingDirection: string;
+  cameraPosition: string;
+  cameraAngle: string;
+  cameraDistance: string;
+  mainPropPosition: string;
+  lightingDirection: string;
+  emotionState: string;
+  actionState: string;
+};
+
+export type DialogueOutlineItem = {
+  videoId: string;
+  dialogueIntent: string;
+  emotionalIntensity: string;
+  speechPattern: string;
+  forbiddenToneShift: string;
+};
+
+export type ContinuitySelfCheck = {
+  storyContinuityScore: number;
+  frameContinuityScore: number;
+  videoContinuityScore: number;
+  voiceContinuityScore: number;
+  threshold: number;
+  passed: boolean;
+  notes: string;
+};
+
+export type QualityReview = {
+  storyQualityScore: number;
+  storyBeatContinuityScore: number;
+  visualContinuityScore: number;
+  videoContinuityScore: number;
+  dialogueConsistencyScore: number;
+  voiceContinuityScore: number;
+  noveltyScore: number;
+  templateMatchScore: number;
+  characterConsistencyScore: number;
+  episodeCompletenessScore: number;
+  threshold: number;
+  passed: boolean;
+  notes: string;
 };
 
 export type ProductionChecklist = {
@@ -121,6 +229,15 @@ export type GhostEp = {
   postedDate?: string;
   analytics?: EpAnalytics;
   title: string;
+  coreIdea?: CoreIdea;
+  storyBeats?: StoryBeat[];
+  episodeState?: EpisodeState;
+  characterAnchor?: string;
+  voiceProfile?: VoiceProfile;
+  visualStates?: VisualState[];
+  dialogueOutline?: DialogueOutlineItem[];
+  continuitySelfCheck?: ContinuitySelfCheck;
+  qualityReview?: QualityReview;
   story: string;
   hook: string;
   category: string;
@@ -194,6 +311,7 @@ export type Settings = {
 
 export type GenerationSetup = {
   aiMode: "manual" | "openai_api" | "image_generation";
+  autoFrameCount: boolean;
   autoImageGeneration: boolean;
   creditMode: "low" | "medium" | "high";
   customFramesEnabled: boolean;

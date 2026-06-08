@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { ImagePicker, ImagePreview } from "@/components/ImagePicker";
 import { checklistCounts, checklistForEp } from "@/lib/checklist";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
+import { renderImagePrompt, renderVideoPrompt } from "@/lib/ep-generator";
 import type { EpStatus, GhostCharacter, GhostEp } from "@/lib/types";
 
 type SortMode = "newest" | "oldest" | "viral" | "duration";
@@ -27,15 +28,15 @@ function framePromptText(ep: GhostEp, frameId?: string) {
   return (ep.frames ?? [])
     .filter((frame) => !frameId || frame.frameId === frameId)
     .filter((frame) => frame.imagePrompt.trim())
-    .map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
+    .map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${renderImagePrompt(ep, frame)}`)
     .join("\n\n");
 }
 
 function videoPromptText(ep: GhostEp, videoId?: string) {
   return (ep.videos ?? [])
     .filter((video) => !videoId || video.videoId === videoId)
-    .filter((video) => video.prompt.trim())
-    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.prompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
+    .filter((video) => video.videoPrompt.trim())
+    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
 }
 
@@ -217,7 +218,7 @@ function EpDetailModal({
                 ) : (
                   <div className="grid gap-3 md:grid-cols-[180px,1fr]">
                     {draft.frameImages?.[frame.frameId] ? <ImagePreview className="aspect-square" label={`${frame.frameId} Image`} src={draft.frameImages[frame.frameId]} /> : null}
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt || "No frame prompt."}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt ? renderImagePrompt(draft, frame) : "No frame prompt."}</p>
                   </div>
                 )}
               </article>
@@ -243,7 +244,7 @@ function EpDetailModal({
                     <input className="control" value={video.fromFrame} onChange={(event) => updateVideo(video.videoId, { fromFrame: event.target.value })} placeholder="From frame" />
                     <input className="control" value={video.toFrame} onChange={(event) => updateVideo(video.videoId, { toFrame: event.target.value })} placeholder="To frame" />
                     <input className="control" min="1" type="number" value={video.durationSec} onChange={(event) => updateVideo(video.videoId, { durationSec: Number(event.target.value) })} />
-                    <textarea className="control min-h-32 md:col-span-3" value={video.prompt} onChange={(event) => updateVideo(video.videoId, { prompt: event.target.value })} />
+                    <textarea className="control min-h-32 md:col-span-3" value={video.videoPrompt} onChange={(event) => updateVideo(video.videoId, { videoPrompt: event.target.value })} />
                     <input className="control" value={video.camera} onChange={(event) => updateVideo(video.videoId, { camera: event.target.value })} placeholder="Camera" />
                     <input className="control" value={video.motion} onChange={(event) => updateVideo(video.videoId, { motion: event.target.value })} placeholder="Motion" />
                     <input className="control" value={video.audio} onChange={(event) => updateVideo(video.videoId, { audio: event.target.value })} placeholder="Audio" />
@@ -251,7 +252,7 @@ function EpDetailModal({
                     <input className="control" value={video.mood} onChange={(event) => updateVideo(video.videoId, { mood: event.target.value })} placeholder="Mood" />
                   </div>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.prompt || "No video prompt."}</p>
+                  <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.videoPrompt ? renderVideoPrompt(draft, video) : "No video prompt."}</p>
                 )}
               </article>
             ))}

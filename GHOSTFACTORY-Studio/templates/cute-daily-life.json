@@ -1,0 +1,8 @@
+{
+  "id": "cute-daily-life",
+  "match": ["cute daily", "cute", "daily life", "comedy"],
+  "coreConflict": "cat logic vs human logic",
+  "payoffMechanic": "cute absurd behavior",
+  "defaultComplexity": "simple",
+  "avoid": ["hard sell", "dark tonal jump"]
+}

@@ -1,6 +1,7 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
+import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
 import type { CharacterProfile, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
@@ -16,6 +17,7 @@ export const paths = {
   ideas: path.join(dataDir, "ideas.json"),
   projects: path.join(dataDir, "projects.json"),
   epHistory: path.join(dataDir, "ep-history.json"),
+  episodeMemory: path.join(dataDir, "episode_memory.json"),
   ideaMemory: path.join(dataDir, "idea-memory.json"),
   dailyBatches: path.join(dataDir, "daily-batches")
 };
@@ -188,6 +190,20 @@ export const defaultIdeaMemory: IdeaMemory = {
   recentTwists: []
 };
 
+export type EpisodeMemoryEntry = {
+  epId: string;
+  title: string;
+  centralIdea: string;
+  storyBeats: string[];
+  coreConflict: string;
+  hookMechanic: string;
+  endingMechanic: string;
+  location: string;
+  mainObject: string;
+  template: string;
+  createdAt: string;
+};
+
 export const defaultProject: Project = {
   id: "default-project",
   name: "Default Project",
@@ -230,6 +246,77 @@ export const defaultParseHealth: ParseHealth = {
   parsedFields: [],
   missing: [],
   status: "warning"
+};
+
+const defaultEpisodeState = {
+  primaryLocation: "",
+  location: "",
+  timeOfDay: "",
+  lightingStyle: "",
+  mainProps: "",
+  continuityAnchor: "",
+  characterStartPosition: "",
+  characterEndPosition: "",
+  lighting: "",
+  props: "",
+  voice: "",
+  camera: "",
+  cameraLanguage: "",
+  environmentAudio: "",
+  visualAnchor: "",
+  emotionProgression: ""
+};
+
+const defaultCoreIdea = {
+  centralIdea: "",
+  coreConflict: "",
+  hookMechanic: "",
+  payoffMechanic: "",
+  emotionTarget: "",
+  noveltyAngle: "",
+  templateLogic: ""
+};
+
+const defaultCharacterAnchor = buildCharacterAnchorFromAsset(getCharacterAsset("meow"));
+
+const defaultVoiceProfile = {
+  preset: "",
+  gender: "",
+  age: "",
+  tone: "",
+  energy: "",
+  speakingSpeed: "",
+  accent: "",
+  personality: "",
+  sentenceLength: "",
+  vocabularyStyle: "",
+  emotionalRange: ""
+};
+
+const defaultContinuitySelfCheck = {
+  storyContinuityScore: 0,
+  frameContinuityScore: 0,
+  videoContinuityScore: 0,
+  voiceContinuityScore: 0,
+  threshold: 85,
+  passed: false,
+  notes: ""
+};
+
+const defaultQualityReview = {
+  storyQualityScore: 0,
+  storyBeatContinuityScore: 0,
+  visualContinuityScore: 0,
+  videoContinuityScore: 0,
+  dialogueConsistencyScore: 0,
+  voiceContinuityScore: 0,
+  noveltyScore: 0,
+  templateMatchScore: 0,
+  characterConsistencyScore: 0,
+  episodeCompletenessScore: 0,
+  threshold: 85,
+  passed: false,
+  notes: ""
 };
 
 export const defaultChecklist = {
@@ -513,15 +600,53 @@ export async function saveIdeaMemory(memory: IdeaMemory) {
   });
 }
 
+export async function getEpisodeMemory() {
+  return readJsonFile<EpisodeMemoryEntry[]>(paths.episodeMemory, []);
+}
+
+export async function saveEpisodeMemory(memory: EpisodeMemoryEntry[]) {
+  await writeJsonFile(paths.episodeMemory, memory.slice(0, 500));
+}
+
+export async function updateEpisodeMemoryFromEp(ep: GhostEp) {
+  const memory = await getEpisodeMemory();
+  const endingMechanic = ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "";
+  const entry: EpisodeMemoryEntry = {
+    epId: ep.id,
+    title: ep.title,
+    centralIdea: ep.coreIdea?.centralIdea ?? "",
+    storyBeats: (ep.storyBeats ?? []).map((beat) => beat.beat).filter(Boolean),
+    coreConflict: ep.coreIdea?.coreConflict ?? "",
+    hookMechanic: ep.coreIdea?.hookMechanic || ep.hook,
+    endingMechanic,
+    location: ep.episodeState?.primaryLocation || ep.episodeState?.location || "",
+    mainObject: ep.episodeState?.mainProps || ep.episodeState?.props || "",
+    template: ep.templateName || ep.category,
+    createdAt: new Date().toISOString()
+  };
+  const next = [entry, ...memory.filter((item) => item.epId !== ep.id)];
+  await saveEpisodeMemory(next);
+  return entry;
+}
+
 function extractKeywords(ep: GhostEp) {
-  return `${ep.title} ${ep.hook} ${ep.story}`
-    .toLowerCase()
-    .replace(/[^\p{L}\p{N}\s#]+/gu, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .split(/\s+/)
-    .map((token) => token.replace(/^#+/, "").trim())
-    .filter((token) => token.length >= 2)
+  const phrases = [
+    ep.title,
+    ep.coreIdea?.centralIdea,
+    ep.coreIdea?.coreConflict,
+    ep.coreIdea?.hookMechanic,
+    ep.coreIdea?.payoffMechanic,
+    ep.episodeState?.primaryLocation || ep.episodeState?.location,
+    ep.episodeState?.mainProps || ep.episodeState?.props,
+    ep.category
+  ];
+  return phrases
+    .map((phrase) => String(phrase ?? "")
+      .replace(/[^\p{L}\p{N}\s#]+/gu, " ")
+      .replace(/\s+/g, " ")
+      .replace(/^#+/, "")
+      .trim())
+    .filter((phrase) => phrase.length >= 2)
     .slice(0, 30);
 }
 
@@ -595,6 +720,23 @@ export async function deleteEpById(epId: string) {
 export function normalizeStoredEp(ep: GhostEp): GhostEp {
   const frames = Array.isArray(ep.frames) ? ep.frames : [];
   const videos = Array.isArray(ep.videos) ? ep.videos : [];
+  const leanFrames = frames.map((frame) => ({
+    frameId: frame.frameId,
+    title: frame.title,
+    imagePrompt: frame.imagePrompt
+  }));
+  const leanVideos = videos.map((video) => ({
+    videoId: video.videoId,
+    fromFrame: video.fromFrame,
+    toFrame: video.toFrame,
+    durationSec: video.durationSec,
+    videoPrompt: video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "",
+    camera: video.camera ?? "",
+    motion: video.motion ?? "",
+    audio: video.audio ?? "",
+    dialogue: video.dialogue ?? "",
+    mood: video.mood ?? ""
+  }));
   const durationSec = (ep.durationSec ?? videos.reduce((sum, video) => sum + (Number(video.durationSec) || 0), 0)) || Number(String(ep.format || "").match(/\d+(\.\d+)?/)?.[0] ?? 0);
   const normalized: GhostEp = {
     ...ep,
@@ -616,17 +758,19 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     postedDate: ep.postedDate ?? "",
     analytics: { ...defaultAnalytics, ...(ep.analytics ?? {}) },
     category: ep.category || "Uncategorized",
+    coreIdea: { ...defaultCoreIdea, ...(ep.coreIdea ?? {}) },
+    storyBeats: Array.isArray(ep.storyBeats) ? ep.storyBeats : [],
+    episodeState: { ...defaultEpisodeState, ...(ep.episodeState ?? {}) },
+    characterAnchor: ep.characterAnchor || defaultCharacterAnchor,
+    voiceProfile: { ...defaultVoiceProfile, ...(ep.voiceProfile ?? {}) },
+    visualStates: Array.isArray(ep.visualStates) ? ep.visualStates : [],
+    dialogueOutline: Array.isArray(ep.dialogueOutline) ? ep.dialogueOutline : [],
+    continuitySelfCheck: { ...defaultContinuitySelfCheck, ...(ep.continuitySelfCheck ?? {}) },
+    qualityReview: { ...defaultQualityReview, ...(ep.qualityReview ?? {}) },
     hashtags: Array.isArray(ep.hashtags) ? ep.hashtags : [],
-    frames,
-    videos: videos.map((video) => ({
-      ...video,
-      camera: video.camera ?? "",
-      motion: video.motion ?? "",
-      audio: video.audio ?? "",
-      dialogue: video.dialogue ?? "",
-      mood: video.mood ?? ""
-    })),
-    checklist: createChecklistFromParts(frames, videos, ep.checklist ?? {}),
+    frames: leanFrames,
+    videos: leanVideos,
+    checklist: createChecklistFromParts(leanFrames, leanVideos, ep.checklist ?? {}),
     viralScore: Number(ep.viralScore || 0),
     duplicateCheck: ep.duplicateCheck ?? {
       isDuplicate: false,
@@ -647,13 +791,25 @@ function safeSegment(input: string) {
 }
 
 export function createMarkdown(ep: GhostEp) {
+  const storyBeats = (ep.storyBeats ?? [])
+    .map((beat) => `- ${beat.beatId}: ${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
+    .join("\n");
+  const visualStates = (ep.visualStates ?? [])
+    .map(
+      (state) =>
+        `### ${state.frameId}\nlocationLayout: ${state.locationLayout}\ncharacterPosition: ${state.characterPosition}\ncharacterFacingDirection: ${state.characterFacingDirection}\ncameraPosition: ${state.cameraPosition}\ncameraAngle: ${state.cameraAngle}\ncameraDistance: ${state.cameraDistance}\nmainPropPosition: ${state.mainPropPosition}\nlightingDirection: ${state.lightingDirection}\nemotionState: ${state.emotionState}\nactionState: ${state.actionState}`
+    )
+    .join("\n\n");
+  const dialogueOutline = (ep.dialogueOutline ?? [])
+    .map((item) => `- ${item.videoId}: intent=${item.dialogueIntent}; intensity=${item.emotionalIntensity}; speechPattern=${item.speechPattern}; forbiddenToneShift=${item.forbiddenToneShift}`)
+    .join("\n");
   const frames = ep.frames
     .map((frame) => `### ${frame.frameId}\nTitle: ${frame.title}\nImage Prompt: ${frame.imagePrompt}`)
     .join("\n\n");
   const videos = ep.videos
     .map(
       (video) =>
-        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${video.prompt}`
+        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${video.videoPrompt}`
         + `\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
@@ -686,6 +842,73 @@ ${ep.category}
 
 ## Viral Score
 ${ep.viralScore}
+
+## Core Idea
+centralIdea: ${ep.coreIdea?.centralIdea ?? ""}
+coreConflict: ${ep.coreIdea?.coreConflict ?? ""}
+hookMechanic: ${ep.coreIdea?.hookMechanic ?? ""}
+payoffMechanic: ${ep.coreIdea?.payoffMechanic ?? ""}
+emotionTarget: ${ep.coreIdea?.emotionTarget ?? ""}
+noveltyAngle: ${ep.coreIdea?.noveltyAngle ?? ""}
+templateLogic: ${ep.coreIdea?.templateLogic ?? ""}
+
+## Story Beats
+${storyBeats}
+
+## Episode State
+primaryLocation: ${ep.episodeState?.primaryLocation ?? ""}
+location: ${ep.episodeState?.location ?? ""}
+timeOfDay: ${ep.episodeState?.timeOfDay ?? ""}
+lightingStyle: ${ep.episodeState?.lightingStyle ?? ""}
+mainProps: ${ep.episodeState?.mainProps ?? ""}
+continuityAnchor: ${ep.episodeState?.continuityAnchor ?? ""}
+characterStartPosition: ${ep.episodeState?.characterStartPosition ?? ""}
+characterEndPosition: ${ep.episodeState?.characterEndPosition ?? ""}
+lighting: ${ep.episodeState?.lighting ?? ""}
+props: ${ep.episodeState?.props ?? ""}
+voice: ${ep.episodeState?.voice ?? ""}
+camera: ${ep.episodeState?.camera ?? ""}
+cameraLanguage: ${ep.episodeState?.cameraLanguage ?? ""}
+environmentAudio: ${ep.episodeState?.environmentAudio ?? ""}
+visualAnchor: ${ep.episodeState?.visualAnchor ?? ""}
+emotionProgression: ${ep.episodeState?.emotionProgression ?? ""}
+
+## Character Anchor
+${ep.characterAnchor ?? ""}
+
+## Voice Profile
+preset: ${ep.voiceProfile?.preset ?? ""}
+gender: ${ep.voiceProfile?.gender ?? ""}
+age: ${ep.voiceProfile?.age ?? ""}
+tone: ${ep.voiceProfile?.tone ?? ""}
+energy: ${ep.voiceProfile?.energy ?? ""}
+speakingSpeed: ${ep.voiceProfile?.speakingSpeed ?? ""}
+accent: ${ep.voiceProfile?.accent ?? ""}
+personality: ${ep.voiceProfile?.personality ?? ""}
+sentenceLength: ${ep.voiceProfile?.sentenceLength ?? ""}
+vocabularyStyle: ${ep.voiceProfile?.vocabularyStyle ?? ""}
+emotionalRange: ${ep.voiceProfile?.emotionalRange ?? ""}
+
+## Visual States
+${visualStates}
+
+## Dialogue Outline
+${dialogueOutline}
+
+## Quality Review
+storyQualityScore: ${ep.qualityReview?.storyQualityScore ?? 0}
+storyBeatContinuityScore: ${ep.qualityReview?.storyBeatContinuityScore ?? 0}
+visualContinuityScore: ${ep.qualityReview?.visualContinuityScore ?? 0}
+videoContinuityScore: ${ep.qualityReview?.videoContinuityScore ?? 0}
+dialogueConsistencyScore: ${ep.qualityReview?.dialogueConsistencyScore ?? 0}
+voiceContinuityScore: ${ep.qualityReview?.voiceContinuityScore ?? 0}
+noveltyScore: ${ep.qualityReview?.noveltyScore ?? 0}
+templateMatchScore: ${ep.qualityReview?.templateMatchScore ?? 0}
+characterConsistencyScore: ${ep.qualityReview?.characterConsistencyScore ?? 0}
+episodeCompletenessScore: ${ep.qualityReview?.episodeCompletenessScore ?? 0}
+threshold: ${ep.qualityReview?.threshold ?? 85}
+passed: ${ep.qualityReview?.passed ?? false}
+notes: ${ep.qualityReview?.notes ?? ""}
 
 ## Story
 ${ep.story}
@@ -740,7 +963,7 @@ export function videosText(ep: GhostEp) {
   return ep.videos
     .map(
       (video) =>
-        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.prompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
+        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 }

@@ -1,71 +1,40 @@
 ﻿import type { AffiliateBrief, CharacterProfile, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "./types";
 
+import { frameCountForTemplatePack, getTemplatePack } from "./template-packs";
+
 export function buildCharacterLock(character: GhostCharacter) {
-  return `Character Lock:
-- Character ID: ${character.id}
-- Name: ${character.name}
-- Type: ${character.type}
-- Identity: ${character.description}
-- Visual Style: ${character.visualStyle}
-- Personality: ${character.personality.join(", ")}
-- Character Reference Image: ${character.imageUrl ? "Available in studio. Use the selected character reference image as the main visual identity." : "No uploaded reference image."}
-- Voice Preset: ${character.voicePreset || "Thai Boy"}
-- Default Spoken Language: ${character.defaultLanguage || character.languagePreference || "Thai"}
-
-Rules:
-${character.rules.map((rule) => `- ${rule}`).join("\n")}
-
-Negative Rules:
-${character.negativeRules.map((rule) => `- ${rule}`).join("\n")}`;
+  return `Character ID:
+${character.id}`;
 }
 
 export function buildTemplateInstructions(template: GhostTemplate) {
+  const pack = getTemplatePack(`${template.id} ${template.name} ${template.category} ${template.goal}`);
   return `Template:
-- Template ID: ${template.id}
-- Name: ${template.name}
-- Category: ${template.category}
-- Goal: ${template.goal}
-- Tone: ${template.tone}
-- Structure: ${template.structure.join(" -> ")}
-- Best For: ${template.bestFor.join(", ")}
-- Default Frames: ${template.defaultFrameCount}
-- Default Videos: ${template.defaultVideoCount}`;
+- templateId: ${template.id}
+- summary: ${pack.id}; ${pack.coreConflict}; ${pack.payoffMechanic}`;
+}
+
+function chooseAutoFrameCountFromTemplate(template: GhostTemplate, contentGoal: ContentGoal) {
+  return frameCountForTemplatePack(getTemplatePack(`${template.name} ${template.category} ${template.goal} ${contentGoal}`));
 }
 
 function affiliateInstructions(contentGoal: ContentGoal, brief?: AffiliateBrief) {
   if (contentGoal !== "Affiliate" && contentGoal !== "Review") return "";
-  return `Affiliate / Review Brief:
+  return `Content Goal Brief:
 - Product Name: ${brief?.productName || ""}
 - Problem: ${brief?.productProblem || ""}
 - Benefit: ${brief?.productBenefit || ""}
-- CTA Text: ${brief?.ctaText || ""}
-
-Affiliate Rules:
-- Hook ภายใน 3 วินาที
-- ใช้โครง Problem -> Character Reaction -> Product as Solution -> Soft CTA
-- ห้ามขายแข็งเกินไป
-- ห้ามพูดเกินจริง
-- ห้ามอ้างสรรพคุณเกินจริง
-- ให้เป็นคอนเทนต์สนุกก่อน ขายทีหลัง
-- หลีกเลี่ยงคำว่า "ดีที่สุด", "แก้ได้ 100%", "รับประกันผล"`;
+- CTA Text: ${brief?.ctaText || ""}`;
 }
 
 function languageInstructions(language: SpokenLanguage) {
   if (language === "No Dialogue") {
-    return `Spoken language in video: No Dialogue
-Dialogue language: No Dialogue
-Language Rules:
-- Create clips with no spoken dialogue.
-- Keep dialogue fields empty.
-- Voice Script must be empty.
-- Use action, camera movement, facial expression, environmental audio, and sound effects only.`;
+    return `Language:
+No Dialogue`;
   }
 
-  return `Spoken language in video: ${language}
-Dialogue language: ${language}
-Language Rules:
-- All dialogue and Voice Script must be written in ${language}.
-- Captions and hashtags may match the content strategy, but spoken lines must stay in ${language}.`;
+  return `Language:
+${language}`;
 }
 
 export function buildGeneratorPrompt({
@@ -85,24 +54,20 @@ export function buildGeneratorPrompt({
   generationSetup?: GenerationSetup;
   affiliateBrief?: AffiliateBrief;
 }) {
-  const videosPerEpisode = Math.max(1, Number(generationSetup?.videosPerEpisode ?? 3));
-  const framesPerEpisode = Math.max(2, Number(generationSetup?.customFramesEnabled ? generationSetup.framesPerEpisode : videosPerEpisode + 1));
+  const autoFrameCount = Boolean(generationSetup?.autoFrameCount);
+  const autoFrames = autoFrameCount ? chooseAutoFrameCountFromTemplate(template, contentGoal) : 0;
+  const videosPerEpisode = autoFrameCount ? Math.max(1, autoFrames - 1) : Math.max(1, Number(generationSetup?.videosPerEpisode ?? 3));
+  const framesPerEpisode = autoFrameCount ? autoFrames : Math.max(2, Number(generationSetup?.customFramesEnabled ? generationSetup.framesPerEpisode : videosPerEpisode + 1));
   const durationPerVideoSec = Math.max(1, Number(generationSetup?.durationPerVideoSec ?? 8));
   const totalDurationSec = videosPerEpisode * durationPerVideoSec;
   const totalCount = Math.max(1, Number(generationSetup?.totalEpisodes ?? settings.daily24sCount + settings.daily16sCount));
-  const creditMode = generationSetup?.creditMode ?? (settings.creditMode === "normal" ? "medium" : settings.creditMode);
-  const countHint = generationSetup
-    ? `Generate ${totalCount} EP options. Each EP has exactly ${videosPerEpisode} videos and ${framesPerEpisode} frames. Each video is ${durationPerVideoSec} seconds. Total EP duration is ${totalDurationSec} seconds.`
-    : settings.creditMode === "low"
-      ? "Create 3 EP focused on 16s"
-      : settings.creditMode === "high"
-        ? "Create 10 EP if suitable for settings"
-        : `Create ${settings.daily24sCount + settings.daily16sCount} EP`;
 
   return `คุณคือ GHOSTFACTORY Multi Character Content Factory
 
-ให้สร้าง TikTok/Reels/Shorts แบบ Manual AI Mode เท่านั้น
-ห้ามเรียก API หรือเครื่องมือภายนอก
+Prompt Scope:
+- Write creative content only.
+- GHOSTFACTORY code loads character assets, template config, continuity, voice lock, quality review, and final prompt assembly.
+- Do not recreate character anchor, template rules, quality scores, or memory logic.
 
 ${buildCharacterLock(character)}
 
@@ -113,47 +78,18 @@ ${contentGoal}
 
 ${languageInstructions(language)}
 
-Global Visual Style:
-- vertical 9:16
-- commercial quality visuals
-- cinematic lighting
-- smooth camera movement
-- no subtitles
-- no caption overlay
-- no text overlay
-- no watermark
-- no logo
-- no background music by default
-
 Batch Settings:
-- ${countHint}
 - Total EP count: ${totalCount}
 - Videos per EP: ${videosPerEpisode}
 - Frames per EP: ${framesPerEpisode}
+- Auto frame count: ${autoFrameCount ? "enabled" : "disabled"}
 - Duration per video: ${durationPerVideoSec} seconds
 - Total EP duration: ${totalDurationSec} seconds
-- Video V1 connects F1 to F2.
-- Video V2 connects F2 to F3.
-- Continue this pattern automatically until V${videosPerEpisode} connects F${videosPerEpisode} to F${videosPerEpisode + 1}.
 
-- Credit mode: ${creditMode}
-- AI mode: ${generationSetup?.aiMode ?? settings.aiMode}
-- Duplicate check: ${generationSetup?.duplicateCheckEnabled ?? true ? "enabled" : "disabled"}
-- Duplicate similarity threshold: ${generationSetup?.duplicateSimilarityThreshold ?? settings.duplicateSimilarityThreshold}
-- Auto image generation: ${generationSetup?.autoImageGeneration ? "enabled" : "disabled / manual"}
-- Generate frame prompts only: ${generationSetup?.framePromptsOnly ? "yes" : "no"}
-- Output root: ${generationSetup?.outputRoot || settings.outputRoot}
-- Save generated EP to Library after generation: ${generationSetup?.saveAfterGeneration ? "yes" : "no"}
-- Save only selected EP: ${generationSetup?.saveOnlySelectedEp ?? true ? "yes" : "no"}
-
-Generation Rules:
-- Respect Character Lock in every imagePrompt and videoPrompt.
+Content Draft Rules:
 - Generate multiple EP options in one batch.
-- Match the Template and Content Goal exactly.
-- For each EP, create exactly ${videosPerEpisode} videos.
-- For each EP, create exactly ${framesPerEpisode} frames.
-- Each video duration must be ${durationPerVideoSec} seconds.
-- Total EP duration must be ${totalDurationSec} seconds.
+- Create exactly ${videosPerEpisode} videos and ${framesPerEpisode} frames per EP.
+- Keep imagePrompt and videoPrompt concise. Code will assemble final structured prompts.
 - Do not add subtitles, caption overlay, text overlay, watermark, or logo.
 ${affiliateInstructions(contentGoal, affiliateBrief)}
 
@@ -161,9 +97,7 @@ Output Rules:
 - ตอบเป็น JSON เท่านั้น
 - ห้ามมี Markdown
 - ห้ามมีคำอธิบายนอก JSON
-- ทุก imagePrompt และ videoPrompt ต้องรักษา Character Lock
-- ทุก EP ต้องมี characterId, characterName, templateId, templateName, contentGoal
-- ทุก EP ต้องมี language: "${language}"
+- ทุก EP ต้องมี characterId, templateId, language
 - ถ้า language เป็น "No Dialogue" ห้ามมีบทพูดใน dialogue และ voiceScript
 
 JSON schema:
@@ -177,10 +111,7 @@ JSON schema:
       "category": "",
       "viralScore": 0,
       "characterId": "${character.id}",
-      "characterName": "${character.name}",
       "templateId": "${template.id}",
-      "templateName": "${template.name}",
-      "contentGoal": "${contentGoal}",
       "language": "${language}",
       "story": "",
       "hook": "",
@@ -215,7 +146,6 @@ JSON schema:
 }
 
 export function createDailyAiPrompt(character: CharacterProfile) {
-  const characterLock = character.characterLock || "Meow, fluffy orange tabby cat, orange striped fur, cute expressive face, high quality fur, Pixar-quality 3D animation";
   const globalRules = character.globalNegativeRules?.length
     ? character.globalNegativeRules
     : ["no subtitles", "no caption overlay", "no text overlay", "no watermark", "no logo", "no background music by default", "vertical 9:16", "commercial quality visuals"];
@@ -224,7 +154,7 @@ export function createDailyAiPrompt(character: CharacterProfile) {
 ให้สร้างคอนเทนต์ TikTok/Reels/Shorts สำหรับตัวละครหลักชื่อ ${character.name}
 
 Character Lock:
-${characterLock}
+Character asset is loaded by GHOSTFACTORY code. Use character name and type only; do not recreate appearance, voice lock, or anchor rules.
 
 ห้าม:
 ${(character.forbiddenChanges ?? []).map((rule) => `- ${rule}`).join("\n")}
@@ -239,9 +169,8 @@ Rules:
 ${character.rules.map((rule) => `- ${rule}`).join("\n")}
 ${globalRules.map((rule) => `- ${rule}`).join("\n")}
 - แต่ละ Prompt ต้องละเอียดพอสำหรับสร้างภาพ/วิดีโอ
-- Frame Prompt ต้องไม่พูดซ้ำกัน
-- Video Prompt ต้องระบุการเคลื่อนไหว กล้อง เสียง และอารมณ์ชัดเจน
-- ทุก Image Prompt และ Video Prompt ต้องขึ้นต้นหรือมี Character Lock ของ Meow ครบถ้วน
+- Frame Prompt และ Video Prompt เขียนแบบสั้น ชัดเจน
+- ระบบ GHOSTFACTORY จะประกอบ Character Anchor, Continuity, Voice Lock, Prompt Sections และ Quality Review ใน code เอง
 
 วันนี้ให้สร้าง 6 EP:
 - 3 EP แบบ 24 วินาที ใช้ F1-F4 และ V1-V3
@@ -254,6 +183,9 @@ Format:
 Category:
 Viral Score:
 Story:
+Core Idea:
+Episode State:
+Voice Profile:
 Hook:
 
 Frames:
@@ -293,6 +225,7 @@ Duration:
 Video Prompt:
 
 Voice Script:
+Quality Review:
 Sound Effects:
 Caption:
 Hashtags:
@@ -347,44 +280,65 @@ JSON schema:
 }`;
 }
 
-function ideaMemorySummary(memory?: IdeaMemory) {
-  if (!memory) return "";
-  const categories = Object.entries(memory.categories ?? {})
-    .filter(([, count]) => count > 0)
-    .sort((a, b) => b[1] - a[1])
-    .slice(0, 12)
-    .map(([category, count]) => `${category}: ${count}`)
-    .join("\n");
-
-  const keywords = (memory.recentKeywords ?? []).slice(0, 60).join(", ");
-  const twists = (memory.recentTwists ?? []).slice(0, 30).join(", ");
-
-  return `แนวที่ใช้บ่อย:
-${categories || "ยังไม่มีข้อมูล"}
-
-คำ/มุก/สถานการณ์ที่ใช้ไปแล้ว:
-${keywords || "ยังไม่มีข้อมูล"}
-
-จุดหักมุมที่ใช้ไปแล้ว:
-${twists || "ยังไม่มีข้อมูล"}`;
+function cleanMemoryPhrase(value?: string) {
+  return value?.replace(/\s+/g, " ").trim();
 }
 
-export function appendHistoryToPrompt(prompt: string, history: GhostEp[], limit = 50, ideaMemory?: IdeaMemory) {
-  const latest = history.slice(0, limit);
-  const historyText = latest.length
-    ? latest.map((ep, index) => `${index + 1}. ${ep.title} - ${ep.story}`).join("\n")
-    : "ยังไม่มี";
+function addUniquePhrase(list: string[], value?: string, max = 90) {
+  const phrase = cleanMemoryPhrase(value);
+  if (!phrase) return;
+  const clipped = phrase.length > max ? `${phrase.slice(0, max).trim()}...` : phrase;
+  if (!list.some((item) => item.toLowerCase() === clipped.toLowerCase())) {
+    list.push(clipped);
+  }
+}
+
+function phraseList(title: string, items: string[]) {
+  return `${title}:
+${items.length ? items.map((item) => `- ${item}`).join("\n") : "- none"}`;
+}
+
+function episodeMemorySummary(history: GhostEp[], limit: number) {
+  const usedConcepts: string[] = [];
+  const usedLocations: string[] = [];
+  const usedHooks: string[] = [];
+  const usedPayoffs: string[] = [];
+  const usedMechanics: string[] = [];
+
+  history.slice(0, limit).forEach((ep) => {
+    addUniquePhrase(usedConcepts, ep.coreIdea?.centralIdea || ep.title);
+    addUniquePhrase(usedConcepts, ep.coreIdea?.coreConflict);
+    addUniquePhrase(usedLocations, ep.episodeState?.primaryLocation || ep.episodeState?.location);
+    addUniquePhrase(usedLocations, ep.episodeState?.visualAnchor);
+    addUniquePhrase(usedHooks, ep.coreIdea?.hookMechanic || ep.hook);
+    addUniquePhrase(usedPayoffs, ep.coreIdea?.payoffMechanic);
+    addUniquePhrase(usedPayoffs, ep.storyBeats?.[ep.storyBeats.length - 1]?.beat);
+    addUniquePhrase(usedMechanics, ep.coreIdea?.hookMechanic);
+    addUniquePhrase(usedMechanics, ep.coreIdea?.payoffMechanic);
+    addUniquePhrase(usedMechanics, ep.episodeState?.mainProps || ep.episodeState?.props);
+  });
+
+  return `Episode Memory Summary:
+${phraseList("usedConcepts", usedConcepts.slice(0, 18))}
+
+${phraseList("usedLocations", usedLocations.slice(0, 12))}
+
+${phraseList("usedHooks", usedHooks.slice(0, 18))}
+
+${phraseList("usedPayoffs", usedPayoffs.slice(0, 18))}
+
+${phraseList("usedMechanics", usedMechanics.slice(0, 18))}`;
+}
+
+export function appendHistoryToPrompt(prompt: string, history: GhostEp[], limit = 50, _ideaMemory?: IdeaMemory) {
+  const memorySummary = episodeMemorySummary(history, limit);
 
   return `${prompt}
 
-รายการ EP เก่าล่าสุดที่ควรหลีกเลี่ยง:
-
-${historyText}
-
-${ideaMemorySummary(ideaMemory)}
+${memorySummary}
 
 คำสั่ง:
-หลีกเลี่ยงการสร้าง EP ที่ชื่อ มุก โครงเรื่อง จุดหักมุม หรือสถานการณ์ใกล้เคียงกับรายการด้านบน`;
+หลีกเลี่ยง centralIdea, hook, payoff, location, main prop, และ ending mechanic ที่คล้ายกับ Episode Memory Summary ด้านบน`;
 }
 
 export function createFullDailyPackagePrompt(promptWithHistory: string, batch?: DailyBatch | null) {

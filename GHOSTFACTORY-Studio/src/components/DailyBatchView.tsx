@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
-import { calculateParseHealth, parseDailyResult } from "@/lib/ep-generator";
+import { calculateParseHealth, parseDailyResult, renderImagePrompt, renderVideoPrompt } from "@/lib/ep-generator";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -47,6 +47,7 @@ type GeneratorDraft = {
 function defaultGenerationSetup(settings: Settings): GenerationSetup {
   return {
     aiMode: "manual",
+    autoFrameCount: false,
     autoImageGeneration: false,
     creditMode: settings.creditMode === "normal" ? "medium" : settings.creditMode,
     customFramesEnabled: false,
@@ -70,6 +71,7 @@ function normalizeGenerationSetup(settings: Settings, saved?: Partial<Generation
   return {
     ...defaults,
     ...saved,
+    autoFrameCount: Boolean(saved?.autoFrameCount ?? defaults.autoFrameCount),
     customFramesEnabled: Boolean(saved?.customFramesEnabled ?? defaults.customFramesEnabled),
     durationPerVideoSec: Math.max(1, durationPerVideoSec),
     framesPerEpisode: Math.max(2, Number(saved?.framesPerEpisode ?? videosPerEpisode + 1)),
@@ -82,19 +84,31 @@ function frameText(ep: GhostEp, frameId?: string) {
   const frames = frameId ? ep.frames.filter((frame) => frame.frameId === frameId) : ep.frames;
   return frames
     .filter((frame) => frame.imagePrompt.trim())
-    .map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
+    .map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${renderImagePrompt(ep, frame)}`)
     .join("\n\n");
 }
 
 function videoText(ep: GhostEp, videoId?: string) {
   const videos = videoId ? ep.videos.filter((video) => video.videoId === videoId) : ep.videos;
   return videos
-    .filter((video) => video.prompt.trim())
-    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.prompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
+    .filter((video) => video.videoPrompt.trim())
+    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
 }
 
 function packageText(ep: GhostEp) {
+  const coreIdea = ep.coreIdea
+    ? Object.entries(ep.coreIdea).map(([key, value]) => `${key}: ${value}`).join("\n")
+    : "";
+  const episodeState = ep.episodeState
+    ? Object.entries(ep.episodeState).map(([key, value]) => `${key}: ${value}`).join("\n")
+    : "";
+  const voiceProfile = ep.voiceProfile
+    ? Object.entries(ep.voiceProfile).map(([key, value]) => `${key}: ${value}`).join("\n")
+    : "";
+  const qualityReview = ep.qualityReview
+    ? Object.entries(ep.qualityReview).map(([key, value]) => `${key}: ${value}`).join("\n")
+    : "";
   return [
     `${ep.id} ${ep.title}`,
     `Language: ${ep.language}`,
@@ -104,6 +118,18 @@ function packageText(ep: GhostEp) {
     `Goal: ${ep.contentGoal}`,
     `Category: ${ep.category}`,
     `Hook: ${ep.hook}`,
+    "",
+    "Core Idea",
+    coreIdea,
+    "",
+    "Episode State",
+    episodeState,
+    "",
+    "Voice Profile",
+    voiceProfile,
+    "",
+    "Quality Review",
+    qualityReview,
     "",
     "Frames",
     frameText(ep),
@@ -195,31 +221,63 @@ function EpResultModal({
             </div>
           </section>
 
+          <section className="grid gap-3 md:grid-cols-4">
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <h3 className="mb-3 font-semibold">Core Idea</h3>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                {Object.entries(ep.coreIdea ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+              </div>
+            </div>
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <h3 className="mb-3 font-semibold">Episode State</h3>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                {Object.entries(ep.episodeState ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+              </div>
+            </div>
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <h3 className="mb-3 font-semibold">Voice Profile</h3>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                {Object.entries(ep.voiceProfile ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
+              </div>
+            </div>
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <h3 className="mb-3 font-semibold">Quality Review</h3>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                {Object.entries(ep.qualityReview ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {String(value || "-")}</div>)}
+              </div>
+            </div>
+          </section>
+
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Frames</h3>
             <div className="grid gap-3 md:grid-cols-2">
-              {ep.frames.map((frame) => (
+              {ep.frames.map((frame, index) => {
+                const renderedPrompt = renderImagePrompt(ep, frame, index);
+                return (
                 <article className="rounded-[18px] bg-white p-3" key={frame.frameId}>
                   <div className="mb-2 flex items-center justify-between gap-2">
                     <div className="text-sm font-semibold">{frame.frameId} {frame.title}</div>
-                    <CopyButton label={frame.frameId} onClick={() => onCopy(frame.imagePrompt, `Copy ${frame.frameId}`)} />
+                    <CopyButton label={frame.frameId} onClick={() => onCopy(renderedPrompt, `Copy ${frame.frameId}`)} />
                   </div>
-                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{frame.imagePrompt}</p>
+                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{renderedPrompt}</p>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
 
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Videos</h3>
             <div className="grid gap-3">
-              {ep.videos.map((video) => (
+              {ep.videos.map((video) => {
+                const renderedPrompt = renderVideoPrompt(ep, video);
+                return (
                 <article className="rounded-[18px] bg-white p-3" key={video.videoId}>
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
                     <div className="text-sm font-semibold">{video.videoId} {video.fromFrame} to {video.toFrame} ({video.durationSec}s)</div>
-                    <CopyButton label={video.videoId} onClick={() => onCopy(video.prompt, `Copy ${video.videoId}`)} />
+                    <CopyButton label={video.videoId} onClick={() => onCopy(renderedPrompt, `Copy ${video.videoId}`)} />
                   </div>
-                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{video.prompt}</p>
+                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{renderedPrompt}</p>
                   <div className="mt-3 grid gap-2 text-xs md:grid-cols-5">
                     <div><strong>Camera:</strong> {video.camera || "-"}</div>
                     <div><strong>Motion:</strong> {video.motion || "-"}</div>
@@ -228,7 +286,8 @@ function EpResultModal({
                     <div><strong>Mood:</strong> {video.mood || "-"}</div>
                   </div>
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
 
@@ -324,7 +383,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
   ];
   const videosPerEpisode = Math.max(1, Number(generationSetup.videosPerEpisode || 1));
   const automaticFramesPerEpisode = videosPerEpisode + 1;
-  const framesPerEpisode = generationSetup.customFramesEnabled ? Math.max(2, Number(generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : automaticFramesPerEpisode;
+  const framesPerEpisode = generationSetup.autoFrameCount ? Math.max(3, Math.min(6, generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : generationSetup.customFramesEnabled ? Math.max(2, Number(generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : automaticFramesPerEpisode;
   const durationPerVideoSec = Math.max(1, Number(generationSetup.durationPerVideoSec || 8));
   const totalEpisodeDurationSec = videosPerEpisode * durationPerVideoSec;
 
@@ -487,7 +546,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
   }
 
   function validate(ep: GhostEp) {
-    return [!ep.title.trim() && "title", !ep.story.trim() && "story", !ep.hook.trim() && "hook", ep.frames.some((frame) => !frame.imagePrompt.trim()) && "frames", ep.videos.some((video) => !video.prompt.trim()) && "videos", !ep.caption.trim() && "caption", !ep.hashtags.length && "hashtags"].filter(Boolean).join(", ");
+    return [!ep.title.trim() && "title", !ep.story.trim() && "story", !ep.hook.trim() && "hook", ep.frames.some((frame) => !frame.imagePrompt.trim()) && "frames", ep.videos.some((video) => !video.videoPrompt.trim()) && "videos", !ep.caption.trim() && "caption", !ep.hashtags.length && "hashtags"].filter(Boolean).join(", ");
   }
 
   async function saveToLibrary(ep: GhostEp, options: { skipConfirm?: boolean } = {}) {
@@ -642,8 +701,9 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
               </div>
             </div>
             <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm font-semibold"><input checked={generationSetup.customFramesEnabled} onChange={(event) => setGenerationSetup({ ...generationSetup, customFramesEnabled: event.target.checked, framesPerEpisode: event.target.checked ? framesPerEpisode : automaticFramesPerEpisode })} type="checkbox" />Override frames manually</label>
-              {generationSetup.customFramesEnabled ? <label className="text-sm font-semibold">Frames Per EP<input className="control mt-1" min="2" type="number" value={generationSetup.framesPerEpisode} onChange={(event) => setGenerationSetup({ ...generationSetup, framesPerEpisode: Math.max(2, Number(event.target.value)) })} /></label> : <div className="rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm text-[#64748B]">Auto frame logic: frames = videos + 1</div>}
+              <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm font-semibold"><input checked={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, autoFrameCount: event.target.checked, customFramesEnabled: event.target.checked ? false : generationSetup.customFramesEnabled })} type="checkbox" />Auto Frame Count</label>
+              <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm font-semibold"><input checked={generationSetup.customFramesEnabled} disabled={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, customFramesEnabled: event.target.checked, framesPerEpisode: event.target.checked ? framesPerEpisode : automaticFramesPerEpisode })} type="checkbox" />Override frames manually</label>
+              {generationSetup.customFramesEnabled && !generationSetup.autoFrameCount ? <label className="text-sm font-semibold">Frames Per EP<input className="control mt-1" min="2" type="number" value={generationSetup.framesPerEpisode} onChange={(event) => setGenerationSetup({ ...generationSetup, framesPerEpisode: Math.max(2, Number(event.target.value)) })} /></label> : <div className="rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm text-[#64748B]">{generationSetup.autoFrameCount ? "Code chooses 3 / 4 / 6 frames by idea complexity." : "Auto frame logic: frames = videos + 1"}</div>}
             </div>
           </div>
           <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">

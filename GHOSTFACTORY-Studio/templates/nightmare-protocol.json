@@ -1,0 +1,8 @@
+{
+  "id": "nightmare-protocol",
+  "match": ["nightmare", "horror", "extreme horror"],
+  "coreConflict": "normal reality vs impossible evidence",
+  "payoffMechanic": "disturbing unanswered question",
+  "defaultComplexity": "complex",
+  "avoid": ["simple monster reveal", "random teleport", "unearned jump scare"]
+}
