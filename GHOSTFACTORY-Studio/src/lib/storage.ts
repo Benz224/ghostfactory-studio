@@ -267,6 +267,15 @@ const defaultEpisodeState = {
   emotionProgression: ""
 };
 
+const defaultEpContinuityAnchor = {
+  location: "",
+  mainProp: "",
+  lighting: "",
+  timeOfDay: "",
+  cameraStyle: "",
+  emotionArc: ""
+};
+
 const defaultCoreIdea = {
   centralIdea: "",
   coreConflict: "",
@@ -717,20 +726,49 @@ export async function deleteEpById(epId: string) {
   return target;
 }
 
+function escapeRegExp(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function compactStoredPrompt(prompt = "", suppress: string[] = []) {
+  let clean = prompt
+    .replace(/SECTION\s+[A-I]\s*-\s*[A-Z ]+:/gi, " ")
+    .replace(/\b(START STATE|TRANSITION|END STATE|CAMERA|MOTION|AUDIO|DIALOGUE|VOICE PROFILE LOCK):/gi, " ")
+    .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, " ")
+    .replace(/\b(hook|evidence|escalation|realization|payoff|final approach|first action)\s*:\s*[\s\S]*?(?=\b(?:Meow|A fluffy|The fluffy|The camera|An orange|A small|Camera)\b)/gi, " ")
+    .replace(/Meow is the exact same fluffy orange tabby cat[\s\S]*?(?:no logo\.|no logo)/gi, " ")
+    .replace(/no subtitles, no caption overlay, no text overlay, no watermark, no logo, no background music by default, vertical 9:16, commercial quality visuals/gi, " ")
+    .replace(/\b(primaryLocation|timeOfDay|lightingStyle|mainProps|continuityAnchor|cameraLanguage|environmentAudio|visualAnchor|emotionProgression|locationLayout|characterPosition|characterFacingDirection|cameraPosition|cameraAngle|cameraDistance|mainPropPosition|lightingDirection|emotionState|actionState|dialogueIntent|storyBeat|emotionalIntensity|speechPattern|forbiddenToneShift|preset|gender|age|tone|energy|speakingSpeed|accent|personality|sentenceLength|vocabularyStyle|emotionalRange):\s*[^.。!?\n]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  suppress.map((value) => value.trim()).filter(Boolean).forEach((value) => {
+    const escaped = escapeRegExp(value);
+    clean = clean
+      .replace(new RegExp(`^${escaped}\\s*[.。,:;-]*\\s*`, "i"), "")
+      .replace(new RegExp(`\\s*[.。,:;-]*\\s*${escaped}\\s*$`, "i"), "")
+      .replace(new RegExp(`\\s{2,}${escaped}\\s*`, "i"), " ")
+      .replace(new RegExp(escaped, "gi"), " ");
+  });
+  return clean
+    .replace(/\.\.\s*\.\.\.[\s\S]*$/g, ".")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 export function normalizeStoredEp(ep: GhostEp): GhostEp {
   const frames = Array.isArray(ep.frames) ? ep.frames : [];
   const videos = Array.isArray(ep.videos) ? ep.videos : [];
   const leanFrames = frames.map((frame) => ({
     frameId: frame.frameId,
     title: frame.title,
-    imagePrompt: frame.imagePrompt
+    imagePrompt: compactStoredPrompt(frame.imagePrompt, [frame.title])
   }));
   const leanVideos = videos.map((video) => ({
     videoId: video.videoId,
     fromFrame: video.fromFrame,
     toFrame: video.toFrame,
     durationSec: video.durationSec,
-    videoPrompt: video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "",
+    videoPrompt: compactStoredPrompt(video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "", [video.motion, video.camera, video.audio, video.dialogue, video.mood]),
     camera: video.camera ?? "",
     motion: video.motion ?? "",
     audio: video.audio ?? "",
@@ -761,6 +799,7 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     coreIdea: { ...defaultCoreIdea, ...(ep.coreIdea ?? {}) },
     storyBeats: Array.isArray(ep.storyBeats) ? ep.storyBeats : [],
     episodeState: { ...defaultEpisodeState, ...(ep.episodeState ?? {}) },
+    continuityAnchor: { ...defaultEpContinuityAnchor, ...(ep.continuityAnchor ?? {}) },
     characterAnchor: ep.characterAnchor || defaultCharacterAnchor,
     voiceProfile: { ...defaultVoiceProfile, ...(ep.voiceProfile ?? {}) },
     visualStates: Array.isArray(ep.visualStates) ? ep.visualStates : [],
@@ -792,7 +831,7 @@ function safeSegment(input: string) {
 
 export function createMarkdown(ep: GhostEp) {
   const storyBeats = (ep.storyBeats ?? [])
-    .map((beat) => `- ${beat.beatId}: ${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
+    .map((beat) => `- ${beat.beatId}: ${beat.role ? `${beat.role} / ` : ""}${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
     .join("\n");
   const visualStates = (ep.visualStates ?? [])
     .map(
@@ -963,7 +1002,7 @@ export function videosText(ep: GhostEp) {
   return ep.videos
     .map(
       (video) =>
-        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
+        `${video.videoId}\n${video.videoPrompt}`
     )
     .join("\n\n");
 }

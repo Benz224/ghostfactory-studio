@@ -4,5 +4,8 @@
   "coreConflict": "cat logic vs human logic",
   "payoffMechanic": "cute absurd behavior",
   "defaultComplexity": "simple",
+  "logicLayer": "Human Logic vs Cat Logic: a human expects the obvious useful object, Meow inspects it seriously, overthinks it, then chooses a more absurd cat-approved object.",
+  "storyFormula": ["hook: normal human action", "cat inspection", "cat overthinking", "absurd cat payoff"],
+  "qualitySignals": ["human expectation", "cat inspection", "overthinking", "absurd cat decision"],
   "avoid": ["hard sell", "dark tonal jump"]
 }

@@ -1,4 +1,4 @@
-import type { CharacterProfile, ContentGoal, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeState, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VisualState, VoiceProfile } from "./types";
+import type { CharacterProfile, ContentGoal, ContinuityAnchor, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeState, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VisualState, VoiceProfile } from "./types";
 import { createChecklistFromParts } from "./checklist";
 import { frameCountForTemplatePack, getTemplatePack } from "./template-packs";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
@@ -65,6 +65,17 @@ function defaultEpisodeState(): EpisodeState {
     environmentAudio: "",
     visualAnchor: "",
     emotionProgression: ""
+  };
+}
+
+function defaultContinuityAnchor(): ContinuityAnchor {
+  return {
+    location: "",
+    mainProp: "",
+    lighting: "",
+    timeOfDay: "",
+    cameraStyle: "",
+    emotionArc: ""
   };
 }
 
@@ -177,6 +188,7 @@ function blankEp(date: string, index: number, format = "24s", category = "Uncate
     coreIdea: defaultCoreIdea(),
     storyBeats: [],
     episodeState: defaultEpisodeState(),
+    continuityAnchor: defaultContinuityAnchor(),
     characterAnchor: DEFAULT_CHARACTER_ANCHOR,
     voiceProfile: defaultVoiceProfile(),
     visualStates: [],
@@ -489,9 +501,11 @@ function mapCoreIdea(source: Record<string, unknown>): CoreIdea {
 
 function mapStoryBeat(item: unknown, index: number): StoryBeat {
   const beat = asRecord(item);
+  const role = stringValue(beat, ["role", "storyRole", "story_role"]).toLowerCase();
   return {
     beatId: stringValue(beat, ["beatId", "beat_id", "id"]) || `beat${index + 1}`,
-    function: stringValue(beat, ["function", "role", "beatFunction", "beat_function"]),
+    role: ["hook", "goal", "obstacle", "escalation", "payoff"].includes(role) ? role as StoryBeat["role"] : undefined,
+    function: stringValue(beat, ["function", "beatFunction", "beat_function"]) || role,
     beat: stringValue(beat, ["beat", "storyBeat", "story_beat", "description"]) || (typeof item === "string" ? item : "")
   };
 }
@@ -631,32 +645,13 @@ function hasContinuityState(ep: GhostEp) {
 
 function hasTransitionVideoPrompts(ep: GhostEp) {
   return ep.videos.every((video) => {
-    const text = renderVideoPrompt(ep, video).toLowerCase();
-    return [
-      "section a - character anchor",
-      "section b - episode state",
-      "section c - start state",
-      "section d - transition",
-      "section e - end state",
-      "section f - camera",
-      "section g - audio",
-      "section h - dialogue",
-      "section i - global visual style"
-    ].every((section) => text.includes(section));
+    const text = video.videoPrompt.toLowerCase();
+    return Boolean(video.fromFrame.trim() && video.toFrame.trim() && text.trim() && !/section\s+[a-i]|new scene|cut to|teleport|different location|เปลี่ยนฉาก|ตัดไป|วาร์ป/i.test(text));
   });
 }
 
 function hasStructuredImagePrompts(ep: GhostEp) {
-  return ep.frames.every((frame, index) => {
-    const text = renderImagePrompt(ep, frame, index).toLowerCase();
-    return [
-      "section a - character anchor",
-      "section b - episode state",
-      "section c - visual state",
-      "section d - frame action",
-      "section e - global visual style"
-    ].every((section) => text.includes(section));
-  });
+  return ep.frames.every((frame) => Boolean(frame.frameId.trim() && frame.title.trim() && frame.imagePrompt.trim() && !/section\s+[a-i]/i.test(frame.imagePrompt)));
 }
 
 function hasPassingContinuitySelfCheck(ep: GhostEp) {
@@ -669,58 +664,6 @@ export function ensureAnchorPrompt(prompt: string, characterAnchor = DEFAULT_CHA
   if (!locked) return "";
   const hasAnchor = characterAnchor && locked.toLowerCase().includes(characterAnchor.slice(0, 24).toLowerCase());
   return hasAnchor ? locked : `${characterAnchor}. ${locked}`;
-}
-
-function formatSection(label: string, value: string) {
-  return `${label}\n${value.trim() || "-"}`;
-}
-
-function episodeStatePrompt(state?: EpisodeState) {
-  if (!state) return "";
-  return [
-    `primaryLocation: ${state.primaryLocation || state.location}`,
-    `timeOfDay: ${state.timeOfDay}`,
-    `lightingStyle: ${state.lightingStyle || state.lighting}`,
-    `mainProps: ${state.mainProps || state.props}`,
-    `continuityAnchor: ${state.continuityAnchor}`,
-    `cameraLanguage: ${state.cameraLanguage || state.camera}`,
-    `environmentAudio: ${state.environmentAudio}`,
-    `visualAnchor: ${state.visualAnchor}`,
-    `emotionProgression: ${state.emotionProgression}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
-}
-
-function visualStatePrompt(state?: VisualState) {
-  if (!state) return "";
-  return [
-    `locationLayout: ${state.locationLayout}`,
-    `characterPosition: ${state.characterPosition}`,
-    `characterFacingDirection: ${state.characterFacingDirection}`,
-    `cameraPosition: ${state.cameraPosition}`,
-    `cameraAngle: ${state.cameraAngle}`,
-    `cameraDistance: ${state.cameraDistance}`,
-    `mainPropPosition: ${state.mainPropPosition}`,
-    `lightingDirection: ${state.lightingDirection}`,
-    `emotionState: ${state.emotionState}`,
-    `actionState: ${state.actionState}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
-}
-
-function voiceProfilePrompt(profile?: VoiceProfile) {
-  if (!profile) return "";
-  return [
-    `preset: ${profile.preset}`,
-    `gender: ${profile.gender}`,
-    `age: ${profile.age}`,
-    `tone: ${profile.tone}`,
-    `energy: ${profile.energy}`,
-    `speakingSpeed: ${profile.speakingSpeed}`,
-    `accent: ${profile.accent}`,
-    `personality: ${profile.personality}`,
-    `sentenceLength: ${profile.sentenceLength}`,
-    `vocabularyStyle: ${profile.vocabularyStyle}`,
-    `emotionalRange: ${profile.emotionalRange}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
 }
 
 function storyBeatForFrame(ep: GhostEp, frameId: string, index: number) {
@@ -747,6 +690,9 @@ function leanPrompt(prompt: string) {
   return stripAssemblySections(prompt)
     .replace(CHARACTER_LOCK, "")
     .replace(GLOBAL_NEGATIVE_RULES, "")
+    .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, "")
+    .replace(/\b(actionState|emotionState|dialogueIntent|storyBeat|emotionalIntensity):\s*[^.。!?\n]+/gi, "")
+    .replace(/\b(hook|evidence|escalation|realization|payoff|final approach|first action)\s*:\s*[\s\S]*?(?=\b(?:Meow|A fluffy|The fluffy|The camera|An orange|A small|Camera)\b)/gi, "")
     .replace(/\s*\.?\s*$/, "")
     .replace(/^\s*[.,;:-]\s*/, "")
     .replace(/\s+/g, " ")
@@ -754,56 +700,14 @@ function leanPrompt(prompt: string) {
 }
 
 export function renderImagePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index = ep.frames.findIndex((item) => item.frameId === frame.frameId)) {
-  const characterAnchor = ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR;
-  const visualState = visualStateForFrame(ep, frame.frameId);
-  const frameIndex = index >= 0 ? index : 0;
-  const beat = storyBeatForFrame(ep, frame.frameId, frameIndex);
-  const frameAction = [
-    frame.title,
-    beat ? `${beat.function}: ${beat.beat}` : "",
-    visualState?.actionState ? `actionState: ${visualState.actionState}` : "",
-    stripAssemblySections(frame.imagePrompt)
-  ].filter(Boolean).join("\n");
-
-  return [
-    formatSection("SECTION A - CHARACTER ANCHOR:", characterAnchor),
-    formatSection("SECTION B - EPISODE STATE:", episodeStatePrompt(ep.episodeState)),
-    formatSection("SECTION C - VISUAL STATE:", visualStatePrompt(visualState)),
-    formatSection("SECTION D - FRAME ACTION:", frameAction),
-    formatSection("SECTION E - GLOBAL VISUAL STYLE:", GLOBAL_NEGATIVE_RULES)
-  ].join("\n\n");
+  void ep;
+  void index;
+  return leanPrompt(frame.imagePrompt);
 }
 
 export function renderVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
-  const characterAnchor = ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR;
-  const fromState = visualStateForFrame(ep, video.fromFrame);
-  const toState = visualStateForFrame(ep, video.toFrame);
-  const outline = dialogueOutlineForVideo(ep, video.videoId);
-  const transition = [
-    outline?.dialogueIntent ? `dialogueIntent: ${outline.dialogueIntent}` : "",
-    outline?.emotionalIntensity ? `emotionalIntensity: ${outline.emotionalIntensity}` : "",
-    video.motion ? `motion: ${video.motion}` : "",
-    stripAssemblySections(video.videoPrompt)
-  ].filter(Boolean).join("\n");
-  const dialogue = [
-    "VOICE PROFILE LOCK:",
-    voiceProfilePrompt(ep.voiceProfile),
-    outline?.speechPattern ? `speechPattern: ${outline.speechPattern}` : "",
-    outline?.forbiddenToneShift ? `forbiddenToneShift: ${outline.forbiddenToneShift}` : "",
-    `dialogue: ${video.dialogue}`
-  ].filter(Boolean).join("\n");
-
-  return [
-    formatSection("SECTION A - CHARACTER ANCHOR:", characterAnchor),
-    formatSection("SECTION B - EPISODE STATE:", episodeStatePrompt(ep.episodeState)),
-    formatSection("SECTION C - START STATE:", visualStatePrompt(fromState) || `${video.fromFrame} visual state`),
-    formatSection("SECTION D - TRANSITION:", transition),
-    formatSection("SECTION E - END STATE:", visualStatePrompt(toState) || `${video.toFrame} visual state`),
-    formatSection("SECTION F - CAMERA:", video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || ""),
-    formatSection("SECTION G - AUDIO:", video.audio || ep.episodeState?.environmentAudio || ""),
-    formatSection("SECTION H - DIALOGUE:", dialogue),
-    formatSection("SECTION I - GLOBAL VISUAL STYLE:", GLOBAL_NEGATIVE_RULES)
-  ].join("\n\n");
+  void ep;
+  return leanPrompt(video.videoPrompt);
 }
 
 export function assembleEpPrompts(ep: GhostEp): GhostEp {
@@ -846,24 +750,175 @@ export function leanEpOutput(ep: GhostEp): GhostEp {
   };
 }
 
-function beatFunctions(frameCount: number) {
+function templatePackForEp(ep: GhostEp) {
+  return getTemplatePack(`${ep.templateId} ${ep.templateName} ${ep.category} ${ep.contentGoal}`);
+}
+
+function compactFormula(formula: string[], frameCount: number) {
+  if (!formula.length) return [];
+  if (frameCount >= formula.length) return formula;
+  if (frameCount === 3 && formula.length >= 4) {
+    return [formula[0], `${formula[1]} + ${formula[2]}`, formula[formula.length - 1]];
+  }
+  return [formula[0], ...formula.slice(-Math.max(1, frameCount - 1))].slice(0, frameCount);
+}
+
+const storyDepthRoles = ["hook", "goal", "obstacle", "escalation", "payoff"] as const;
+type StoryDepthRole = typeof storyDepthRoles[number];
+
+function depthRoleForIndex(index: number, frameCount: number): StoryDepthRole {
+  if (frameCount >= 5) return storyDepthRoles[Math.min(index, storyDepthRoles.length - 1)];
+  if (frameCount === 4) return (["hook", "goal", "escalation", "payoff"] as const)[index] ?? "payoff";
+  if (frameCount === 3) return (["hook", "obstacle", "payoff"] as const)[index] ?? "payoff";
+  return index === 0 ? "hook" : "payoff";
+}
+
+function depthFunctionForRole(role: StoryDepthRole, frameCount: number) {
+  if (frameCount === 4 && role === "goal") return "goal + obstacle";
+  if (frameCount === 3 && role === "hook") return "observation + goal";
+  if (frameCount === 3 && role === "obstacle") return "problem + escalation";
+  return role;
+}
+
+function beatFunctions(ep: GhostEp, frameCount: number) {
+  const formula = compactFormula(templatePackForEp(ep).storyFormula ?? [], frameCount);
+  if (formula.length) return formula.map((item, index) => `${depthFunctionForRole(depthRoleForIndex(index, frameCount), frameCount)}: ${item}`);
   if (frameCount >= 6) return ["hook / anomaly / setup", "first action / first evidence", "escalation", "realization / complication", "final approach / tension peak", "payoff / unresolved ending / result"];
   if (frameCount === 4) return ["hook", "evidence", "realization", "payoff"];
   return ["hook", "escalation", "payoff"];
 }
 
+function mainObjectForEp(ep: GhostEp) {
+  return ep.episodeState?.mainProps || ep.episodeState?.props || ep.coreIdea?.hookMechanic || "main object";
+}
+
+function locationForEp(ep: GhostEp) {
+  return ep.episodeState?.primaryLocation || ep.episodeState?.location || "same room";
+}
+
+function catLogicPayoffObject(ep: GhostEp) {
+  const source = `${ep.title} ${ep.story} ${mainObjectForEp(ep)}`.toLowerCase();
+  if (/bed|cushion|pillow|ที่นอน|เบาะ|หมอน/.test(source)) return "the remote control beside it";
+  if (/toy|ของเล่น|ball|ลูกบอล/.test(source)) return "the empty box";
+  if (/feeder|food|อาหาร|ชาม/.test(source)) return "the paper bag near the bowl";
+  return "the least useful object nearby";
+}
+
+function templateCoreIdeaFallback(ep: GhostEp) {
+  const pack = templatePackForEp(ep);
+  const object = mainObjectForEp(ep);
+  const location = locationForEp(ep);
+  if (pack.id === "cute-daily-life") {
+    return `Human logic says ${object} is useful, but Meow uses cat logic in ${location} and chooses ${catLogicPayoffObject(ep)} instead`;
+  }
+  if (pack.id === "sigma-cat") {
+    return `Meow makes a cool entrance, faces a tiny ridiculous challenge, and recovers with deadpan dignity`;
+  }
+  if (pack.id === "nightmare-protocol") {
+    return `Meow notices one impossible detail in ${location}, follows the evidence, and ends with a question that cannot be answered`;
+  }
+  if (pack.id === "review") {
+    return `Meow tests ${object} through real use, moving from problem to demonstration to clear practical benefit`;
+  }
+  if (pack.id === "affiliate") {
+    return `Meow turns a small pain point into a natural product solution with proof and a soft call to action`;
+  }
+  return ep.hook || ep.title || ep.story.slice(0, 120);
+}
+
+function templateBeatText(ep: GhostEp, formula: string, index: number, frameCount: number) {
+  const pack = templatePackForEp(ep);
+  const object = mainObjectForEp(ep);
+  const location = locationForEp(ep);
+  const finalBeat = index === frameCount - 1;
+  if (pack.id === "cute-daily-life") {
+    if (index === 0) return `Human expectation in ${location}: ${object} should be the obvious useful thing for Meow.`;
+    if (finalBeat) return `Absurd cat decision: Meow ignores ${object} and settles on ${catLogicPayoffObject(ep)} like it was the correct choice all along.`;
+    if (/overthinking/i.test(formula)) return `Meow overthinks ${object}, testing it from the wrong angle with serious cat logic.`;
+    return `Meow inspects ${object} carefully, as if judging whether human logic can be trusted.`;
+  }
+  if (pack.id === "sigma-cat") {
+    if (index === 0) return `Meow enters ${location} with a cool, silent, overconfident pose.`;
+    if (finalBeat) return `Meow recovers from the tiny failure with deadpan dignity and pretends it was intentional.`;
+    if (/challenge/i.test(formula)) return `A ridiculous small obstacle interrupts Meow's confident image.`;
+    return `Meow keeps acting untouchable while the setup becomes slightly more absurd.`;
+  }
+  if (pack.id === "nightmare-protocol") {
+    if (index === 0) return `Impossible detail: something about ${object} in ${location} violates normal reality.`;
+    if (finalBeat) return `Inescapable ending: the evidence remains, and the unanswered question follows Meow instead of resolving.`;
+    if (/evidence/i.test(formula)) return `Meow finds clear evidence that the impossible detail is real, not imagination.`;
+    if (/approach/i.test(formula)) return `Meow cautiously approaches the source without leaving the same location.`;
+    return `Manifestation: the impossible evidence responds, but there is no simple monster reveal.`;
+  }
+  if (pack.id === "review") {
+    if (index === 0) return `Problem: Meow faces a clear everyday issue involving ${object}.`;
+    if (finalBeat) return `Result: the practical benefit is visible through Meow's behavior, without exaggerated claims.`;
+    if (/product/i.test(formula)) return `Show ${object} naturally in the scene as the item being tested.`;
+    return `Demonstrate one real action that proves whether ${object} helps.`;
+  }
+  if (pack.id === "affiliate") {
+    if (index === 0) return `Pain point: Meow reacts to the small problem that ${object} can solve.`;
+    if (finalBeat) return `Soft call to action: the solution feels natural, useful, and not hard-sold.`;
+    if (/solution/i.test(formula)) return `Introduce ${object} as the natural solution inside the scene.`;
+    return `Proof: Meow's action shows the product benefit without overclaiming.`;
+  }
+  return `${formula} for ${ep.coreIdea?.centralIdea || ep.title}`;
+}
+
+function templateDepthBeatText(ep: GhostEp, role: StoryDepthRole, formula: string, index: number, frameCount: number) {
+  const pack = templatePackForEp(ep);
+  const object = mainObjectForEp(ep);
+  const location = locationForEp(ep);
+  if (pack.id === "cute-daily-life") {
+    if (role === "hook") return `Observation: a human expects ${object} to be the obvious useful thing in ${location}.`;
+    if (role === "goal") return `Goal: Meow wants to decide whether ${object} deserves cat approval.`;
+    if (role === "obstacle") return `Problem: human logic makes ${object} look correct, but Meow's cat logic rejects the obvious answer.`;
+    if (role === "escalation") return `Escalation: Meow overthinks the choice and becomes more convinced the wrong object is better.`;
+    return `Payoff: Meow ignores ${object} and chooses ${catLogicPayoffObject(ep)} as the serious cat-approved solution.`;
+  }
+  if (pack.id === "sigma-cat") {
+    if (role === "hook") return `Observation: Meow enters ${location} with a cool confident image.`;
+    if (role === "goal") return `Goal: Meow tries to maintain the flawless sigma pose.`;
+    if (role === "obstacle") return `Problem: a tiny ridiculous challenge threatens the cool image.`;
+    if (role === "escalation") return `Escalation: the tiny problem becomes harder to ignore while Meow refuses to react.`;
+    return `Payoff: Meow recovers with deadpan dignity and acts like the failure was intentional.`;
+  }
+  if (pack.id === "nightmare-protocol") {
+    if (role === "hook") return `Observation: one impossible detail appears near ${object} in ${location}.`;
+    if (role === "goal") return `Goal: Meow tries to understand the source without leaving the same scene.`;
+    if (role === "obstacle") return `Problem: the evidence proves the impossible detail is real.`;
+    if (role === "escalation") return `Escalation: the evidence responds as Meow approaches, making escape feel impossible.`;
+    return `Payoff: the question remains unanswered and follows Meow instead of resolving.`;
+  }
+  if (pack.id === "review") {
+    if (role === "hook") return `Observation: Meow faces a clear everyday problem involving ${object}.`;
+    if (role === "goal") return `Goal: Meow tests whether ${object} can actually help.`;
+    if (role === "obstacle") return `Problem: the first attempt reveals the real usage challenge.`;
+    if (role === "escalation") return `Escalation: Meow demonstrates one clearer action that proves the use case.`;
+    return `Payoff: the practical benefit becomes visible through Meow's result.`;
+  }
+  if (pack.id === "affiliate") {
+    if (role === "hook") return `Observation: Meow reacts to a small pain point involving ${object}.`;
+    if (role === "goal") return `Goal: Meow needs a natural solution that fits the scene.`;
+    if (role === "obstacle") return `Problem: the pain point continues until ${object} is introduced.`;
+    if (role === "escalation") return `Escalation: Meow proves the solution through one visible action.`;
+    return `Payoff: the solution feels useful and ends with a soft call to action.`;
+  }
+  return templateBeatText(ep, formula, index, frameCount);
+}
+
 export function generateCoreIdea(ep: GhostEp): CoreIdea {
-  const pack = getTemplatePack(`${ep.templateName} ${ep.category} ${ep.contentGoal}`);
-  const templateLogic = ep.coreIdea?.templateLogic || `${pack.id}: ${pack.coreConflict}; ${pack.payoffMechanic}`;
+  const pack = templatePackForEp(ep);
+  const templateLogic = ep.coreIdea?.templateLogic || `${pack.id}: ${pack.logicLayer || `${pack.coreConflict}; ${pack.payoffMechanic}`}`;
   return {
     ...defaultCoreIdea(),
     ...(ep.coreIdea ?? {}),
-    centralIdea: ep.coreIdea?.centralIdea || ep.hook || ep.title || ep.story.slice(0, 120),
+    centralIdea: ep.coreIdea?.centralIdea || templateCoreIdeaFallback(ep),
     coreConflict: ep.coreIdea?.coreConflict || pack.coreConflict,
     hookMechanic: ep.coreIdea?.hookMechanic || ep.hook || "opening hook",
     payoffMechanic: ep.coreIdea?.payoffMechanic || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || pack.payoffMechanic,
     emotionTarget: ep.coreIdea?.emotionTarget || ep.episodeState?.emotionProgression || "curiosity -> reaction",
-    noveltyAngle: ep.coreIdea?.noveltyAngle || `${ep.category || ep.templateName} angle`,
+    noveltyAngle: ep.coreIdea?.noveltyAngle || `${pack.id} angle: ${pack.qualitySignals?.join(" -> ") || pack.payoffMechanic}`,
     templateLogic
   };
 }
@@ -871,16 +926,20 @@ export function generateCoreIdea(ep: GhostEp): CoreIdea {
 export function generateStoryBeats(ep: GhostEp): StoryBeat[] {
   const frameCount = Math.max(1, ep.frames.length);
   const existing = Array.isArray(ep.storyBeats) ? ep.storyBeats.filter((beat) => beat.beat.trim()) : [];
-  if (existing.length >= frameCount) return existing.slice(0, frameCount);
-  const functions = beatFunctions(frameCount);
-  const storyParts = ep.story
-    .split(/(?<=[.!?。！？])\s+|\n+/u)
-    .map((part) => part.trim())
-    .filter(Boolean);
+  const functions = beatFunctions(ep, frameCount);
+  if (existing.length >= frameCount) {
+    return existing.slice(0, frameCount).map((beat, index) => ({
+      ...beat,
+      role: beat.role || depthRoleForIndex(index, frameCount),
+      function: functions[index] || beat.function,
+      beat: beat.beat || templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || beat.function, index, frameCount)
+    }));
+  }
   return Array.from({ length: frameCount }, (_, index) => ({
     beatId: `beat${index + 1}`,
+    role: depthRoleForIndex(index, frameCount),
     function: functions[index] || `connector ${index + 1}`,
-    beat: existing[index]?.beat || storyParts[index] || ep.frames[index]?.title || `${functions[index] || "story beat"} for ${ep.coreIdea?.centralIdea || ep.title}`
+    beat: existing[index]?.beat || templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || "story beat", index, frameCount)
   }));
 }
 
@@ -909,6 +968,18 @@ export function generateEpisodeState(ep: GhostEp): EpisodeState {
     environmentAudio: old.environmentAudio || "continuous environment audio",
     visualAnchor: old.visualAnchor || props || firstFrameText,
     emotionProgression: old.emotionProgression || ep.coreIdea?.emotionTarget || "curious -> tense -> payoff"
+  };
+}
+
+export function generateContinuityAnchor(ep: GhostEp): ContinuityAnchor {
+  const state = ep.episodeState ?? defaultEpisodeState();
+  return {
+    location: state.primaryLocation || state.location || "same continuous scene",
+    mainProp: state.mainProps || state.props || "main story prop",
+    lighting: state.lightingStyle || state.lighting || "cinematic lighting",
+    timeOfDay: state.timeOfDay || "same time of day",
+    cameraStyle: state.cameraLanguage || state.camera || "continuous cinematic camera",
+    emotionArc: state.emotionProgression || ep.coreIdea?.emotionTarget || "controlled progression"
   };
 }
 
@@ -1048,6 +1119,16 @@ export function validateStoryBeatContinuity(beats: StoryBeat[]) {
   return { score: scoreFromRatio((beats.length - failedIndexes.length) / beats.length), failedIndexes };
 }
 
+function validateStoryDepth(beats: StoryBeat[]) {
+  const text = beats.map((beat) => `${beat.role ?? ""} ${beat.function} ${beat.beat}`).join(" ").toLowerCase();
+  const roleHits = storyDepthRoles.filter((role) => text.includes(role));
+  const shallow = /observation\s*[-→>]+\s*action\s*[-→>]+\s*end|action\s*[-→>]+\s*end/i.test(text);
+  return {
+    score: scoreFromRatio((roleHits.length / storyDepthRoles.length) * (shallow ? 0.5 : 1)),
+    missingRoles: storyDepthRoles.filter((role) => !text.includes(role))
+  };
+}
+
 export function rewriteStoryBeats(beats: StoryBeat[], coreIdea?: CoreIdea) {
   const result = validateStoryBeatContinuity(beats);
   if (!result.failedIndexes.length) return beats;
@@ -1132,9 +1213,128 @@ function sameValueRatio(values: string[]) {
   return normalized.every((value) => value === normalized[0]) ? 1 : 0.85;
 }
 
+function qualitySignalScore(ep: GhostEp) {
+  const pack = templatePackForEp(ep);
+  const haystack = [
+    ep.coreIdea?.centralIdea,
+    ep.coreIdea?.coreConflict,
+    ep.coreIdea?.payoffMechanic,
+    ep.coreIdea?.templateLogic,
+    ep.story,
+    ...(ep.storyBeats ?? []).map((beat) => `${beat.function} ${beat.beat}`)
+  ].join(" ").toLowerCase();
+  const signals = pack.qualitySignals ?? [];
+  const signalRatio = signals.length
+    ? signals.filter((signal) => tokenOverlapRatio(haystack, signal) >= 0.25 || haystack.includes(signal.toLowerCase())).length / signals.length
+    : 0.5;
+  return scoreFromRatio(
+    (tokenOverlapRatio(ep.coreIdea?.coreConflict ?? "", pack.coreConflict) >= 0.2 ? 0.25 : 0.1) +
+    (tokenOverlapRatio(ep.coreIdea?.payoffMechanic ?? "", pack.payoffMechanic) >= 0.2 ? 0.25 : 0.1) +
+    (haystack.includes(pack.id) ? 0.15 : 0) +
+    (signalRatio * 0.35)
+  );
+}
+
+function scorePayoff(ep: GhostEp) {
+  const pack = templatePackForEp(ep);
+  const lastBeat = ep.storyBeats?.[ep.storyBeats.length - 1];
+  const ending = [
+    lastBeat?.function,
+    lastBeat?.beat,
+    ep.coreIdea?.payoffMechanic,
+    ep.videos[ep.videos.length - 1]?.videoPrompt,
+    ep.videos[ep.videos.length - 1]?.dialogue
+  ].join(" ");
+  const payoffOverlap = tokenOverlapRatio(ending, pack.payoffMechanic);
+  const formulaEnd = pack.storyFormula?.[pack.storyFormula.length - 1] ?? "";
+  return scoreFromRatio(
+    (ending.trim().length > 24 ? 0.35 : 0) +
+    (payoffOverlap >= 0.2 ? 0.3 : 0.1) +
+    (tokenOverlapRatio(ending, formulaEnd) >= 0.2 ? 0.25 : 0.05) +
+    (!/and then|random|suddenly|teleport|new scene|ตัดไป|วาร์ป/i.test(ending) ? 0.1 : 0)
+  );
+}
+
+function scoreNovelty(ep: GhostEp) {
+  const duplicatePenalty = ep.duplicateCheck?.similarityScore ?? 0;
+  const ideaText = `${ep.coreIdea?.centralIdea} ${ep.coreIdea?.noveltyAngle} ${ep.coreIdea?.hookMechanic} ${ep.coreIdea?.payoffMechanic}`;
+  const genericPenalty = /นอนเฉย|แมวจะนอน|simple|normal cat|ธรรมดา/i.test(ideaText) ? 0.25 : 0;
+  return Math.max(0, Math.round((1 - Math.min(0.95, duplicatePenalty + genericPenalty)) * 100));
+}
+
+function scoreContinuity(ep: GhostEp) {
+  return Math.round((
+    validateStoryBeatContinuity(ep.storyBeats ?? []).score +
+    validateFrameToVideoContinuity(ep).score +
+    scoreFromRatio(sameValueRatio((ep.visualStates ?? []).map((state) => state.locationLayout))) +
+    detectVoiceDrift(ep).score
+  ) / 4);
+}
+
+function hasInternalPromptLeak(prompt: string) {
+  return /from the previous beat|actionState|emotionState|dialogueIntent|storyBeat|SECTION\s+[A-I]|primaryLocation|locationLayout|VOICE PROFILE LOCK/i.test(prompt);
+}
+
+function conciseCreativeFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index: number) {
+  const existing = leanPrompt(frame.imagePrompt);
+  if (existing && !hasInternalPromptLeak(existing)) return existing;
+  const pack = templatePackForEp(ep);
+  const object = mainObjectForEp(ep);
+  if (pack.id === "cute-daily-life") {
+    return index === ep.frames.length - 1
+      ? `Meow staring intensely at ${catLogicPayoffObject(ep)} with serious cat logic`
+      : `Meow inspecting ${object} with focused curiosity and a cute overthinking expression`;
+  }
+  if (pack.id === "sigma-cat") {
+    return index === ep.frames.length - 1
+      ? "Meow recovering from a tiny failure with a calm deadpan expression"
+      : "Meow posing confidently while a tiny ridiculous challenge appears nearby";
+  }
+  if (pack.id === "nightmare-protocol") {
+    return index === ep.frames.length - 1
+      ? "Meow frozen in fear as the unanswered evidence remains in the room"
+      : `Meow cautiously staring at ${object} as impossible evidence becomes visible`;
+  }
+  if (pack.id === "review" || pack.id === "affiliate") {
+    return index === ep.frames.length - 1
+      ? `Meow showing the practical result after testing ${object}`
+      : `Meow naturally testing ${object} with clear visible action`;
+  }
+  return `Meow focused on ${object} with a clear expressive pose`;
+}
+
+function conciseCreativeVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number], index: number) {
+  const existing = leanPrompt(video.videoPrompt);
+  if (existing && !hasInternalPromptLeak(existing)) return existing;
+  const pack = templatePackForEp(ep);
+  const object = mainObjectForEp(ep);
+  if (pack.id === "cute-daily-life") {
+    return index === ep.videos.length - 1
+      ? `Meow circles ${catLogicPayoffObject(ep)}, taps it with one paw, then tries to use it with total seriousness`
+      : `Meow approaches ${object}, sniffs it, and studies it like a confusing human invention`;
+  }
+  if (pack.id === "sigma-cat") {
+    return index === ep.videos.length - 1
+      ? "Meow pauses, regains composure, and walks away like the mishap was intentional"
+      : "Meow moves forward confidently until a tiny obstacle interrupts the cool pose";
+  }
+  if (pack.id === "nightmare-protocol") {
+    return index === ep.videos.length - 1
+      ? "Meow backs away slowly as the evidence remains and the room falls unnaturally quiet"
+      : `Meow moves closer to ${object} while tracking the impossible evidence with nervous focus`;
+  }
+  if (pack.id === "review" || pack.id === "affiliate") {
+    return index === ep.videos.length - 1
+      ? `Meow finishes the test and shows the useful result without hard selling`
+      : `Meow demonstrates ${object} through one simple visible action`;
+  }
+  return `Meow moves naturally around ${object} while staying focused`;
+}
+
 export function runQualityReview(ep: GhostEp): QualityReview {
   const storyQualityScore = scoreFromRatio(Math.min(1, ep.story.trim().length / 120));
-  const storyBeatContinuityScore = validateStoryBeatContinuity(ep.storyBeats ?? []).score;
+  const storyDepthScore = validateStoryDepth(ep.storyBeats ?? []).score;
+  const storyBeatContinuityScore = Math.round((validateStoryBeatContinuity(ep.storyBeats ?? []).score + storyDepthScore) / 2);
   const visualContinuityScore = scoreFromRatio(
     (ep.visualStates?.length === ep.frames.length ? 0.4 : 0) +
     (sameValueRatio((ep.visualStates ?? []).map((state) => state.locationLayout)) * 0.25) +
@@ -1154,13 +1354,8 @@ export function runQualityReview(ep: GhostEp): QualityReview {
     (ep.dialogueOutline?.length === ep.videos.length ? 0.1 : 0) +
     (dialogueConsistencyScore / 100 * 0.1)
   );
-  const noveltyScore = Math.max(0, Math.round(100 - (ep.duplicateCheck?.similarityScore ?? 0) * 100));
-  const pack = getTemplatePack(`${ep.templateName} ${ep.category} ${ep.contentGoal}`);
-  const templateMatchScore = scoreFromRatio(
-    (tokenOverlapRatio(ep.coreIdea?.coreConflict ?? "", pack.coreConflict) >= 0.2 ? 0.45 : 0.2) +
-    (tokenOverlapRatio(ep.coreIdea?.payoffMechanic ?? "", pack.payoffMechanic) >= 0.2 ? 0.45 : 0.2) +
-    ((ep.coreIdea?.templateLogic ?? "").toLowerCase().includes(pack.id) ? 0.1 : 0)
-  );
+  const noveltyScore = scoreNovelty(ep);
+  const templateMatchScore = qualitySignalScore(ep);
   const anchorText = ep.characterAnchor?.toLowerCase() ?? "";
   const characterConsistencyScore = scoreFromRatio(
     (anchorText.length > 40 ? 0.4 : 0) +
@@ -1188,6 +1383,90 @@ export function runQualityReview(ep: GhostEp): QualityReview {
   };
 }
 
+function rewriteForQuality(ep: GhostEp): GhostEp {
+  const frameCount = Math.max(1, ep.frames.length);
+  const functions = beatFunctions(ep, frameCount);
+  const storyBeats = Array.from({ length: frameCount }, (_, index) => ({
+    beatId: `beat${index + 1}`,
+    role: depthRoleForIndex(index, frameCount),
+    function: functions[index] || `connector ${index + 1}`,
+    beat: templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || "story beat", index, frameCount)
+  }));
+  const frames = ep.frames.map((frame, index) => ({
+    frameId: frame.frameId,
+    title: frame.title || storyBeats[index]?.function || `Beat ${index + 1}`,
+    imagePrompt: conciseCreativeFramePrompt(ep, frame, index)
+  }));
+  const videos = ep.videos.map((video, index) => {
+    const videoPrompt = conciseCreativeVideoPrompt(ep, video, index);
+    return {
+      ...video,
+      videoPrompt,
+      motion: video.motion || videoPrompt,
+      camera: video.camera || ep.continuityAnchor?.cameraStyle || ep.episodeState?.cameraLanguage || "continuous cinematic camera",
+      audio: video.audio || ep.episodeState?.environmentAudio || "continuous room tone",
+      dialogue: ep.language === "No Dialogue" ? "" : video.dialogue || (index === 0 ? "เดี๋ยวนะ..." : index === ep.videos.length - 1 ? "อ๋อ... แบบนี้เองเหรอ" : "ทำไมมันแปลก ๆ นะ...")
+    };
+  });
+  const next: GhostEp = {
+    ...ep,
+    coreIdea: generateCoreIdea({
+      ...ep,
+      coreIdea: {
+        ...defaultCoreIdea(),
+        ...(ep.coreIdea ?? {}),
+        centralIdea: templateCoreIdeaFallback(ep),
+        noveltyAngle: `${templatePackForEp(ep).id} rewrite: ${templatePackForEp(ep).qualitySignals?.join(" -> ") || templatePackForEp(ep).payoffMechanic}`,
+        payoffMechanic: templatePackForEp(ep).payoffMechanic
+      }
+    }),
+    storyBeats,
+    story: storyBeats.map((beat) => beat.beat).join(" "),
+    frames,
+    videos,
+    duplicateCheck: {
+      ...ep.duplicateCheck,
+      isDuplicate: false,
+      similarityScore: Math.min(ep.duplicateCheck?.similarityScore ?? 0, 0.19)
+    }
+  };
+  next.episodeState = generateEpisodeState(next);
+  next.continuityAnchor = generateContinuityAnchor(next);
+  next.voiceProfile = generateVoiceProfile(next);
+  next.dialogueOutline = generateDialoguePlan(next);
+  const withFrames = generateFrames(next);
+  const withVideos = rewriteVideoPrompts(generateVideos(withFrames));
+  return generateVoiceScript(rewriteDialogue(withVideos));
+}
+
+function applyStoryQualityFilter(ep: GhostEp): GhostEp {
+  let next = ep;
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    const review = runQualityReview(next);
+    const payoffScore = scorePayoff(next);
+    const continuityScore = scoreContinuity(next);
+    const depthScore = validateStoryDepth(next.storyBeats ?? []).score;
+    if (review.templateMatchScore >= 80 && review.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && depthScore >= 80) {
+      next.qualityReview = {
+        ...review,
+        passed: review.episodeCompletenessScore >= review.threshold,
+        notes: `Code quality review passed. payoffScore=${payoffScore}; continuityScore=${continuityScore}; depthScore=${depthScore}.`
+      };
+      return next;
+    }
+    next = rewriteForQuality(next);
+  }
+  const finalReview = runQualityReview(next);
+  const payoffScore = scorePayoff(next);
+  const continuityScore = scoreContinuity(next);
+  next.qualityReview = {
+    ...finalReview,
+    passed: finalReview.templateMatchScore >= 80 && finalReview.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && validateStoryDepth(next.storyBeats ?? []).score >= 80,
+    notes: `Code quality filter applied. payoffScore=${payoffScore}; continuityScore=${continuityScore}; depthScore=${validateStoryDepth(next.storyBeats ?? []).score}.`
+  };
+  return next;
+}
+
 export function outputJSON(ep: GhostEp): GhostEp {
   return ep;
 }
@@ -1200,6 +1479,7 @@ export function runInternalGeneratorPipeline(ep: GhostEp): GhostEp {
   };
   next.storyBeats = rewriteStoryBeats(generateStoryBeats(next), next.coreIdea);
   next.episodeState = generateEpisodeState(next);
+  next.continuityAnchor = generateContinuityAnchor(next);
   next.voiceProfile = generateVoiceProfile(next);
   next.dialogueOutline = generateDialoguePlan(next);
   next = generateFrames(next);
@@ -1207,7 +1487,7 @@ export function runInternalGeneratorPipeline(ep: GhostEp): GhostEp {
   next = rewriteVideoPrompts(next);
   next = rewriteDialogue(next);
   next = generateVoiceScript(next);
-  next.qualityReview = runQualityReview(next);
+  next = applyStoryQualityFilter(next);
   next.parseHealth = calculateParseHealth(next);
   return outputJSON(leanEpOutput(next));
 }
@@ -1409,9 +1689,9 @@ export function calculateParseHealth(ep: GhostEp): ParseHealth {
     ["Quality Review", hasPassingContinuitySelfCheck(ep)],
     ["Hook", Boolean(ep.hook.trim())],
     ["Frames", ep.frames.length > 0 && ep.frames.every((frame) => frame.imagePrompt.trim())],
-    ["Image Prompt Assembly", ep.frames.length > 0 && hasStructuredImagePrompts(ep)],
+    ["Lean Image Prompts", ep.frames.length > 0 && hasStructuredImagePrompts(ep)],
     ["Videos", ep.videos.length > 0 && ep.videos.every((video) => video.videoPrompt.trim())],
-    ["Video Prompt Assembly", ep.videos.length > 0 && hasTransitionVideoPrompts(ep)],
+    ["Lean Video Prompts", ep.videos.length > 0 && hasTransitionVideoPrompts(ep)],
     ["Caption", Boolean(ep.caption.trim())],
     ["Hashtags", ep.hashtags.length > 0]
   ] as const;

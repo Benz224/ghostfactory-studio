@@ -92,7 +92,7 @@ function videoText(ep: GhostEp, videoId?: string) {
   const videos = videoId ? ep.videos.filter((video) => video.videoId === videoId) : ep.videos;
   return videos
     .filter((video) => video.videoPrompt.trim())
-    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
+    .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}`)
     .join("\n\n");
 }
 

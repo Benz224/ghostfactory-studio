@@ -4,5 +4,8 @@
   "coreConflict": "cool image vs ridiculous weakness",
   "payoffMechanic": "deadpan recovery",
   "defaultComplexity": "simple",
+  "logicLayer": "Cool image vs ridiculous weakness: Meow enters with confidence, faces a tiny unexpected challenge, then recovers with deadpan dignity.",
+  "storyFormula": ["hook: cool entrance", "confidence", "unexpected challenge", "still acts cool"],
+  "qualitySignals": ["cool entrance", "confidence", "unexpected challenge", "deadpan recovery"],
   "avoid": ["overexplaining the joke", "breaking the cool setup too early"]
 }

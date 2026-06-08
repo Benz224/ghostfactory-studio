@@ -40,6 +40,7 @@ export type CoreIdea = {
 
 export type StoryBeat = {
   beatId: string;
+  role?: "hook" | "goal" | "obstacle" | "escalation" | "payoff";
   function: string;
   beat: string;
 };
@@ -61,6 +62,15 @@ export type EpisodeState = {
   environmentAudio: string;
   visualAnchor: string;
   emotionProgression: string;
+};
+
+export type ContinuityAnchor = {
+  location: string;
+  mainProp: string;
+  lighting: string;
+  timeOfDay: string;
+  cameraStyle: string;
+  emotionArc: string;
 };
 
 export type VoiceProfile = {
@@ -232,6 +242,7 @@ export type GhostEp = {
   coreIdea?: CoreIdea;
   storyBeats?: StoryBeat[];
   episodeState?: EpisodeState;
+  continuityAnchor?: ContinuityAnchor;
   characterAnchor?: string;
   voiceProfile?: VoiceProfile;
   visualStates?: VisualState[];
