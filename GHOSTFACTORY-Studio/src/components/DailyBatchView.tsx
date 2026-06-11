@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
-import { calculateParseHealth, parseDailyResult, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
+import { QUALITY_GATE_V3_FAILED_MESSAGE, QUALITY_GATE_V3_MIN_SCORE, calculateParseHealth, parseDailyResult, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -104,8 +104,20 @@ function qualityWarnings(ep: GhostEp) {
     review.storyDepthScore < threshold ? `Story Depth ${review.storyDepthScore}` : "",
     review.promptDetailScore < threshold ? `Prompt Detail ${review.promptDetailScore}` : "",
     review.templateMatchScore < threshold ? `Template Match ${review.templateMatchScore}` : "",
-    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : ""
+    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : "",
+    review.storyBeatAlignmentScore < threshold ? `Beat Alignment ${review.storyBeatAlignmentScore}` : "",
+    review.hookBeatConsistencyScore < threshold ? `Hook Alignment ${review.hookBeatConsistencyScore}` : "",
+    review.dialogueBeatConsistencyScore < threshold ? `Dialogue Alignment ${review.dialogueBeatConsistencyScore}` : "",
+    review.templateToneConsistencyScore < threshold ? `Tone ${review.templateToneConsistencyScore}` : "",
+    review.endingMechanicScore < threshold ? `Ending ${review.endingMechanicScore}` : "",
+    review.objectConsistencyScore < threshold ? `Object ${review.objectConsistencyScore}` : "",
+    review.crossFieldConsistencyScore < threshold ? `Cross-field ${review.crossFieldConsistencyScore}` : "",
+    review.repetitionScore < threshold ? `Repetition ${review.repetitionScore}` : ""
   ].filter(Boolean);
+}
+
+function qualityGateBlocked(ep: GhostEp) {
+  return !passesQualityGateV3(ep);
 }
 
 function repeatedItems(items: string[]) {
@@ -195,6 +207,30 @@ function EpResultModal({
 }) {
   const production = sanitizeProductionOutput(ep);
   const warnings = qualityWarnings(production);
+  const blocked = qualityGateBlocked(production);
+  if (blocked) {
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
+        <div className="mx-auto flex h-full max-w-3xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
+          <header className="flex items-start justify-between gap-4 border-b border-[#E2E8F0] p-5">
+            <div>
+              <p className="text-sm font-semibold text-red-700">{epNumber}</p>
+              <h2 className="mt-1 text-2xl font-semibold text-red-700">{QUALITY_GATE_V3_FAILED_MESSAGE}</h2>
+            </div>
+            <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
+          </header>
+          <main className="flex-1 p-5">
+            <div className="rounded-[18px] border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">
+              This EP was rejected because object, cross-field, or repetition quality scores stayed below {QUALITY_GATE_V3_MIN_SCORE} after regeneration.
+            </div>
+          </main>
+          <footer className="border-t border-[#E2E8F0] p-5">
+            <button className="btn" onClick={onClose} type="button">Close</button>
+          </footer>
+        </div>
+      </div>
+    );
+  }
   return (
     <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
       <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
@@ -239,33 +275,6 @@ function EpResultModal({
                 <CopyButton label="Hook" onClick={() => onCopy(production.hook, `Copy Hook ${production.id}`)} />
               </div>
               <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.hook || "No hook."}</p>
-            </div>
-          </section>
-
-          <section className="grid gap-3 md:grid-cols-4">
-            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-              <h3 className="mb-3 font-semibold">Core Idea</h3>
-              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(production.coreIdea ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
-              </div>
-            </div>
-            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-              <h3 className="mb-3 font-semibold">Episode State</h3>
-              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(production.episodeState ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
-              </div>
-            </div>
-            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-              <h3 className="mb-3 font-semibold">Voice Profile</h3>
-              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(production.voiceProfile ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {value || "-"}</div>)}
-              </div>
-            </div>
-            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-              <h3 className="mb-3 font-semibold">Quality Review</h3>
-              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
-                {Object.entries(production.qualityReview ?? {}).map(([key, value]) => <div key={key}><strong>{key}:</strong> {String(value || "-")}</div>)}
-              </div>
             </div>
           </section>
 
@@ -349,8 +358,8 @@ function EpResultModal({
 
         <footer className="grid gap-3 border-t border-[#E2E8F0] p-5 sm:grid-cols-3">
           <button className="btn" onClick={onClose} type="button">Close</button>
-          <button className="btn" onClick={() => onCopy(packageText(ep), `Copy All ${ep.id}`)} type="button">Copy All</button>
-          <button className="btn btn-primary" disabled={saveState === "saving"} onClick={() => onSave(ep)} type="button"><Save size={16} />{saveState === "saving" ? "Saving..." : "Save to Library"}</button>
+          <button className="btn" disabled={blocked} onClick={() => onCopy(packageText(ep), `Copy All ${ep.id}`)} type="button">Copy All</button>
+          <button className="btn btn-primary" disabled={blocked || saveState === "saving"} onClick={() => onSave(ep)} type="button"><Save size={16} />{blocked ? QUALITY_GATE_V3_FAILED_MESSAGE : saveState === "saving" ? "Saving..." : "Save to Library"}</button>
         </footer>
       </div>
     </div>
@@ -387,9 +396,11 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
   const currentHistoryPrompt = useMemo(() => appendHistoryToPrompt(currentPrompt, history, 50, ideaMemory), [currentPrompt, history, ideaMemory]);
   const currentEp = useMemo(() => {
     if (!batch?.eps?.length) return null;
-    return batch.eps.find((ep) => ep.id === selectedEpId) ?? batch.eps[0];
+    const passedEps = batch.eps.filter((ep) => !qualityGateBlocked(ep));
+    if (!passedEps.length) return null;
+    return passedEps.find((ep) => ep.id === selectedEpId) ?? passedEps[0];
   }, [batch, selectedEpId]);
-  const modalEp = useMemo(() => batch?.eps.find((ep) => ep.id === modalEpId) ?? null, [batch, modalEpId]);
+  const modalEp = useMemo(() => batch?.eps.find((ep) => ep.id === modalEpId && !qualityGateBlocked(ep)) ?? null, [batch, modalEpId]);
   const characterEpCount = history.filter((ep) => ep.characterId === selectedCharacter?.id).length;
   const characterMemoryStatus = selectedCharacter ? "Ready" : "Missing";
   const characterMemory = [
@@ -538,7 +549,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     try {
       const eps = parseDailyResult(rawResult, undefined, { character: selectedCharacter, template: selectedTemplate, contentGoal, language, affiliateBrief });
       if (!eps.length) {
-        setFeedback({ kind: "warning", message: "No EP found in pasted result." });
+        setFeedback({ kind: "error", message: QUALITY_GATE_V3_FAILED_MESSAGE });
         return;
       }
       const checkedEps = await Promise.all(eps.map((ep) => checkDuplicateOnly({ ...ep, promptVersions: sessionPromptVersions })));
@@ -571,6 +582,10 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
   }
 
   async function saveToLibrary(ep: GhostEp, options: { skipConfirm?: boolean } = {}) {
+    if (qualityGateBlocked(ep)) {
+      setFeedback({ kind: "error", message: QUALITY_GATE_V3_FAILED_MESSAGE });
+      return "error";
+    }
     const missing = validate(ep);
     if (missing && (options.skipConfirm || !window.confirm(`Missing ${missing}. Save anyway?`))) return "skipped";
     const healthScore = ep.parseHealth?.score ?? 0;
@@ -836,9 +851,13 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
             </details>
           ) : null}
 
-          {batch?.eps.length ? (
+          {batch?.eps.length && !batch.eps.some((ep) => !qualityGateBlocked(ep)) ? (
+            <div className="rounded-[18px] border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{QUALITY_GATE_V3_FAILED_MESSAGE}</div>
+          ) : null}
+
+          {batch?.eps.some((ep) => !qualityGateBlocked(ep)) ? (
             <div className="space-y-3">
-              {batch.eps.map((ep, index) => {
+              {batch.eps.filter((ep) => !qualityGateBlocked(ep)).map((ep, index) => {
                 const active = currentEp?.id === ep.id;
                 const rowState = epSaveStates[ep.id] ?? (ep.duplicateCheck.isDuplicate ? "duplicate" : "unsaved");
                 const durationLabel = ep.durationSec ? `${ep.durationSec}s` : ep.format;
@@ -890,7 +909,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
           onSave={saveToLibrary}
           onCopy={(text, label) => copyWithFeedback(text, label, setFeedback)}
         />
-      ) : null}
+          ) : null}
     </div>
   );
 }

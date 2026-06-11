@@ -2,7 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
-import { sanitizeProductionOutput } from "./ep-generator";
+import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3, sanitizeProductionOutput } from "./ep-generator";
 import type { CharacterProfile, EpisodeFacts, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
@@ -327,6 +327,14 @@ const defaultQualityReview = {
   videoContinuityScore: 0,
   dialogueConsistencyScore: 0,
   voiceContinuityScore: 0,
+  storyBeatAlignmentScore: 0,
+  hookBeatConsistencyScore: 0,
+  dialogueBeatConsistencyScore: 0,
+  templateToneConsistencyScore: 0,
+  endingMechanicScore: 0,
+  objectConsistencyScore: 0,
+  crossFieldConsistencyScore: 0,
+  repetitionScore: 0,
   noveltyScore: 0,
   templateMatchScore: 0,
   characterConsistencyScore: 0,
@@ -861,8 +869,36 @@ function safeSegment(input: string) {
   return input.replace(/[^a-zA-Z0-9ก-๙_-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
+function publicExportEp(ep: GhostEp) {
+  const production = sanitizeProductionOutput(ep);
+  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
+  return {
+    id: production.id,
+    title: production.title,
+    format: production.format,
+    durationSec: production.durationSec,
+    category: production.category,
+    viralScore: production.viralScore,
+    characterId: production.characterId,
+    characterName: production.characterName,
+    templateId: production.templateId,
+    templateName: production.templateName,
+    contentGoal: production.contentGoal,
+    language: production.language,
+    story: production.story,
+    hook: production.hook,
+    frames: production.frames,
+    videos: production.videos,
+    voiceScript: production.voiceScript,
+    soundEffects: production.soundEffects,
+    caption: production.caption,
+    hashtags: production.hashtags
+  };
+}
+
 export function createMarkdown(ep: GhostEp) {
   const production = sanitizeProductionOutput(ep);
+  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
   const frames = production.frames
     .map((frame) => `### ${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
     .join("\n\n");
@@ -933,11 +969,13 @@ ${production.hashtags.join(" ")}
 
 export function framesText(ep: GhostEp) {
   const production = sanitizeProductionOutput(ep);
+  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
   return production.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
 }
 
 export function videosText(ep: GhostEp) {
   const production = sanitizeProductionOutput(ep);
+  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
   return production.videos
     .map(
       (video) =>
@@ -949,6 +987,7 @@ export function videosText(ep: GhostEp) {
 export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) {
   const settings = await getSettings();
   const production = sanitizeProductionOutput(ep);
+  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
   const epDir = path.join(root, outputRootOverride || settings.outputRoot, production.date, production.format, safeSegment(production.id));
   await fs.mkdir(epDir, { recursive: true });
   const filePath = path.join(epDir, "prompts.md");
@@ -958,7 +997,7 @@ export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) 
     fs.writeFile(path.join(epDir, "videos.txt"), videosText(production), "utf8"),
     fs.writeFile(path.join(epDir, "caption.txt"), `${production.caption}\n\n${production.hashtags.join(" ")}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "voice-script.txt"), `${production.voiceScript}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(production, null, 2)}\n`, "utf8")
+    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(publicExportEp(production), null, 2)}\n`, "utf8")
   ]);
   return { epDir, markdownPath: filePath };
 }

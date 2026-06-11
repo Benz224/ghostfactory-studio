@@ -11,6 +11,9 @@ const GLOBAL_NEGATIVE_RULES =
   "no subtitles, no caption overlay, no text overlay, no watermark, no logo, no background music by default, vertical 9:16, commercial quality visuals";
 const productionBlockedPattern =
   /\b(Observation|Problem|Obstacle|Payoff|Goal|Escalation|Story Beat|Beat)\s*:|Main Story Prop|main story prop|least useful object nearby|same continuous scene|previous beat|from the previous beat|human expectation|cat inspection|overthinking|absurd cat decision|template logic|continuity anchor|visual anchor|emotion progression|matching\s+F\d+|\btransition\b|start state\s*:|end state\s*:/i;
+export const QUALITY_GATE_V3_MIN_SCORE = 70;
+export const QUALITY_GATE_V3_MAX_REGENERATION_ATTEMPTS = 3;
+export const QUALITY_GATE_V3_FAILED_MESSAGE = "Generation Failed Quality Gate";
 const storyArchetypePool = [
   "Investigation",
   "Mission",
@@ -150,6 +153,14 @@ function defaultQualityReview(): QualityReview {
     videoContinuityScore: 0,
     dialogueConsistencyScore: 0,
     voiceContinuityScore: 0,
+    storyBeatAlignmentScore: 0,
+    hookBeatConsistencyScore: 0,
+    dialogueBeatConsistencyScore: 0,
+    templateToneConsistencyScore: 0,
+    endingMechanicScore: 0,
+    objectConsistencyScore: 0,
+    crossFieldConsistencyScore: 0,
+    repetitionScore: 0,
     noveltyScore: 0,
     templateMatchScore: 0,
     characterConsistencyScore: 0,
@@ -551,7 +562,16 @@ function mapStoryBeat(item: unknown, index: number): StoryBeat {
     beatId: stringValue(beat, ["beatId", "beat_id", "id"]) || `beat${index + 1}`,
     role: ["hook", "goal", "obstacle", "escalation", "payoff"].includes(role) ? role as StoryBeat["role"] : undefined,
     function: stringValue(beat, ["function", "beatFunction", "beat_function"]) || role,
-    beat: stringValue(beat, ["beat", "storyBeat", "story_beat", "description"]) || (typeof item === "string" ? item : "")
+    beat: stringValue(beat, ["beat", "storyBeat", "story_beat", "description", "visibleEvent", "visible_event", "event"]) || (typeof item === "string" ? item : ""),
+    beatFunction: stringValue(beat, ["beatFunction", "beat_function", "function"]) || role,
+    visibleEvent: stringValue(beat, ["visibleEvent", "visible_event", "event"]),
+    characterAction: stringValue(beat, ["characterAction", "character_action", "action"]),
+    characterEmotion: stringValue(beat, ["characterEmotion", "character_emotion", "emotion"]),
+    environmentChange: stringValue(beat, ["environmentChange", "environment_change", "environment"]),
+    mainPropState: stringValue(beat, ["mainPropState", "main_prop_state", "propState", "prop_state"]),
+    dialogueIntent: stringValue(beat, ["dialogueIntent", "dialogue_intent"]),
+    tensionLevel: scoreValue(beat, ["tensionLevel", "tension_level", "tension"]),
+    endingRole: stringValue(beat, ["endingRole", "ending_role"])
   };
 }
 
@@ -655,6 +675,14 @@ function mapQualityReview(source: Record<string, unknown>): QualityReview {
     videoContinuityScore: scoreValue(review, ["videoContinuityScore", "video_continuity_score"]) || scoreValue(oldCheck, ["videoContinuityScore", "video_continuity_score"]) || scoreValue(source, ["videoContinuityScore", "video_continuity_score"]),
     dialogueConsistencyScore: scoreValue(review, ["dialogueConsistencyScore", "dialogue_consistency_score"]) || scoreValue(source, ["dialogueConsistencyScore", "dialogue_consistency_score"]),
     voiceContinuityScore: scoreValue(review, ["voiceContinuityScore", "voice_continuity_score"]) || scoreValue(oldCheck, ["voiceContinuityScore", "voice_continuity_score"]) || scoreValue(source, ["voiceContinuityScore", "voice_continuity_score"]),
+    storyBeatAlignmentScore: scoreValue(review, ["storyBeatAlignmentScore", "story_beat_alignment_score"]) || scoreValue(source, ["storyBeatAlignmentScore", "story_beat_alignment_score"]),
+    hookBeatConsistencyScore: scoreValue(review, ["hookBeatConsistencyScore", "hook_beat_consistency_score"]) || scoreValue(source, ["hookBeatConsistencyScore", "hook_beat_consistency_score"]),
+    dialogueBeatConsistencyScore: scoreValue(review, ["dialogueBeatConsistencyScore", "dialogue_beat_consistency_score"]) || scoreValue(source, ["dialogueBeatConsistencyScore", "dialogue_beat_consistency_score"]),
+    templateToneConsistencyScore: scoreValue(review, ["templateToneConsistencyScore", "template_tone_consistency_score"]) || scoreValue(source, ["templateToneConsistencyScore", "template_tone_consistency_score"]),
+    endingMechanicScore: scoreValue(review, ["endingMechanicScore", "ending_mechanic_score"]) || scoreValue(source, ["endingMechanicScore", "ending_mechanic_score"]),
+    objectConsistencyScore: scoreValue(review, ["objectConsistencyScore", "object_consistency_score"]) || scoreValue(source, ["objectConsistencyScore", "object_consistency_score"]),
+    crossFieldConsistencyScore: scoreValue(review, ["crossFieldConsistencyScore", "cross_field_consistency_score"]) || scoreValue(source, ["crossFieldConsistencyScore", "cross_field_consistency_score"]),
+    repetitionScore: scoreValue(review, ["repetitionScore", "repetition_score"]) || scoreValue(source, ["repetitionScore", "repetition_score"]),
     noveltyScore: scoreValue(review, ["noveltyScore", "novelty_score"]) || scoreValue(source, ["noveltyScore", "novelty_score"]),
     templateMatchScore: scoreValue(review, ["templateMatchScore", "template_match_score"]) || scoreValue(source, ["templateMatchScore", "template_match_score"]),
     characterConsistencyScore: scoreValue(review, ["characterConsistencyScore", "character_consistency_score"]) || scoreValue(source, ["characterConsistencyScore", "character_consistency_score"]),
@@ -665,7 +693,7 @@ function mapQualityReview(source: Record<string, unknown>): QualityReview {
   };
   return {
     ...next,
-    passed: next.passed || [next.storyQualityScore, next.storyDepthScore, next.promptDetailScore, next.storyBeatContinuityScore, next.visualContinuityScore, next.videoContinuityScore, next.dialogueConsistencyScore, next.voiceContinuityScore, next.noveltyScore, next.templateMatchScore, next.characterConsistencyScore, next.episodeCompletenessScore].every((score) => score >= next.threshold)
+    passed: next.passed || [next.storyQualityScore, next.storyDepthScore, next.promptDetailScore, next.storyBeatContinuityScore, next.visualContinuityScore, next.videoContinuityScore, next.dialogueConsistencyScore, next.voiceContinuityScore, next.storyBeatAlignmentScore, next.hookBeatConsistencyScore, next.dialogueBeatConsistencyScore, next.templateToneConsistencyScore, next.endingMechanicScore, next.objectConsistencyScore, next.crossFieldConsistencyScore, next.repetitionScore, next.noveltyScore, next.templateMatchScore, next.characterConsistencyScore, next.episodeCompletenessScore].every((score) => score >= next.threshold)
   };
 }
 
@@ -703,7 +731,7 @@ function hasStructuredImagePrompts(ep: GhostEp) {
 
 function hasPassingContinuitySelfCheck(ep: GhostEp) {
   const review = ep.qualityReview;
-  return Boolean(review?.passed && [review.storyQualityScore, review.storyDepthScore, review.promptDetailScore, review.visualContinuityScore, review.videoContinuityScore, review.voiceContinuityScore, review.noveltyScore, review.templateMatchScore, review.characterConsistencyScore].every((score) => score >= review.threshold));
+  return Boolean(review?.passed && [review.storyQualityScore, review.storyDepthScore, review.promptDetailScore, review.visualContinuityScore, review.videoContinuityScore, review.voiceContinuityScore, review.storyBeatAlignmentScore, review.hookBeatConsistencyScore, review.dialogueBeatConsistencyScore, review.templateToneConsistencyScore, review.endingMechanicScore, review.objectConsistencyScore, review.crossFieldConsistencyScore, review.repetitionScore, review.noveltyScore, review.templateMatchScore, review.characterConsistencyScore].every((score) => score >= review.threshold));
 }
 
 export function ensureAnchorPrompt(prompt: string, characterAnchor = DEFAULT_CHARACTER_ANCHOR) {
@@ -857,6 +885,94 @@ function locationForEp(ep: GhostEp) {
   return safeFact(ep.episodeState?.primaryLocation || ep.episodeState?.location || "", "bedroom");
 }
 
+function templateTone(ep: GhostEp) {
+  const text = `${ep.templateId} ${ep.templateName} ${ep.category} ${ep.contentGoal}`.toLowerCase();
+  if (/nightmare|horror|reality|breach|protocol|หลอน|สยอง/.test(text)) return "horror";
+  if (/sigma/.test(text)) return "sigma";
+  if (/review|affiliate/.test(text)) return "review";
+  return "cute";
+}
+
+function beatFunctionForFrame(index: number, frameCount: number, tone: string) {
+  if (tone === "horror" && frameCount >= 6) {
+    return ["setup / normal reality", "anomaly / first wrong detail", "impossible evidence", "escalation / danger", "peak tension", "aftermath / unresolved ending"][index] ?? "aftermath / unresolved ending";
+  }
+  if (frameCount === 4) return ["setup", "problem", "escalation", "payoff"][index] ?? "payoff";
+  if (frameCount === 3) return ["setup", "escalation", "payoff"][index] ?? "payoff";
+  return ["setup", "problem", "escalation", "peak tension", "payoff", "aftermath"][index] ?? "payoff";
+}
+
+function endingRoleForBeat(index: number, frameCount: number, tone: string) {
+  if (index === frameCount - 1) return tone === "horror" ? "unresolved evidence" : tone === "sigma" ? "deadpan recovery" : "absurd payoff";
+  if (index === 0) return "opening";
+  return "middle";
+}
+
+function normalizeBeat(beat: StoryBeat, ep: GhostEp, index: number, frameCount: number): StoryBeat {
+  const facts = parseEpisodeFacts(ep);
+  const tone = templateTone(ep);
+  const tensionBase = tone === "horror" ? [2, 4, 7, 8, 9, 10] : tone === "sigma" ? [2, 4, 6, 7, 6, 5] : [1, 3, 5, 6, 7, 7];
+  const beatFunction = beat.beatFunction || beat.function || beatFunctionForFrame(index, frameCount, tone);
+  const last = index === frameCount - 1;
+  let visibleEvent = beat.visibleEvent || beat.beat;
+  let characterAction = beat.characterAction;
+  let characterEmotion = beat.characterEmotion;
+  let environmentChange = beat.environmentChange;
+  let mainPropState = beat.mainPropState;
+  let dialogueIntent = beat.dialogueIntent;
+
+  if (!visibleEvent || hasProductionBlockedText(visibleEvent)) {
+    if (tone === "horror") {
+      const horrorEvents = [
+        `Meow notices the ${facts.mainObject} is sealed shut even though it was open before`,
+        `cold air leaks around the ${facts.mainObject} and the ${facts.secondaryObject} flickers unnaturally`,
+        `the ${facts.mainObject} opens toward an impossible dark space instead of the normal room`,
+        `Meow steps back as the ${facts.mainObject} pulls dust and sound inward`,
+        `the impossible opening widens while Meow braces against the floor`,
+        `the ${facts.mainObject} returns to normal but frost remains on the inside edge`
+      ];
+      visibleEvent = horrorEvents[index] ?? horrorEvents[horrorEvents.length - 1];
+    } else if (tone === "sigma") {
+      const sigmaEvents = [
+        `Meow enters near the ${facts.mainObject} with a controlled cool pose`,
+        `a tiny weakness appears when the ${facts.mainObject} refuses to cooperate`,
+        `Meow struggles for one second but keeps his face completely calm`,
+        `Meow recovers beside the ${facts.mainObject} as if the mistake was planned`
+      ];
+      visibleEvent = sigmaEvents[index] ?? sigmaEvents[sigmaEvents.length - 1];
+    } else {
+      const cuteEvents = [
+        `Meow notices the ${facts.mainObject} and decides it deserves serious inspection`,
+        `Meow tests the ${facts.mainObject} but cat logic rejects the obvious use`,
+        `Meow changes strategy and tests the ${facts.mainObject} from a stranger angle`,
+        `Meow settles proudly beside the ${facts.mainObject} as if he solved everything`
+      ];
+      visibleEvent = cuteEvents[index] ?? cuteEvents[cuteEvents.length - 1];
+    }
+  }
+
+  if (!characterAction) characterAction = tone === "horror" ? (last ? `Meow freezes and stares at the frost on the ${facts.mainObject}` : `Meow approaches the ${facts.mainObject} with cautious steps`) : `Meow studies the ${facts.mainObject} with deliberate paw movements`;
+  if (!characterEmotion) characterEmotion = tone === "horror" ? (last ? "silent dread" : index >= 2 ? "frozen shock" : "uneasy curiosity") : tone === "sigma" ? (last ? "deadpan dignity" : "controlled confidence") : (last ? "proud satisfaction" : "curious determination");
+  if (!environmentChange) environmentChange = tone === "horror" ? (last ? "the room becomes quiet and unnaturally cold" : "the air grows colder and the shadows deepen") : "warm light stays consistent in the room";
+  if (!mainPropState) mainPropState = tone === "horror" ? (last ? `${facts.mainObject} intact but frozen from the inside` : `${facts.mainObject} showing an impossible detail`) : `${facts.mainObject} visible and central to the action`;
+  if (!dialogueIntent) dialogueIntent = tone === "horror" ? (last ? "quiet fear with no explanation" : index >= 2 ? "stunned disbelief" : "confused whisper") : tone === "sigma" ? (last ? "deadpan recovery" : "cool restraint") : (last ? "cute wrong conclusion" : "curious reaction");
+
+  return {
+    ...beat,
+    beatFunction,
+    function: beat.function || beatFunction,
+    visibleEvent,
+    beat: visibleEvent,
+    characterAction,
+    characterEmotion,
+    environmentChange,
+    mainPropState,
+    dialogueIntent,
+    tensionLevel: beat.tensionLevel || tensionBase[Math.min(index, tensionBase.length - 1)],
+    endingRole: beat.endingRole || endingRoleForBeat(index, frameCount, tone)
+  };
+}
+
 function catLogicPayoffObject(ep: GhostEp) {
   const source = `${ep.title} ${ep.story} ${mainObjectForEp(ep)}`.toLowerCase();
   if (/bed|cushion|pillow|ที่นอน|เบาะ|หมอน/.test(source)) return "the remote control beside it";
@@ -873,20 +989,48 @@ function safeFact(value: string, fallback: string) {
   return clean && !hasProductionBlockedText(clean) ? clean : fallback;
 }
 
+const objectCandidates = [
+  ["mirror", /mirror|reflection|กระจก|เงาสะท้อน/i],
+  ["curtain", /curtain|ม่าน/i],
+  ["cardboard box", /cardboard box|box|กล่อง/i],
+  ["laundry basket", /laundry basket|basket|ตะกร้า/i],
+  ["electric fan", /electric fan|\bfan\b|พัดลม/i],
+  ["food bowl", /food bowl|\bbowl\b|ชามอาหาร|ชาม/i],
+  ["soft cat bed", /cat bed|soft bed|pet bed|bed|cushion|pillow|ที่นอน|เบาะ|หมอน/i],
+  ["toy ball", /toy ball|\btoy\b|\bball\b|ของเล่น|ลูกบอล/i],
+  ["wooden door", /wooden door|\bdoor\b|ประตู/i],
+  ["remote control", /remote control|\bremote\b|รีโมท/i]
+] as const;
+
 function extractObjectFromText(text: string) {
-  const candidates = [
-    ["curtain", /curtain|ม่าน/i],
-    ["sunlight", /sunlight|แดด|แสงแดด/i],
-    ["cardboard box", /cardboard box|box|กล่อง/i],
-    ["laundry basket", /laundry basket|basket|ตะกร้า/i],
-    ["electric fan", /fan|พัดลม/i],
-    ["food bowl", /food bowl|bowl|ชาม/i],
-    ["soft cat bed", /cat bed|bed|cushion|pillow|ที่นอน|เบาะ|หมอน/i],
-    ["toy ball", /toy|ball|ของเล่น|ลูกบอล/i],
-    ["wooden door", /door|ประตู/i],
-    ["remote control", /remote|รีโมท/i]
-  ] as const;
-  return candidates.find(([, pattern]) => pattern.test(text))?.[0] ?? "";
+  const matches = objectCandidates
+    .map(([name, pattern], order) => {
+      const match = text.match(pattern);
+      return match?.index === undefined ? null : { name, index: match.index, order };
+    })
+    .filter((item): item is { name: typeof objectCandidates[number][0]; index: number; order: number } => Boolean(item))
+    .sort((a, b) => a.index - b.index || a.order - b.order);
+  return matches[0]?.name ?? "";
+}
+
+function objectPattern(objectName: string) {
+  return objectCandidates.find(([name]) => name === objectName)?.[1] ?? new RegExp(objectName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i");
+}
+
+function detectedObjectsInText(text: string) {
+  return objectCandidates.filter(([, pattern]) => pattern.test(text)).map(([name]) => name);
+}
+
+function hasPrimaryObject(text: string, primaryObject: string) {
+  return objectPattern(primaryObject).test(text);
+}
+
+function conflictingObjects(text: string, primaryObject: string) {
+  return detectedObjectsInText(text).filter((objectName) => objectName !== primaryObject);
+}
+
+function fieldObjectConsistent(text: string, primaryObject: string) {
+  return hasPrimaryObject(text, primaryObject) && conflictingObjects(text, primaryObject).length === 0;
 }
 
 function extractLocationFromText(text: string) {
@@ -922,6 +1066,19 @@ export function parseEpisodeFacts(ep: GhostEp): EpisodeFacts {
     ep.episodeState?.props,
     ep.episodeState?.location,
     ep.episodeState?.primaryLocation,
+    ...(ep.storyBeats || []).map((beat) =>
+      [
+        beat.beat,
+        beat.visibleEvent,
+        beat.characterAction,
+        beat.environmentChange,
+        beat.mainPropState,
+        beat.dialogueIntent,
+        beat.endingRole,
+      ]
+        .filter(Boolean)
+        .join(" "),
+    ),
     ...ep.frames.map((frame) => `${frame.title} ${frame.imagePrompt}`),
     ...ep.videos.map((video) => video.videoPrompt)
   ].join(" ");
@@ -1173,22 +1330,25 @@ export function generateCoreIdea(ep: GhostEp): CoreIdea {
 
 export function generateStoryBeats(ep: GhostEp): StoryBeat[] {
   const frameCount = Math.max(1, ep.frames.length);
-  const existing = Array.isArray(ep.storyBeats) ? ep.storyBeats.filter((beat) => beat.beat.trim()) : [];
+  const existing = Array.isArray(ep.storyBeats)
+    ? ep.storyBeats.filter((beat) => (beat.beat || beat.visibleEvent || beat.beatFunction || "").trim())
+    : [];
   const functions = beatFunctions(ep, frameCount);
+  const baseBeat = (beat: StoryBeat, index: number) => normalizeBeat(beat, ep, index, frameCount);
   if (existing.length >= frameCount) {
-    return existing.slice(0, frameCount).map((beat, index) => ({
+    return existing.slice(0, frameCount).map((beat, index) => baseBeat({
       ...beat,
       role: beat.role || depthRoleForIndex(index, frameCount),
       function: functions[index] || beat.function,
       beat: beat.beat || templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || beat.function, index, frameCount)
-    }));
+    }, index));
   }
   return Array.from({ length: frameCount }, (_, index) => ({
     beatId: `beat${index + 1}`,
     role: depthRoleForIndex(index, frameCount),
     function: functions[index] || `connector ${index + 1}`,
     beat: existing[index]?.beat || templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || "story beat", index, frameCount)
-  }));
+  })).map(baseBeat);
 }
 
 export function generateEpisodeState(ep: GhostEp): EpisodeState {
@@ -1292,11 +1452,14 @@ export function generateFrames(ep: GhostEp): GhostEp {
   });
   return {
     ...ep,
-    frames: ep.frames.map((frame) => ({
+    frames: ep.frames.map((frame, index) => {
+      const beat = ep.storyBeats?.[index];
+      return {
       frameId: frame.frameId,
-      title: frame.title,
-      imagePrompt: leanPrompt(frame.imagePrompt)
-    })),
+      title: sanitizeProductionText(beat?.visibleEvent || frame.title || beat?.beatFunction || `Frame ${index + 1}`),
+      imagePrompt: productionFramePrompt(ep, frame, index)
+    };
+    }),
     visualStates
   };
 }
@@ -1306,21 +1469,21 @@ function videoStateText(state?: VisualState) {
 }
 
 export function generateVideos(ep: GhostEp): GhostEp {
-  const videos = ep.videos.map((video): VideoPrompt => {
+  const videos = ep.videos.map((video, index): VideoPrompt => {
     const fromState = visualStateForFrame(ep, video.fromFrame);
     const toState = visualStateForFrame(ep, video.toFrame);
     void fromState;
     void toState;
-    const transition = leanPrompt(video.videoPrompt) || `Meow moves naturally from ${video.fromFrame} to ${video.toFrame} while staying focused on the same main object.`;
+    const prompt = productionVideoPrompt(ep, video, index);
     return {
       videoId: video.videoId,
       fromFrame: video.fromFrame,
       toFrame: video.toFrame,
       durationSec: video.durationSec,
-      videoPrompt: transition,
+      videoPrompt: prompt,
       camera: video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "",
       audio: video.audio || ep.episodeState?.environmentAudio || "",
-      motion: video.motion || transition,
+      motion: video.motion || prompt,
       dialogue: video.dialogue,
       mood: video.mood
     };
@@ -1396,7 +1559,7 @@ export function rewriteStoryBeats(beats: StoryBeat[], coreIdea?: CoreIdea) {
     const previous = beats[index - 1];
     return {
       ...beat,
-      beat: `From the previous beat (${previous.beat}), ${beat.beat || coreIdea?.centralIdea || "the same situation continues"}`
+      beat: `${previous.visibleEvent || previous.beat}. ${beat.visibleEvent || beat.beat || coreIdea?.centralIdea || "The same event continues with a visible consequence."}`
     };
   });
 }
@@ -1451,17 +1614,48 @@ export function detectVoiceDrift(ep: GhostEp) {
   return { score: scoreFromRatio(ep.videos.length ? (ep.videos.length - failures) / ep.videos.length : 0), failures };
 }
 
+function dialogueFromBeat(ep: GhostEp, beat: StoryBeat | undefined, index: number) {
+  if (ep.language === "No Dialogue") return "";
+  const tone = templateTone(ep);
+  const normalized = beat ? normalizeBeat(beat, ep, index, ep.storyBeats?.length || ep.frames.length) : undefined;
+  const tension = normalized?.tensionLevel ?? index + 2;
+  if (tone === "horror") {
+    if (tension >= 9) return index >= ep.videos.length - 1 ? "...มันกลับมาปิดเอง" : "อย่าดึงฉันเข้าไป...";
+    if (tension >= 7) return "ข้างนอก... ไม่ใช่ที่เดิมแล้ว";
+    if (tension >= 4) return "เดี๋ยวนะ... ทำไมมันเย็นแบบนี้";
+    return "ประตูนี้... เมื่อกี้ยังเปิดอยู่";
+  }
+  if (tone === "sigma") {
+    if (index >= ep.videos.length - 1) return "ตั้งใจอยู่แล้ว";
+    if (tension >= 6) return "ไม่มีอะไร... คุมได้";
+    return "ดูไว้";
+  }
+  if (tone === "review") {
+    if (index >= ep.videos.length - 1) return "แบบนี้ใช้ได้จริงนะ";
+    return tension >= 5 ? "ลองอีกทีให้ชัด ๆ" : "อันนี้ช่วยได้ไหมนะ";
+  }
+  if (index >= ep.videos.length - 1) return "อันนี้แหละ ถูกต้องที่สุด";
+  return tension >= 5 ? "เดี๋ยวนะ... แบบนี้น่าสนใจกว่า" : "มันต้องตรวจให้แน่ใจก่อน";
+}
+
+function ensureUniqueDialogue(videos: VideoPrompt[]) {
+  const seen = new Map<string, number>();
+  return videos.map((video) => {
+    const key = video.dialogue.trim();
+    const count = seen.get(key) ?? 0;
+    seen.set(key, count + 1);
+    if (!key || count === 0) return video;
+    return { ...video, dialogue: key.includes("...") ? key.replace("...", "… อีกแล้ว...") : `${key}... อีกแล้ว` };
+  });
+}
+
 export function rewriteDialogue(ep: GhostEp): GhostEp {
-  const drift = detectVoiceDrift(ep);
-  if (drift.score >= 85) return ep;
-  return {
-    ...ep,
-    videos: ep.videos.map((video, index) => {
-      if (!/(วะ|ฆ่า|ตาย|แน่จริง|ย้าก|สู้)/i.test(video.dialogue)) return video;
-      const replacement = index === 0 ? "มีใครอยู่ตรงนั้นไหม..." : index === ep.videos.length - 1 ? "ไม่ใช่แล้ว... ต้องถอยก่อน..." : "เดี๋ยวนะ... นั่นเสียงอะไร";
-      return { ...video, dialogue: replacement };
-    })
-  };
+  const videos = ep.videos.map((video, index) => {
+    const targetBeat = ep.storyBeats?.[Math.min(index + 1, (ep.storyBeats?.length ?? 1) - 1)] ?? ep.storyBeats?.[index];
+    const replacement = dialogueFromBeat(ep, targetBeat, index + 1);
+    return { ...video, dialogue: replacement };
+  });
+  return { ...ep, videos: ensureUniqueDialogue(videos) };
 }
 
 function sameValueRatio(values: string[]) {
@@ -1588,6 +1782,246 @@ function productionLeakCount(ep: GhostEp) {
   return fields.filter((field) => hasProductionBlockedText(field)).length;
 }
 
+function storyBeatAlignmentScore(ep: GhostEp) {
+  const beats = ep.storyBeats ?? [];
+  if (!beats.length) return 0;
+  const storyScore = scoreFromRatio(beats.filter((beat) => tokenOverlapRatio(ep.story, `${beat.visibleEvent} ${beat.characterAction} ${beat.mainPropState}`) >= 0.08).length / beats.length);
+  const frameScore = scoreFromRatio(ep.frames.filter((frame, index) => {
+    const beat = beats[index];
+    return beat && tokenOverlapRatio(`${frame.title} ${frame.imagePrompt}`, `${beat.visibleEvent} ${beat.characterAction} ${beat.characterEmotion} ${beat.mainPropState}`) >= 0.08;
+  }).length / Math.max(1, ep.frames.length));
+  const videoScore = scoreFromRatio(ep.videos.filter((video, index) => {
+    const fromBeat = beats[index];
+    const toBeat = beats[index + 1];
+    return fromBeat && toBeat && tokenOverlapRatio(video.videoPrompt, `${fromBeat.visibleEvent} ${toBeat.visibleEvent} ${fromBeat.mainPropState} ${toBeat.mainPropState}`) >= 0.06;
+  }).length / Math.max(1, ep.videos.length));
+  return Math.round((storyScore + frameScore + videoScore) / 3);
+}
+
+function hookBeatConsistencyScore(ep: GhostEp) {
+  const firstText = `${ep.storyBeats?.[0]?.visibleEvent} ${ep.storyBeats?.[1]?.visibleEvent} ${ep.frames[0]?.imagePrompt} ${ep.videos[0]?.videoPrompt}`;
+  const overlap = tokenOverlapRatio(ep.hook, firstText);
+  const facts = parseEpisodeFacts(ep);
+  const objectHit = ep.hook.toLowerCase().includes(facts.mainObject.toLowerCase()) || firstText.toLowerCase().includes(facts.mainObject.toLowerCase());
+  return scoreFromRatio(Math.min(1, overlap * 3 + (objectHit ? 0.35 : 0)));
+}
+
+function dialogueBeatConsistencyScore(ep: GhostEp) {
+  if (!ep.videos.length) return ep.language === "No Dialogue" ? 100 : 0;
+  const dialogues = ep.videos.map((video) => video.dialogue.trim()).filter(Boolean);
+  const repeats = dialogues.length - new Set(dialogues).size;
+  const tone = templateTone(ep);
+  const ending = ep.videos[ep.videos.length - 1]?.dialogue ?? "";
+  const badHorrorEnding = tone === "horror" && /(อ๋อ|แบบนี้เอง|ตลก|ฮ่า|สบาย|ชนะ|ตั้งใจ)/i.test(ending);
+  const aligned = ep.videos.filter((video, index) => {
+    const beat = ep.storyBeats?.[Math.min(index + 1, (ep.storyBeats?.length ?? 1) - 1)] ?? ep.storyBeats?.[index];
+    if (!beat) return false;
+    const target = dialogueFromBeat(ep, beat, index + 1);
+    return tokenOverlapRatio(video.dialogue, `${target} ${beat.dialogueIntent} ${beat.characterEmotion}`) >= 0.05 || video.dialogue.trim() === target.trim();
+  }).length;
+  return scoreFromRatio((aligned / ep.videos.length) - (repeats * 0.25) - (badHorrorEnding ? 0.5 : 0));
+}
+
+function templateToneConsistencyScore(ep: GhostEp) {
+  const text = `${ep.story} ${ep.videos.map((video) => video.dialogue).join(" ")}`.toLowerCase();
+  const tone = templateTone(ep);
+  if (tone === "horror") {
+    const horrorSignals = /(cold|frost|silent|dread|impossible|shadow|dark|wrong|fear|หลอน|กลัว|เย็น|เงา|ผิดปกติ)/i.test(text);
+    const comedyLeak = /(cute|proud|ชนะ|อ๋อ|แบบนี้เอง|mission|cat logic|สบาย|ตลก|ฮ่า)/i.test(text);
+    return scoreFromRatio((horrorSignals ? 0.8 : 0.35) - (comedyLeak ? 0.5 : 0));
+  }
+  if (tone === "sigma") return scoreFromRatio(/cool|deadpan|confident|calm|ตั้งใจ|คุมได้/i.test(text) ? 0.95 : 0.65);
+  return scoreFromRatio(/cute|proud|absurd|funny|cozy|ภูมิใจ|ถูกต้อง|น่ารัก/i.test(text) ? 0.95 : 0.7);
+}
+
+function endingMechanicScore(ep: GhostEp) {
+  const tone = templateTone(ep);
+  const lastBeat = ep.storyBeats?.[ep.storyBeats.length - 1];
+  const ending = `${lastBeat?.visibleEvent} ${lastBeat?.endingRole} ${lastBeat?.mainPropState} ${ep.story} ${ep.videos[ep.videos.length - 1]?.dialogue}`.toLowerCase();
+  if (tone === "horror") {
+    return scoreFromRatio(/unresolved|evidence|frost|silent|dread|contradiction|normal again|กลับมาปิด|เย็น|เงียบ/i.test(ending) && !/(อ๋อ|ชนะ|ตั้งใจ|funny|proud)/i.test(ending) ? 0.95 : 0.45);
+  }
+  if (tone === "sigma") return scoreFromRatio(/deadpan|recovery|intentional|ตั้งใจ|คุมได้/i.test(ending) ? 0.95 : 0.65);
+  return scoreFromRatio(/absurd|proud|chooses|settles|wrong|ถูกต้อง|ภูมิใจ/i.test(ending) ? 0.95 : 0.65);
+}
+
+function productionFieldsForObject(ep: GhostEp) {
+  return [
+    ep.title,
+    ep.hook,
+    ep.story,
+    ep.caption,
+    ...ep.frames.map((frame) => `${frame.title} ${frame.imagePrompt}`),
+    ...ep.videos.map((video) => `${video.videoPrompt} ${video.camera} ${video.motion} ${video.audio} ${video.dialogue} ${video.mood}`)
+  ].map((field) => sanitizeProductionText(field));
+}
+
+function objectConsistencyDetails(ep: GhostEp, primaryObject = parseEpisodeFacts(ep).mainObject) {
+  const fields = productionFieldsForObject(ep);
+  const failures = fields.filter((field) => !fieldObjectConsistent(field, primaryObject));
+  return { primaryObject, fields, failures };
+}
+
+function objectConsistencyScore(ep: GhostEp) {
+  const { fields, failures } = objectConsistencyDetails(ep);
+  return scoreFromRatio(fields.length ? (fields.length - failures.length) / fields.length : 0);
+}
+
+function crossFieldConsistencyScore(ep: GhostEp) {
+  const facts = parseEpisodeFacts(ep);
+  const titleHookStory = [ep.title, ep.hook, ep.story, ep.caption].map((field) => sanitizeProductionText(field));
+  const frameVideo = [
+    ...ep.frames.map((frame) => sanitizeProductionText(`${frame.title} ${frame.imagePrompt}`)),
+    ...ep.videos.map((video) => sanitizeProductionText(`${video.videoPrompt} ${video.dialogue}`))
+  ];
+  const topLevelOk = titleHookStory.every((field) => fieldObjectConsistent(field, facts.mainObject));
+  const mediaOk = frameVideo.every((field) => fieldObjectConsistent(field, facts.mainObject));
+  const hookStoryOverlap = tokenOverlapRatio(`${ep.title} ${ep.hook} ${ep.caption}`, ep.story) >= 0.08;
+  return scoreFromRatio((topLevelOk ? 0.4 : 0) + (mediaOk ? 0.4 : 0) + (hookStoryOverlap ? 0.2 : 0));
+}
+
+function repeatedSentenceKeys(text: string) {
+  return text
+    .split(/[.!?。！？\n]+/)
+    .map((sentence) => sanitizeProductionText(sentence).toLowerCase())
+    .map((sentence) => sentence.split(/\s+/).slice(0, 5).join(" "))
+    .filter((sentence) => countWords(sentence) >= 3);
+}
+
+function repetitionFailures(ep: GhostEp) {
+  const keys = [
+    ...repeatedSentenceKeys(ep.story),
+    ...ep.videos.flatMap((video) => repeatedSentenceKeys(video.videoPrompt)),
+    ...ep.videos.map((video) => sanitizeProductionText(video.dialogue).toLowerCase()).filter(Boolean)
+  ];
+  const counts = new Map<string, number>();
+  keys.forEach((key) => counts.set(key, (counts.get(key) ?? 0) + 1));
+  return [...counts.entries()].filter(([, count]) => count > 2).map(([key]) => key);
+}
+
+function repetitionScore(ep: GhostEp) {
+  return scoreFromRatio(repetitionFailures(ep).length ? 0.35 : 1);
+}
+
+export function qualityGateV3Failures(ep: GhostEp) {
+  const review = runQualityReview(ep);
+  return [
+    review.objectConsistencyScore < QUALITY_GATE_V3_MIN_SCORE ? `objectConsistencyScore ${review.objectConsistencyScore}` : "",
+    review.crossFieldConsistencyScore < QUALITY_GATE_V3_MIN_SCORE ? `crossFieldConsistencyScore ${review.crossFieldConsistencyScore}` : "",
+    review.repetitionScore < QUALITY_GATE_V3_MIN_SCORE ? `repetitionScore ${review.repetitionScore}` : ""
+  ].filter(Boolean);
+}
+
+export function passesQualityGateV3(ep: GhostEp) {
+  return qualityGateV3Failures(ep).length === 0;
+}
+
+function markQualityGateFailed(ep: GhostEp): GhostEp {
+  const review = runQualityReview(ep);
+  const failures = qualityGateV3Failures({ ...ep, qualityReview: review });
+  return {
+    ...ep,
+    title: QUALITY_GATE_V3_FAILED_MESSAGE,
+    story: QUALITY_GATE_V3_FAILED_MESSAGE,
+    hook: QUALITY_GATE_V3_FAILED_MESSAGE,
+    caption: QUALITY_GATE_V3_FAILED_MESSAGE,
+    frames: [],
+    videos: [],
+    voiceScript: "",
+    soundEffects: "",
+    hashtags: [],
+    qualityReview: {
+      ...review,
+      passed: false,
+      notes: `${QUALITY_GATE_V3_FAILED_MESSAGE}: ${failures.join(", ")}`
+    },
+    parseHealth: {
+      score: 0,
+      parsedFields: [],
+      missing: failures,
+      status: "warning"
+    }
+  };
+}
+
+export function enforceQualityGateV3(ep: GhostEp): GhostEp {
+  let next = sanitizeProductionOutput(ep);
+  if (passesQualityGateV3(next)) return next;
+  for (let attempt = 0; attempt < QUALITY_GATE_V3_MAX_REGENERATION_ATTEMPTS; attempt += 1) {
+    next = sanitizeProductionOutput(rewriteForQuality(next));
+    if (passesQualityGateV3(next)) {
+      const review = runQualityReview(next);
+      next.qualityReview = {
+        ...review,
+        notes: `${review.notes} Quality Gate V3 passed after ${attempt + 1} regeneration attempt(s).`
+      };
+      return next;
+    }
+  }
+  return markQualityGateFailed(next);
+}
+
+function titleForPrimaryObject(ep: GhostEp, primaryObject: string) {
+  const tone = templateTone(ep);
+  if (tone === "horror") return `Meow and the Wrong ${primaryObject}`;
+  if (tone === "sigma") return `Meow Stays Cool Beside the ${primaryObject}`;
+  return `Meow's ${primaryObject} Decision`;
+}
+
+function captionForPrimaryObject(ep: GhostEp, primaryObject: string) {
+  const tone = templateTone(ep);
+  if (tone === "horror") return `Meow finds one impossible clue inside the ${primaryObject}, and the room never explains it.`;
+  if (tone === "sigma") return `Meow refuses to admit the ${primaryObject} won for even one second.`;
+  return `Meow studies the ${primaryObject}, rejects human logic, and makes the most Meow decision possible.`;
+}
+
+function rewriteRepetition(ep: GhostEp): GhostEp {
+  if (!repetitionFailures(ep).length) return ep;
+  const facts = parseEpisodeFacts(ep);
+  const story = productionStory(ep, facts);
+  const videos = ep.videos.map((video, index) => ({
+    ...video,
+    videoPrompt: productionVideoPrompt({ ...ep, story }, video, index, facts)
+  }));
+  return { ...ep, story, videos };
+}
+
+function enforceSingleObjectLock(ep: GhostEp): GhostEp {
+  const facts = parseEpisodeFacts(ep);
+  const primaryObject = facts.mainObject;
+  const lockedFacts = { ...facts, mainObject: primaryObject };
+  const base: GhostEp = { ...ep, episodeFacts: lockedFacts };
+  const story = fieldObjectConsistent(base.story, primaryObject) && !needsStoryRewrite(base.story)
+    ? sanitizeProductionText(base.story)
+    : productionStory(base, lockedFacts);
+  const hookCandidate = sanitizeProductionText(base.hook);
+  const hook = fieldObjectConsistent(hookCandidate, primaryObject)
+    ? hookCandidate
+    : `Meow notices the ${primaryObject} in the ${lockedFacts.location} and realizes the whole moment depends on it.`;
+  const titleCandidate = sanitizeProductionText(base.title);
+  const title = fieldObjectConsistent(titleCandidate, primaryObject) ? titleCandidate : titleForPrimaryObject(base, primaryObject);
+  const captionCandidate = sanitizeProductionText(base.caption);
+  const caption = fieldObjectConsistent(captionCandidate, primaryObject) ? captionCandidate : captionForPrimaryObject(base, primaryObject);
+  const frames = base.frames.map((frame, index) => {
+    const text = `${frame.title} ${frame.imagePrompt}`;
+    const imagePrompt = fieldObjectConsistent(text, primaryObject) ? renderImagePrompt({ ...base, story, hook, episodeFacts: lockedFacts }, frame, index) : productionFramePrompt({ ...base, story, hook, episodeFacts: lockedFacts }, frame, index, lockedFacts);
+    const titleText = fieldObjectConsistent(frame.title, primaryObject) ? sanitizeProductionText(frame.title) : `${frame.frameId} - ${primaryObject}`;
+    return { frameId: frame.frameId, title: titleText, imagePrompt };
+  });
+  const frameLockedEp = { ...base, title, story, hook, caption, frames, episodeFacts: lockedFacts };
+  const videos = base.videos.map((video, index) => {
+    const text = `${video.videoPrompt} ${video.camera} ${video.motion} ${video.audio} ${video.dialogue} ${video.mood}`;
+    const videoPrompt = fieldObjectConsistent(text, primaryObject) ? renderVideoPrompt(frameLockedEp, video) : productionVideoPrompt(frameLockedEp, video, index, lockedFacts);
+    return {
+      ...video,
+      videoPrompt,
+      motion: fieldObjectConsistent(video.motion, primaryObject) ? sanitizeProductionText(video.motion) : `Meow moves around the ${primaryObject} with a clear continuous action.`,
+      mood: sanitizeProductionText(video.mood)
+    };
+  });
+  return rewriteRepetition({ ...frameLockedEp, videos, voiceScript: buildVoiceScriptFromDialogue(videos, "", ep.language) });
+}
+
 function enforcePromptLength(ep: GhostEp): GhostEp {
   const facts = parseEpisodeFacts(ep);
   const frames = ep.frames.map((frame, index) => {
@@ -1658,16 +2092,36 @@ function coreIdeaConsistencyScore(ep: GhostEp) {
 }
 
 function productionStory(ep: GhostEp, facts = parseEpisodeFacts(ep)) {
+  const beats = ep.storyBeats?.length ? ep.storyBeats.map((beat, index) => normalizeBeat(beat, ep, index, ep.storyBeats?.length || ep.frames.length)) : [];
+  if (beats.length) {
+    return beats.map((beat, index) => {
+      const opener = index === 0 ? `Inside the ${facts.location}, ` : "";
+      return `${opener}${beat.visibleEvent}. ${beat.characterAction}, showing ${beat.characterEmotion}, while ${beat.environmentChange}.`;
+    }).join(" ");
+  }
+  if (templateTone(ep) === "horror") {
+    return [
+      `Inside the ${facts.location}, Meow notices the ${facts.mainObject} sitting unnaturally still while the air around it turns cold.`,
+      `He steps closer, ears low, and watches the ${facts.secondaryObject} flicker as if something outside the room has touched it.`,
+      `The ${facts.mainObject} reveals an impossible detail that does not belong in the normal world, and Meow freezes in silent shock.`,
+      `The room loses its ordinary sound, the shadows tighten around the floor, and Meow backs away without understanding what opened in front of him.`,
+      `By the end, the ${facts.mainObject} looks normal again, but a trace of impossible evidence remains, leaving Meow staring in dread.`
+    ].join(" ");
+  }
   return [
     `Morning light settles inside the ${facts.location} while a human leaves the ${facts.mainObject} in the perfect spot for normal use.`,
-    `Meow notices it immediately, narrows his sleepy eyes, and decides the object has interrupted the private rule system of the room.`,
-    `He walks closer with careful little steps, sniffs the edge, taps it once, and reacts as if the ${facts.secondaryObject} has confirmed his suspicion.`,
-    `The situation becomes more serious when Meow tries a second method, changes his angle, and turns a tiny everyday problem into a full cat mission.`,
+    `Meow notices it immediately, narrows his sleepy eyes, and decides the object has challenged the comfort of the room.`,
+      `He walks closer with careful little steps, sniffs the edge, taps it once, and reacts as if the ${facts.mainObject} has confirmed his suspicion.`,
+    `The situation becomes more serious when Meow tries a second method, changes his angle, and turns a tiny everyday problem into a dramatic cat decision.`,
     `By the end, Meow chooses his own solution, claims the space with quiet confidence, and leaves the human logic behind like it never mattered.`
   ].join(" ");
 }
 
 function productionFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index: number, facts = parseEpisodeFacts(ep)) {
+  const beat = ep.storyBeats?.[index] ? normalizeBeat(ep.storyBeats[index], ep, index, ep.storyBeats.length) : undefined;
+  if (beat) {
+    return `Meow in the ${facts.location}, ${beat.visibleEvent}. ${beat.characterAction}, with ${beat.characterEmotion} clearly visible on his face and body posture. The ${facts.mainObject} is shown as ${beat.mainPropState}, while ${beat.environmentChange}. Balanced vertical 9:16 composition, medium cinematic camera framing, detailed environment, expressive orange tabby fur, polished Pixar-quality 3D animation, controlled lighting that matches the scene tone.`;
+  }
   const actions = [
     `Meow sitting near the ${facts.mainObject}, staring at it with suspicious sleepy eyes`,
     `Meow stepping closer to the ${facts.mainObject}, one paw lifted as he studies the edge`,
@@ -1681,6 +2135,11 @@ function productionFramePrompt(ep: GhostEp, frame: GhostEp["frames"][number], in
 }
 
 function productionVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number], index: number, facts = parseEpisodeFacts(ep)) {
+  const fromBeat = ep.storyBeats?.[index] ? normalizeBeat(ep.storyBeats[index], ep, index, ep.storyBeats.length) : undefined;
+  const toBeat = ep.storyBeats?.[index + 1] ? normalizeBeat(ep.storyBeats[index + 1], ep, index + 1, ep.storyBeats.length) : undefined;
+  if (fromBeat && toBeat) {
+    return `Meow begins in the ${facts.location} as ${fromBeat.visibleEvent}, carrying ${fromBeat.characterEmotion} in his posture. He moves through the scene with ${fromBeat.characterAction}, while the camera glides low beside him and the air shifts from ${fromBeat.environmentChange} to ${toBeat.environmentChange}. The ${facts.mainObject} changes from ${fromBeat.mainPropState} to ${toBeat.mainPropState}. By the final moment, ${toBeat.visibleEvent}, and Meow's emotion rises into ${toBeat.characterEmotion}. Detailed environmental audio, cinematic motion, Pixar-quality 3D animation, vertical 9:16.`;
+  }
   const actions = [
     `Meow slowly walks toward the ${facts.mainObject} while keeping his eyes locked on it, ears tilted forward with curious suspicion.`,
     `Meow circles the ${facts.mainObject} once, sniffs the edge, and taps it with one paw as if testing a secret rule.`,
@@ -1780,6 +2239,14 @@ export function runQualityReview(ep: GhostEp): QualityReview {
   );
   const expectedVoiceScript = buildVoiceScriptFromDialogue(ep.videos, "", ep.language);
   const dialogueConsistencyScore = detectVoiceDrift(ep).score;
+  const storyBeatAlignmentScoreValue = storyBeatAlignmentScore(ep);
+  const hookBeatConsistencyScoreValue = hookBeatConsistencyScore(ep);
+  const dialogueBeatConsistencyScoreValue = dialogueBeatConsistencyScore(ep);
+  const templateToneConsistencyScoreValue = templateToneConsistencyScore(ep);
+  const endingMechanicScoreValue = endingMechanicScore(ep);
+  const objectConsistencyScoreValue = objectConsistencyScore(ep);
+  const crossFieldConsistencyScoreValue = crossFieldConsistencyScore(ep);
+  const repetitionScoreValue = repetitionScore(ep);
   const voiceContinuityScore = scoreFromRatio(
     (ep.voiceProfile && Object.values(ep.voiceProfile).filter(Boolean).length >= 8 ? 0.35 : 0) +
     (ep.voiceScript === expectedVoiceScript ? 0.45 : 0) +
@@ -1794,7 +2261,7 @@ export function runQualityReview(ep: GhostEp): QualityReview {
     (ep.frames.every((frame) => frame.frameId.trim() && frame.title.trim() && frame.imagePrompt.trim()) ? 0.3 : 0) +
     (ep.videos.every((video) => video.fromFrame.trim() && video.toFrame.trim() && video.videoPrompt.trim()) ? 0.3 : 0)
   );
-  const scores = [storyQualityScore, storyDepthScore, promptDetailScoreValue, storyBeatContinuityScore, visualContinuityScore, videoContinuityScore, dialogueConsistencyScore, voiceContinuityScore, noveltyScore, templateMatchScore, characterConsistencyScore];
+  const scores = [storyQualityScore, storyDepthScore, promptDetailScoreValue, storyBeatContinuityScore, visualContinuityScore, videoContinuityScore, dialogueConsistencyScore, voiceContinuityScore, storyBeatAlignmentScoreValue, hookBeatConsistencyScoreValue, dialogueBeatConsistencyScoreValue, templateToneConsistencyScoreValue, endingMechanicScoreValue, objectConsistencyScoreValue, crossFieldConsistencyScoreValue, repetitionScoreValue, noveltyScore, templateMatchScore, characterConsistencyScore];
   const episodeCompletenessScore = Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
   const threshold = 85;
   const passed = episodeCompletenessScore >= threshold;
@@ -1807,6 +2274,14 @@ export function runQualityReview(ep: GhostEp): QualityReview {
     videoContinuityScore,
     dialogueConsistencyScore,
     voiceContinuityScore,
+    storyBeatAlignmentScore: storyBeatAlignmentScoreValue,
+    hookBeatConsistencyScore: hookBeatConsistencyScoreValue,
+    dialogueBeatConsistencyScore: dialogueBeatConsistencyScoreValue,
+    templateToneConsistencyScore: templateToneConsistencyScoreValue,
+    endingMechanicScore: endingMechanicScoreValue,
+    objectConsistencyScore: objectConsistencyScoreValue,
+    crossFieldConsistencyScore: crossFieldConsistencyScoreValue,
+    repetitionScore: repetitionScoreValue,
     noveltyScore,
     templateMatchScore,
     characterConsistencyScore,
@@ -1820,12 +2295,12 @@ export function runQualityReview(ep: GhostEp): QualityReview {
 function rewriteForQuality(ep: GhostEp): GhostEp {
   const frameCount = Math.max(1, ep.frames.length);
   const functions = beatFunctions(ep, frameCount);
-  const storyBeats = Array.from({ length: frameCount }, (_, index) => ({
+  const storyBeats = Array.from({ length: frameCount }, (_, index) => normalizeBeat({
     beatId: `beat${index + 1}`,
     role: depthRoleForIndex(index, frameCount),
     function: functions[index] || `connector ${index + 1}`,
     beat: templateDepthBeatText(ep, depthRoleForIndex(index, frameCount), functions[index] || "story beat", index, frameCount)
-  }));
+  }, ep, index, frameCount));
   const frames = ep.frames.map((frame, index) => ({
     frameId: frame.frameId,
     title: frame.title || storyBeats[index]?.function || `Beat ${index + 1}`,
@@ -1839,7 +2314,7 @@ function rewriteForQuality(ep: GhostEp): GhostEp {
       motion: video.motion || videoPrompt,
       camera: video.camera || ep.continuityAnchor?.cameraStyle || ep.episodeState?.cameraLanguage || "continuous cinematic camera",
       audio: video.audio || ep.episodeState?.environmentAudio || "continuous room tone",
-      dialogue: ep.language === "No Dialogue" ? "" : video.dialogue || (index === 0 ? "เดี๋ยวนะ..." : index === ep.videos.length - 1 ? "อ๋อ... แบบนี้เองเหรอ" : "ทำไมมันแปลก ๆ นะ...")
+      dialogue: ep.language === "No Dialogue" ? "" : video.dialogue
     };
   });
   const next: GhostEp = {
@@ -1855,7 +2330,7 @@ function rewriteForQuality(ep: GhostEp): GhostEp {
       }
     }),
     storyBeats,
-    story: storyBeats.map((beat) => beat.beat).join(" "),
+    story: productionStory({ ...ep, storyBeats }),
     frames,
     videos,
     duplicateCheck: {
@@ -1880,7 +2355,7 @@ function applyStoryQualityFilter(ep: GhostEp): GhostEp {
     const payoffScore = scorePayoff(next);
     const continuityScore = scoreContinuity(next);
     const depthScore = validateStoryDepth(next.storyBeats ?? []).score;
-    if (review.storyQualityScore >= 85 && review.promptDetailScore >= 85 && review.templateMatchScore >= 80 && review.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && depthScore >= 80 && !isAbstractStory(next.story)) {
+    if (review.storyQualityScore >= 85 && review.promptDetailScore >= 85 && review.storyBeatAlignmentScore >= 85 && review.hookBeatConsistencyScore >= 85 && review.dialogueBeatConsistencyScore >= 85 && review.templateToneConsistencyScore >= 85 && review.endingMechanicScore >= 85 && review.objectConsistencyScore >= 85 && review.crossFieldConsistencyScore >= 85 && review.repetitionScore >= 85 && review.templateMatchScore >= 80 && review.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && depthScore >= 80 && !isAbstractStory(next.story)) {
       next.qualityReview = {
         ...review,
         passed: review.episodeCompletenessScore >= review.threshold,
@@ -1895,39 +2370,44 @@ function applyStoryQualityFilter(ep: GhostEp): GhostEp {
   const continuityScore = scoreContinuity(next);
   next.qualityReview = {
     ...finalReview,
-    passed: finalReview.storyQualityScore >= 85 && finalReview.promptDetailScore >= 85 && finalReview.templateMatchScore >= 80 && finalReview.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && validateStoryDepth(next.storyBeats ?? []).score >= 80 && !isAbstractStory(next.story),
+    passed: finalReview.storyQualityScore >= 85 && finalReview.promptDetailScore >= 85 && finalReview.storyBeatAlignmentScore >= 85 && finalReview.hookBeatConsistencyScore >= 85 && finalReview.dialogueBeatConsistencyScore >= 85 && finalReview.templateToneConsistencyScore >= 85 && finalReview.endingMechanicScore >= 85 && finalReview.objectConsistencyScore >= 85 && finalReview.crossFieldConsistencyScore >= 85 && finalReview.repetitionScore >= 85 && finalReview.templateMatchScore >= 80 && finalReview.noveltyScore >= 80 && payoffScore >= 80 && continuityScore >= 80 && validateStoryDepth(next.storyBeats ?? []).score >= 80 && !isAbstractStory(next.story),
     notes: `Code quality filter applied. payoffScore=${payoffScore}; continuityScore=${continuityScore}; depthScore=${validateStoryDepth(next.storyBeats ?? []).score}; promptDetailScore=${finalReview.promptDetailScore}.`
   };
   return next;
 }
 
 export function sanitizeGeneratedEp(ep: GhostEp): GhostEp {
-  return sanitizeProductionOutput(ep);
+  return enforceQualityGateV3(ep);
 }
 
 export function sanitizeProductionOutput(ep: GhostEp): GhostEp {
   const facts = parseEpisodeFacts(ep);
   const lengthChecked = enforcePromptLength({ ...ep, episodeFacts: facts });
   const story = needsStoryRewrite(lengthChecked.story) ? productionStory(lengthChecked, facts) : sanitizeProductionText(lengthChecked.story);
-  const hook = hasProductionBlockedText(lengthChecked.hook) || !sanitizeProductionText(lengthChecked.hook)
-    ? `Meow notices the ${facts.mainObject} in the ${facts.location} and decides normal human logic is wrong.`
-    : sanitizeProductionText(lengthChecked.hook);
+  const firstBeat = lengthChecked.storyBeats?.[0] ? normalizeBeat(lengthChecked.storyBeats[0], lengthChecked, 0, lengthChecked.storyBeats.length) : undefined;
+  const hookCandidate = sanitizeProductionText(lengthChecked.hook);
+  const hook = hasProductionBlockedText(lengthChecked.hook) || !hookCandidate || (firstBeat && tokenOverlapRatio(hookCandidate, `${firstBeat.visibleEvent} ${firstBeat.mainPropState}`) < 0.05)
+    ? `Meow notices the ${facts.mainObject} in the ${facts.location} and realizes something is wrong.`
+    : hookCandidate;
   const cleanFrames = lengthChecked.frames.map((frame) => ({
     frameId: frame.frameId,
     title: leanPrompt(frame.title),
     imagePrompt: renderImagePrompt({ ...lengthChecked, story, hook, episodeFacts: facts }, frame)
   }));
-  const cleanVideos = lengthChecked.videos.map((video, index) => ({
-    videoId: video.videoId || `V${index + 1}`,
-    fromFrame: video.fromFrame || `F${index + 1}`,
-    toFrame: video.toFrame || `F${index + 2}`,
-    durationSec: Math.max(1, Number(video.durationSec || 8)),
-    videoPrompt: renderVideoPrompt({ ...lengthChecked, frames: cleanFrames, story, hook, episodeFacts: facts }, video),
-    camera: sanitizeProductionText(video.camera) || `low cinematic camera following Meow inside the ${facts.location}`,
-    motion: sanitizeProductionText(video.motion) || `Meow moves carefully around the ${facts.mainObject} with growing confidence`,
-    audio: sanitizeProductionText(video.audio) || `soft room tone, tiny paw steps, gentle fabric rustle`,
-    dialogue: ep.language === "No Dialogue" ? "" : video.dialogue.trim(),
-    mood: sanitizeProductionText(video.mood) || "curious, cozy, lightly dramatic"
+  const cleanVideos = ensureUniqueDialogue(lengthChecked.videos.map((video, index) => {
+    const targetBeat = lengthChecked.storyBeats?.[Math.min(index + 1, (lengthChecked.storyBeats?.length ?? 1) - 1)] ?? lengthChecked.storyBeats?.[index];
+    return {
+      videoId: video.videoId || `V${index + 1}`,
+      fromFrame: video.fromFrame || `F${index + 1}`,
+      toFrame: video.toFrame || `F${index + 2}`,
+      durationSec: Math.max(1, Number(video.durationSec || 8)),
+      videoPrompt: renderVideoPrompt({ ...lengthChecked, frames: cleanFrames, story, hook, episodeFacts: facts }, video),
+      camera: sanitizeProductionText(video.camera) || `low cinematic camera following Meow inside the ${facts.location}`,
+      motion: sanitizeProductionText(video.motion) || `Meow moves carefully around the ${facts.mainObject} with growing confidence`,
+      audio: sanitizeProductionText(video.audio) || `soft room tone, tiny paw steps, gentle fabric rustle`,
+      dialogue: ep.language === "No Dialogue" ? "" : dialogueFromBeat({ ...lengthChecked, language: ep.language }, targetBeat, index + 1),
+      mood: sanitizeProductionText(video.mood) || (templateTone(lengthChecked) === "horror" ? "tense, mysterious, dreadful" : "curious, cozy, lightly dramatic")
+    };
   }));
   const next: GhostEp = {
     ...ep,
@@ -1943,8 +2423,9 @@ export function sanitizeProductionOutput(ep: GhostEp): GhostEp {
     caption: sanitizeProductionText(ep.caption),
     hashtags: Array.isArray(ep.hashtags) ? ep.hashtags.map((tag) => String(tag).trim()).filter(Boolean) : []
   };
-  next.qualityReview = runQualityReview(next);
-  return leanEpOutput(next);
+  const locked = enforceSingleObjectLock(next);
+  locked.qualityReview = runQualityReview(locked);
+  return leanEpOutput(locked);
 }
 
 export function outputJSON(ep: GhostEp): GhostEp {
@@ -1959,6 +2440,7 @@ export function runInternalGeneratorPipeline(ep: GhostEp): GhostEp {
     characterAnchor: ep.characterAnchor || buildCharacterAnchorFromAsset(getCharacterAsset(ep.characterId))
   };
   next.storyBeats = rewriteStoryBeats(generateStoryBeats(next), next.coreIdea);
+  next.story = productionStory(next);
   next.episodeState = generateEpisodeState(next);
   next.continuityAnchor = generateContinuityAnchor(next);
   next.voiceProfile = generateVoiceProfile(next);
@@ -2225,7 +2707,9 @@ function applySelection(ep: GhostEp, selection?: Partial<GeneratorSelection>) {
 export function parseDailyResult(raw: string, date = todayString(), selection?: Partial<GeneratorSelection>): GhostEp[] {
   const jsonObjects = parseJsonObjects(raw);
   if (jsonObjects.length) {
-    return jsonObjects.map((item, index) => applySelection(mapJsonEp(item, index, date), selection));
+    return jsonObjects
+      .map((item, index) => applySelection(mapJsonEp(item, index, date), selection))
+      .filter(passesQualityGateV3);
   }
 
   return splitEpBlocks(raw).map((rawBlock, index) => {
@@ -2311,5 +2795,5 @@ export function parseDailyResult(raw: string, date = todayString(), selection?: 
     generated.parseHealth = calculateParseHealth(generated);
     generated.parseDebug = buildParseDebug(generated, index);
     return applySelection(generated, selection);
-  });
+  }).filter(passesQualityGateV3);
 }

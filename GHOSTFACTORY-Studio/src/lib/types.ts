@@ -43,6 +43,15 @@ export type StoryBeat = {
   role?: "hook" | "goal" | "obstacle" | "escalation" | "payoff";
   function: string;
   beat: string;
+  beatFunction?: string;
+  visibleEvent?: string;
+  characterAction?: string;
+  characterEmotion?: string;
+  environmentChange?: string;
+  mainPropState?: string;
+  dialogueIntent?: string;
+  tensionLevel?: number;
+  endingRole?: string;
 };
 
 export type EpisodeState = {
@@ -128,6 +137,14 @@ export type QualityReview = {
   videoContinuityScore: number;
   dialogueConsistencyScore: number;
   voiceContinuityScore: number;
+  storyBeatAlignmentScore: number;
+  hookBeatConsistencyScore: number;
+  dialogueBeatConsistencyScore: number;
+  templateToneConsistencyScore: number;
+  endingMechanicScore: number;
+  objectConsistencyScore: number;
+  crossFieldConsistencyScore: number;
+  repetitionScore: number;
   noveltyScore: number;
   templateMatchScore: number;
   characterConsistencyScore: number;

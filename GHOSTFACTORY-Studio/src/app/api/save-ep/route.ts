@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import path from "path";
 import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateEpisodeMemoryFromEp, updateIdeaMemoryFromEp } from "@/lib/storage";
 import { checkDuplicate } from "@/lib/duplicate-checker";
-import { calculateParseHealth, runInternalGeneratorPipeline } from "@/lib/ep-generator";
+import { QUALITY_GATE_V3_FAILED_MESSAGE, calculateParseHealth, passesQualityGateV3, runInternalGeneratorPipeline } from "@/lib/ep-generator";
 import type { GhostEp } from "@/lib/types";
 
 function normalizeEp(ep: GhostEp, duplicateCheck: GhostEp["duplicateCheck"]): GhostEp {
@@ -81,6 +81,15 @@ export async function POST(request: Request) {
   }
 
   const cleanEp = normalizeEp(ep, duplicateCheck);
+  if (!passesQualityGateV3(cleanEp)) {
+    return NextResponse.json(
+      {
+        error: QUALITY_GATE_V3_FAILED_MESSAGE,
+        qualityReview: cleanEp.qualityReview
+      },
+      { status: 422 }
+    );
+  }
   await appendEpToHistory(cleanEp);
   const exported = await exportEpPackage(cleanEp, outputRootOverride);
   await updateIdeaMemoryFromEp(cleanEp);

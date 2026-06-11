@@ -1,5 +1,56 @@
 [
   {
+    "epId": "EP-2026-06-08-1780907023460",
+    "title": "ศึกชิงพัดลมหน้าหนาว",
+    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "storyBeats": [
+      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
+      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
+      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+    ],
+    "coreConflict": "cat logic vs human logic",
+    "hookMechanic": "เมื่ออากาศเย็นอยู่แล้ว แต่แมวบอกว่ายังเย็นไม่สะใจ",
+    "endingMechanic": "cute absurd behavior",
+    "location": "same continuous scene",
+    "mainObject": "main story prop",
+    "template": "Cute Daily Life",
+    "createdAt": "2026-06-08T08:23:43.783Z"
+  },
+  {
+    "epId": "EP-2026-06-08-1780906266592",
+    "title": "ศึกกับจุดแดง",
+    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "storyBeats": [
+      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
+      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
+      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+    ],
+    "coreConflict": "cat logic vs human logic",
+    "hookMechanic": "เมื่อแมวส้มเจอศัตรูที่จับยังไงก็ไม่ติด...",
+    "endingMechanic": "cute absurd behavior",
+    "location": "same continuous scene",
+    "mainObject": "main story prop",
+    "template": "Cute Daily Life",
+    "createdAt": "2026-06-08T08:11:06.970Z"
+  },
+  {
+    "epId": "EP-2026-06-08-1780905714907",
+    "title": "มหาศึกชิงพื้นที่แป้นพิมพ์ของมนุษย์",
+    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "storyBeats": [
+      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
+      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
+      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+    ],
+    "coreConflict": "cat logic vs human logic",
+    "hookMechanic": "เมื่อมนุษย์มีงานด่วนต้องส่ง... แต่ดันเจอสิ่งมีชีวิตส้มเข้ามากดดันระดับ VIP",
+    "endingMechanic": "cute absurd behavior",
+    "location": "same continuous scene",
+    "mainObject": "main story prop",
+    "template": "Cute Daily Life",
+    "createdAt": "2026-06-08T08:01:56.835Z"
+  },
+  {
     "epId": "EP-2026-06-07-1780854993817",
     "title": "ตรรกะแมวส้มกับการดื่มน้ำ",
     "centralIdea": "เมื่อคุณเสียเงินซื้อน้ำพุแมวสุดหรู แต่สิ่งที่ตื่นเต้นที่สุดคือ...",
