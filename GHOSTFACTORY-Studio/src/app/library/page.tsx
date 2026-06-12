@@ -6,8 +6,7 @@ import { ImagePicker, ImagePreview } from "@/components/ImagePicker";
 import { checklistCounts, checklistForEp } from "@/lib/checklist";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
-import { createFlowAllImagesPrompt, createFlowAllVideosPrompt, createFlowFrameReferenceLine, createFlowImagePrompt, createFlowReferencePlan, createFlowVideoPrompt } from "@/lib/flow-mode";
-import type { EpStatus, FlowAssetStatus, GhostCharacter, GhostEp } from "@/lib/types";
+import type { EpStatus, GhostCharacter, GhostEp } from "@/lib/types";
 
 type SortMode = "newest" | "oldest" | "viral" | "duration";
 
@@ -19,15 +18,6 @@ const statusOptions: { value: "" | EpStatus; label: string }[] = [
   { value: "video_ready", label: "Video Ready" },
   { value: "posted", label: "Posted" },
   { value: "archived", label: "Archived" }
-];
-
-const flowStatusOptions: { value: FlowAssetStatus; label: string }[] = [
-  { value: "not_started", label: "Not started" },
-  { value: "prompt_copied", label: "Prompt copied" },
-  { value: "generated", label: "Generated" },
-  { value: "selected", label: "Selected" },
-  { value: "needs_fix", label: "Needs fix" },
-  { value: "approved", label: "Approved" }
 ];
 
 function displayDuration(ep: GhostEp) {
@@ -54,26 +44,6 @@ function videoPromptText(ep: GhostEp, videoId?: string) {
     .filter((video) => video.videoPrompt.trim())
     .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
-}
-
-function qualityWarnings(ep: GhostEp) {
-  const review = ep.qualityReview;
-  if (!review) return [];
-  const threshold = review.threshold || 85;
-  return [
-    review.storyDepthScore < threshold ? `Story Depth ${review.storyDepthScore}` : "",
-    review.promptDetailScore < threshold ? `Prompt Detail ${review.promptDetailScore}` : "",
-    review.templateMatchScore < threshold ? `Template Match ${review.templateMatchScore}` : "",
-    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : "",
-    review.storyBeatAlignmentScore < threshold ? `Beat Alignment ${review.storyBeatAlignmentScore}` : "",
-    review.hookBeatConsistencyScore < threshold ? `Hook Alignment ${review.hookBeatConsistencyScore}` : "",
-    review.dialogueBeatConsistencyScore < threshold ? `Dialogue Alignment ${review.dialogueBeatConsistencyScore}` : "",
-    review.templateToneConsistencyScore < threshold ? `Tone ${review.templateToneConsistencyScore}` : "",
-    review.endingMechanicScore < threshold ? `Ending ${review.endingMechanicScore}` : "",
-    review.objectConsistencyScore < threshold ? `Object ${review.objectConsistencyScore}` : "",
-    review.crossFieldConsistencyScore < threshold ? `Cross-field ${review.crossFieldConsistencyScore}` : "",
-    review.repetitionScore < threshold ? `Repetition ${review.repetitionScore}` : ""
-  ].filter(Boolean);
 }
 
 function packageText(ep: GhostEp) {
@@ -107,24 +77,6 @@ function packageText(ep: GhostEp) {
   ].join("\n");
 }
 
-function flowFramePromptText(ep: GhostEp, frameId?: string) {
-  if (qualityGateBlocked(ep)) return QUALITY_GATE_V3_FAILED_MESSAGE;
-  const production = sanitizeProductionOutput(ep);
-  return (production.frames ?? [])
-    .filter((frame) => !frameId || frame.frameId === frameId)
-    .map((frame) => createFlowImagePrompt(production, frame))
-    .join("\n\n---\n\n");
-}
-
-function flowVideoPromptText(ep: GhostEp, videoId?: string) {
-  if (qualityGateBlocked(ep)) return QUALITY_GATE_V3_FAILED_MESSAGE;
-  const production = sanitizeProductionOutput(ep);
-  return (production.videos ?? [])
-    .filter((video) => !videoId || video.videoId === videoId)
-    .map((video) => createFlowVideoPrompt(production, video))
-    .join("\n\n---\n\n");
-}
-
 function Feedback({ feedback }: { feedback: ActionFeedback | null }) {
   if (!feedback) return null;
   const tone =
@@ -153,7 +105,6 @@ function EpDetailModal({
   const [draft, setDraft] = useState({ ...ep, checklist: checklistForEp(ep) });
   const [editMode, setEditMode] = useState(false);
   const checklist = checklistForEp(draft);
-  const warnings = qualityWarnings(draft);
   const production = sanitizeProductionOutput(draft);
   const blocked = qualityGateBlocked(production);
 
@@ -187,10 +138,8 @@ function EpDetailModal({
               <span>{displayDuration(draft)}</span>
               <span>{draft.status}</span>
               {draft.storyArchetype ? <span>Archetype: {draft.storyArchetype}</span> : null}
-              {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-0.5 text-amber-700">Quality warning</span> : null}
             </div>
             <h2 className="mt-2 text-2xl font-semibold">{draft.title || draft.id}</h2>
-            {warnings.length ? <p className="mt-2 text-xs font-semibold text-amber-700">Check before save: {warnings.join(", ")}</p> : null}
           </div>
           <div className="flex gap-2">
             <button className="btn px-3" onClick={() => setEditMode((value) => !value)} type="button"><Edit3 size={18} />{editMode ? "Preview" : "Edit"}</button>
@@ -250,34 +199,18 @@ function EpDetailModal({
             </div>
           </section>
 
-          <section className="space-y-3 rounded-[8px] border border-[#BFDBFE] bg-[#EFF6FF] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="font-semibold text-[#0F172A]">Google Flow</h3>
-                <p className="mt-1 text-xs text-[#475569]">Copy the reference plan, generate F frames one by one, then generate V clips with First Frame / Last Frame.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button className="btn btn-primary h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowReferencePlan(production), `Copy Reference Plan ${draft.id}`)} type="button"><Copy size={15} />Copy Reference Plan</button>
-                <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${draft.id}`)} type="button"><Copy size={15} />Copy All Flow Frame Prompts</button>
-                <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Flow Video Prompts</button>
-              </div>
-            </div>
-            <p className="text-xs leading-5 text-[#475569]">Use exported single images only. Do not use screenshots, contact sheets, UI overlays, black borders, or multiple-image grids as references.</p>
-          </section>
-
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-semibold">Frame Prompts</h3>
-              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${draft.id}`)} type="button"><Copy size={15} />Copy All Flow Frame Prompts</button>
+              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(framePromptText(production), `Copy All Frames ${draft.id}`)} type="button"><Copy size={15} />Copy All Frames</button>
             </div>
             {(draft.frames ?? []).map((frame) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={frame.frameId}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h4 className="text-sm font-semibold">{frame.frameId} {frame.title}</h4>
-                    <p className="mt-1 text-xs font-semibold text-[#2563EB]">{createFlowFrameReferenceLine(frame.frameId)}</p>
                   </div>
-                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(flowFramePromptText(draft, frame.frameId), `Copy Flow ${frame.frameId} ${draft.id}`)} type="button">Copy Flow {frame.frameId} Prompt</button>
+                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(framePromptText(production, frame.frameId), `Copy ${frame.frameId} ${draft.id}`)} type="button">Copy {frame.frameId}</button>
                 </div>
                 {editMode ? (
                   <div className="mt-3 grid gap-4 md:grid-cols-[220px,1fr]">
@@ -298,29 +231,10 @@ function EpDetailModal({
                     <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt || "No frame prompt."}</p>
                   </div>
                 )}
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                  <label className="text-xs font-semibold">Status
-                    <select className="control mt-1" value={frame.flowStatus ?? "not_started"} onChange={(event) => updateFrame(frame.frameId, { flowStatus: event.target.value as FlowAssetStatus })}>
-                      {flowStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                    </select>
-                  </label>
-                  <label className="text-xs font-semibold md:col-span-2">Selected asset label
-                    <input className="control mt-1" value={frame.flowAssetLabel ?? ""} onChange={(event) => updateFrame(frame.frameId, { flowAssetLabel: event.target.value })} placeholder="Example: F3-final-export.png" />
-                  </label>
-                  <label className="text-xs font-semibold md:col-span-3">Frame notes
-                    <textarea className="control mt-1 min-h-20" value={frame.flowNotes ?? ""} onChange={(event) => updateFrame(frame.frameId, { flowNotes: event.target.value })} />
-                  </label>
-                </div>
-                <details className="mt-3 rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <summary className="cursor-pointer text-xs font-semibold text-[#64748B]">Advanced checklist</summary>
-                  <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
-                    <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
-                    Image {frame.frameId} complete
-                  </label>
-                  <ul className="mt-3 grid gap-1 text-xs text-[#64748B] sm:grid-cols-2">
-                    {["Character identity consistent", "Scene layout consistent", "Main props consistent", "Correct action", "No future object too early", "No text/logo/UI", "Vertical 9:16"].map((item) => <li key={item}>- {item}</li>)}
-                  </ul>
-                </details>
+                <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                  <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
+                  Image {frame.frameId} complete
+                </label>
               </article>
             ))}
           </section>
@@ -328,7 +242,7 @@ function EpDetailModal({
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h3 className="font-semibold">Video Prompts</h3>
-              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Flow Video Prompts</button>
+              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(videoPromptText(production), `Copy All Videos ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Videos</button>
             </div>
             {(draft.videos ?? []).map((video) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={video.videoId}>
@@ -337,7 +251,7 @@ function EpDetailModal({
                     <h4 className="text-sm font-semibold">{video.videoId}</h4>
                     <p className="mt-1 text-xs text-[#64748B]">First Frame {video.fromFrame} / Last Frame {video.toFrame} / {video.durationSec}s</p>
                   </div>
-                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(flowVideoPromptText(draft, video.videoId), `Copy Flow ${video.videoId} ${draft.id}`)} type="button">Copy Flow {video.videoId} Prompt</button>
+                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(videoPromptText(production, video.videoId), `Copy ${video.videoId} ${draft.id}`)} type="button">Copy {video.videoId}</button>
                 </div>
                 {editMode ? (
                   <div className="mt-3 grid gap-3 md:grid-cols-3">
@@ -354,26 +268,10 @@ function EpDetailModal({
                 ) : (
                   <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.motion || video.videoPrompt || "No motion summary."}</p>
                 )}
-                <div className="mt-3 grid gap-3 md:grid-cols-3">
-                  <label className="text-xs font-semibold">Status
-                    <select className="control mt-1" value={video.flowStatus ?? "not_started"} onChange={(event) => updateVideo(video.videoId, { flowStatus: event.target.value as FlowAssetStatus })}>
-                      {flowStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-                    </select>
-                  </label>
-                  <label className="text-xs font-semibold md:col-span-2">Video notes
-                    <textarea className="control mt-1 min-h-20" value={video.flowNotes ?? ""} onChange={(event) => updateVideo(video.videoId, { flowNotes: event.target.value })} />
-                  </label>
-                </div>
-                <details className="mt-3 rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-                  <summary className="cursor-pointer text-xs font-semibold text-[#64748B]">Advanced checklist</summary>
-                  <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
-                    <input checked={Boolean(checklist.videos[video.videoId])} onChange={(event) => setVideo(video.videoId, event.target.checked)} type="checkbox" />
-                    Video {video.videoId} complete
-                  </label>
-                  <ul className="mt-3 grid gap-1 text-xs text-[#64748B] sm:grid-cols-2">
-                    {["Starts close to First Frame", "Ends close to Last Frame", "Motion matches prompt", "Character preserved", "Scene/main props preserved", "No future object too early", "No text/logo/UI", "Camera stable"].map((item) => <li key={item}>- {item}</li>)}
-                  </ul>
-                </details>
+                <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                  <input checked={Boolean(checklist.videos[video.videoId])} onChange={(event) => setVideo(video.videoId, event.target.checked)} type="checkbox" />
+                  Video {video.videoId} complete
+                </label>
               </article>
             ))}
           </section>
@@ -469,8 +367,7 @@ export default function LibraryPage() {
     }
     setEps((current) => current.map((item) => item.id === data.ep.id ? data.ep : item));
     setSelectedEp(data.ep);
-    const warnings = qualityWarnings(data.ep);
-    setFeedback({ kind: warnings.length ? "warning" : "success", message: warnings.length ? `EP saved with quality warnings: ${warnings.join(", ")}` : "EP saved" });
+    setFeedback({ kind: "success", message: "EP saved" });
   }
 
   async function archiveEp(ep: GhostEp) {
@@ -548,7 +445,6 @@ export default function LibraryPage() {
           const checklist = checklistForEp(ep);
           const counts = checklistCounts(checklist);
           const character = characters.find((item) => item.id === ep.characterId);
-          const warnings = qualityWarnings(ep);
           return (
             <article className="grid cursor-pointer gap-3 border-b border-[#E2E8F0] p-4 transition last:border-b-0 hover:bg-[#F8FAFC] lg:grid-cols-[84px_minmax(220px,1fr)_150px_150px_190px_160px]" key={ep.id} onClick={() => setSelectedEp({ ...ep, checklist })}>
               <ImagePreview className="aspect-square rounded-[8px]" label="EP Image" src={ep.thumbnailImage || Object.values(ep.frameImages ?? {}).find(Boolean)} />
@@ -557,10 +453,8 @@ export default function LibraryPage() {
                   <h2 className="font-semibold text-[#0F172A]">{ep.id}</h2>
                   <span className="soft-badge">{ep.status}</span>
                   {ep.storyArchetype ? <span className="soft-badge">{ep.storyArchetype}</span> : null}
-                  {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Quality warning</span> : null}
                 </div>
                 <p className="mt-1 truncate text-sm font-semibold text-[#334155]">{ep.title || "Untitled EP"}</p>
-                {warnings.length ? <p className="mt-1 truncate text-xs font-semibold text-amber-700">{warnings.join(", ")}</p> : null}
                 <p className="mt-1 text-xs text-[#64748B]">Date: {ep.date}</p>
               </div>
               <div className="text-sm">

@@ -3,7 +3,6 @@ import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3, sanitizeProductionOutput } from "./ep-generator";
-import { createFlowAllImagesPrompt, createFlowAllVideosPrompt, createFlowNotes, createFlowPromptsJson, createFlowReferencePlan } from "./flow-mode";
 import type { CharacterProfile, EpisodeFacts, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
@@ -801,10 +800,7 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
   const leanFrames = frames.map((frame) => ({
     frameId: frame.frameId,
     title: frame.title,
-    imagePrompt: compactStoredPrompt(frame.imagePrompt, [frame.title]),
-    flowStatus: frame.flowStatus ?? "not_started",
-    flowAssetLabel: frame.flowAssetLabel ?? "",
-    flowNotes: frame.flowNotes ?? ""
+    imagePrompt: compactStoredPrompt(frame.imagePrompt, [frame.title])
   }));
   const leanVideos = videos.map((video) => ({
     videoId: video.videoId,
@@ -816,9 +812,7 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     motion: video.motion ?? "",
     audio: video.audio ?? "",
     dialogue: video.dialogue ?? "",
-    mood: video.mood ?? "",
-    flowStatus: video.flowStatus ?? "not_started",
-    flowNotes: video.flowNotes ?? ""
+    mood: video.mood ?? ""
   }));
   const durationSec = (ep.durationSec ?? videos.reduce((sum, video) => sum + (Number(video.durationSec) || 0), 0)) || Number(String(ep.format || "").match(/\d+(\.\d+)?/)?.[0] ?? 0);
   const normalized: GhostEp = {
@@ -997,16 +991,10 @@ export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) 
   const epDir = path.join(root, outputRootOverride || settings.outputRoot, production.date, production.format, safeSegment(production.id));
   await fs.mkdir(epDir, { recursive: true });
   const filePath = path.join(epDir, "prompts.md");
-  const flowPrompts = createFlowPromptsJson(production);
   await fs.writeFile(filePath, createMarkdown(production), "utf8");
   await Promise.all([
     fs.writeFile(path.join(epDir, "frames.txt"), framesText(production), "utf8"),
     fs.writeFile(path.join(epDir, "videos.txt"), videosText(production), "utf8"),
-    fs.writeFile(path.join(epDir, "flow-reference-plan.md"), `${createFlowReferencePlan(production)}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "flow-frame-prompts.txt"), `${createFlowAllImagesPrompt(production)}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "flow-video-prompts.txt"), `${createFlowAllVideosPrompt(production)}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "flow-notes.md"), `${createFlowNotes(ep)}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "flow-prompts.json"), `${JSON.stringify(flowPrompts, null, 2)}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "caption.txt"), `${production.caption}\n\n${production.hashtags.join(" ")}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "voice-script.txt"), `${production.voiceScript}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(publicExportEp(production), null, 2)}\n`, "utf8")

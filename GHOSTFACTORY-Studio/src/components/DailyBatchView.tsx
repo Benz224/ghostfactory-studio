@@ -6,7 +6,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, QUALITY_GATE_V3_MIN_SCORE, calculateParseHealth, parseDailyResult, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
-import { createFlowAllImagesPrompt, createFlowAllVideosPrompt, createFlowReferencePlan } from "@/lib/flow-mode";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -95,26 +94,6 @@ function videoText(ep: GhostEp, videoId?: string) {
     .filter((video) => video.videoPrompt.trim())
     .map((video) => `${video.videoId}\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
     .join("\n\n");
-}
-
-function qualityWarnings(ep: GhostEp) {
-  const review = ep.qualityReview;
-  if (!review) return [];
-  const threshold = review.threshold || 85;
-  return [
-    review.storyDepthScore < threshold ? `Story Depth ${review.storyDepthScore}` : "",
-    review.promptDetailScore < threshold ? `Prompt Detail ${review.promptDetailScore}` : "",
-    review.templateMatchScore < threshold ? `Template Match ${review.templateMatchScore}` : "",
-    review.noveltyScore < threshold ? `Novelty ${review.noveltyScore}` : "",
-    review.storyBeatAlignmentScore < threshold ? `Beat Alignment ${review.storyBeatAlignmentScore}` : "",
-    review.hookBeatConsistencyScore < threshold ? `Hook Alignment ${review.hookBeatConsistencyScore}` : "",
-    review.dialogueBeatConsistencyScore < threshold ? `Dialogue Alignment ${review.dialogueBeatConsistencyScore}` : "",
-    review.templateToneConsistencyScore < threshold ? `Tone ${review.templateToneConsistencyScore}` : "",
-    review.endingMechanicScore < threshold ? `Ending ${review.endingMechanicScore}` : "",
-    review.objectConsistencyScore < threshold ? `Object ${review.objectConsistencyScore}` : "",
-    review.crossFieldConsistencyScore < threshold ? `Cross-field ${review.crossFieldConsistencyScore}` : "",
-    review.repetitionScore < threshold ? `Repetition ${review.repetitionScore}` : ""
-  ].filter(Boolean);
 }
 
 function qualityGateBlocked(ep: GhostEp) {
@@ -207,7 +186,6 @@ function EpResultModal({
   onCopy: (text: string, label: string) => void;
 }) {
   const production = sanitizeProductionOutput(ep);
-  const warnings = qualityWarnings(production);
   const blocked = qualityGateBlocked(production);
   if (blocked) {
     return (
@@ -244,10 +222,8 @@ function EpResultModal({
               <span>{production.category}</span>
               <span>{saveState}</span>
               {production.storyArchetype ? <span>Archetype: {production.storyArchetype}</span> : null}
-              {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-0.5 text-amber-700">Quality warning</span> : null}
             </div>
             <h2 className="mt-2 text-2xl font-semibold text-[#0F172A]">{production.title || "Untitled EP"}</h2>
-            {warnings.length ? <p className="mt-2 text-xs font-semibold text-amber-700">Check before save: {warnings.join(", ")}</p> : null}
           </div>
           <button className="btn px-3" onClick={onClose} type="button" aria-label="Close"><X size={18} /></button>
         </header>
@@ -276,20 +252,6 @@ function EpResultModal({
                 <CopyButton label="Hook" onClick={() => onCopy(production.hook, `Copy Hook ${production.id}`)} />
               </div>
               <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.hook || "No hook."}</p>
-            </div>
-          </section>
-
-          <section className="rounded-[22px] border border-[#BFDBFE] bg-[#EFF6FF] p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h3 className="font-semibold">Google Flow</h3>
-                <p className="mt-1 text-xs text-[#475569]">Copy the reference plan, make F frames one by one, then generate V clips with First Frame / Last Frame.</p>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                <button className="btn btn-primary h-9 px-3 text-xs" onClick={() => onCopy(createFlowReferencePlan(production), `Copy Reference Plan ${production.id}`)} type="button">Copy Reference Plan</button>
-                <button className="btn h-9 px-3 text-xs" onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${production.id}`)} type="button">Copy All Flow Frame Prompts</button>
-                <button className="btn h-9 px-3 text-xs" onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${production.id}`)} type="button">Copy All Flow Video Prompts</button>
-              </div>
             </div>
           </section>
 
@@ -682,12 +644,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     });
     setSavedLibraryId(data.ep.id);
     setModalEpId(data.ep.id);
-    const warnings = qualityWarnings(data.ep);
-    if (warnings.length) {
-      setFeedback({ kind: "warning", message: `Saved to Library with quality warnings: ${warnings.join(", ")}` });
-    } else {
-      toast.success("Saved to Library");
-    }
+    toast.success("Saved to Library");
     return "saved";
   }
 
@@ -872,7 +829,6 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                 const active = currentEp?.id === ep.id;
                 const rowState = epSaveStates[ep.id] ?? (ep.duplicateCheck.isDuplicate ? "duplicate" : "unsaved");
                 const durationLabel = ep.durationSec ? `${ep.durationSec}s` : ep.format;
-                const warnings = qualityWarnings(ep);
                 return (
                   <article
                     className={`w-full rounded-[20px] border p-4 text-left transition ${active ? "border-[#2563EB] bg-[#EFF6FF] ring-2 ring-[#BFDBFE]" : "border-[#E2E8F0] bg-white hover:border-[#BFDBFE]"}`}
@@ -889,10 +845,8 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                       <span className="text-xs font-semibold text-[#64748B]">{ep.category || "Uncategorized"}</span>
                       {rowState !== "unsaved" ? <span className="soft-badge">{rowState}</span> : null}
                       {ep.storyArchetype ? <span className="soft-badge">{ep.storyArchetype}</span> : null}
-                      {warnings.length ? <span className="rounded-[8px] bg-amber-100 px-2 py-1 text-xs font-semibold text-amber-700">Quality warning</span> : null}
                     </div>
                     <h3 className="mt-2 line-clamp-2 text-base font-semibold text-[#0F172A]">{ep.title || ep.id}</h3>
-                    {warnings.length ? <p className="mt-1 text-xs font-semibold text-amber-700">{warnings.join(", ")}</p> : null}
                     <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
                       <p className="text-xs text-[#64748B]">Created: {ep.date}</p>
                       <div className="flex flex-wrap gap-2">

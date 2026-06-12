@@ -8,7 +8,7 @@ Repository: `https://github.com/Benz224/ghostfactory-studio`
 
 - สร้าง daily content batch สำหรับ short-form video
 - จัดการ character, template, idea bank และ project ในเครื่อง
-- Copy prompt ไปใช้กับ ChatGPT, Nano Banana 2, Google Flow หรือเครื่องมือ AI อื่นได้
+- Copy prompt ไปใช้กับ ChatGPT, Nano Banana 2 หรือเครื่องมือ AI อื่นได้
 - Parse ผลลัพธ์จาก ChatGPT กลับมาเป็น EP cards
 - เช็ค prompt ซ้ำด้วย local history
 - Export prompt package เป็นไฟล์ใน `output/`
@@ -236,41 +236,22 @@ Parser รองรับ:
 - `prompts.md`
 - `frames.txt`
 - `videos.txt`
-- `flow-reference-plan.md`
-- `flow-frame-prompts.txt`
-- `flow-video-prompts.txt`
-- `flow-notes.md`
-- `flow-prompts.json`
 - `caption.txt`
 - `voice-script.txt`
 - `ep.json`
 
-## Copy ไปใช้กับ Nano Banana / Google Flow
+## Copy ไปใช้กับ Nano Banana / เครื่องมือ AI อื่น
 
 ในแต่ละ EP Card มีปุ่ม:
 
-- `Copy Reference Plan`
-- `Copy All Flow Frame Prompts`
-- `Copy All Flow Video Prompts`
-- `Copy Flow F prompt` ต่อ frame
-- `Copy Flow V prompt` ต่อ video
+- `Copy All Frames`
+- `Copy F prompt` ต่อ frame
+- `Copy All Videos`
+- `Copy V prompt` ต่อ video
 - `Copy Voice Script`
 - `Copy Caption + Hashtags`
 
-ใช้ปุ่มเหล่านี้เพื่อส่ง prompt ไปสร้างภาพ/วิดีโอเร็วขึ้น โดย workflow หลักของ Google Flow คือ:
-
-1. Copy Reference Plan
-2. สร้าง F1-Fn ทีละภาพใน Google Flow
-3. สร้าง V1-Vn ด้วย First Frame / Last Frame
-4. Track status, selected asset และ notes ใน Library
-5. Export Flow files จาก output folder
-
-Google Flow Mode V1 ไม่ได้สร้าง fixed red-button story เอง ระบบใช้ reference-chain workflow ที่ทดสอบแล้ว แต่เนื้อหา prompt มาจาก EP ปัจจุบัน:
-
-- actual EP frame title / image prompt
-- actual EP video prompt / camera / motion / audio / dialogue / mood
-- generic continuity locks สำหรับ scene, props, camera และ object positions
-- EP-aware future-object prevention เพื่อไม่ให้ frame ก่อนหน้าเห็น object/action ของ frame หลังเร็วเกินไป
+ใช้ปุ่มเหล่านี้เพื่อ copy prompt จาก EP ปัจจุบันไปสร้างภาพหรือวิดีโอในเครื่องมือภายนอกแบบ manual workflow
 
 ## Status Workflow
 
@@ -294,7 +275,7 @@ EP รองรับ status:
 - Edited
 - Posted
 
-Checklist ยังรองรับจำนวน frame/video จริง แต่ใน Library จะถูกซ่อนไว้ใน Advanced checklist เพื่อลด clutter โดย workflow หลักใช้ status/notes ต่อ F/V แทน
+Checklist รองรับจำนวน frame/video จริง และบันทึกกลับลง EP ได้จากหน้า Library
 
 ## Library Filters
 
@@ -329,15 +310,12 @@ Checklist ยังรองรับจำนวน frame/video จริง �
 
 จากนั้น normalize text, ตัดเครื่องหมายวรรคตอน, แยก token และคำนวณ similarity แบบ Jaccard/character n-gram ถ้าคะแนนมากกว่า `duplicateSimilarityThreshold` ใน `settings.json` จะถือว่าซ้ำ
 
-## วิธีใช้กับ Nano Banana 2 / Google Flow
+## วิธีใช้กับ Nano Banana 2 / เครื่องมือ AI อื่น
 
 1. Save EP ให้เรียบร้อย
-2. เปิด Library แล้วกด `Copy Reference Plan`
-3. สร้าง F1-Fn ทีละภาพ โดย attach reference ตาม plan
-4. สร้าง V1-Vn ด้วย First Frame / Last Frame ตาม video chain
-5. ใช้ `Caption` และ `Hashtags` สำหรับโพสต์ TikTok/Reels/Shorts
-
-ใช้ exported single images เท่านั้น ห้ามใช้ screenshots, contact sheets, UI overlays, black borders หรือ multiple-image grids เป็น references
+2. เปิด Library แล้วกด `Copy F` หรือ `Copy All Frames` เพื่อสร้างภาพ
+3. กด `Copy V` หรือ `Copy All Videos` เพื่อสร้างวิดีโอ
+4. ใช้ `Caption` และ `Hashtags` สำหรับโพสต์ TikTok/Reels/Shorts
 
 ## หมายเหตุ Phase 1
 
