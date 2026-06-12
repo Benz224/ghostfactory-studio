@@ -416,9 +416,9 @@ function fieldValue(block: string, aliases: string[], stopAliases = topLevelAlia
 }
 
 function debugField(name: string, match: RegExpMatchArray | null) {
-  if (DEBUG_PARSE && typeof console !== "undefined") {
-    console.log(name, match);
-  }
+  void name;
+  void match;
+  void DEBUG_PARSE;
 }
 
 function debugFieldValue(name: string, block: string, aliases: string[], stopAliases = topLevelAliases) {

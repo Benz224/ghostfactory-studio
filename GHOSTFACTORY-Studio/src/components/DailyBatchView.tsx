@@ -620,12 +620,10 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     };
 
     const sourceId = ep.id;
-    console.log("[GF_SAVE_TRACE] start", { draftId: sourceId, newId: createEp.id, title: createEp.title });
     setSaveState("saving");
     setEpSaveStates((current) => ({ ...current, [sourceId]: "saving" }));
 
     const checked = await checkDuplicateOnly(createEp);
-    console.log("[GF_SAVE_TRACE] duplicate-check", checked.duplicateCheck);
     let allowDuplicateSave = false;
     if (checked.duplicateCheck.isDuplicate) {
       if (options.skipConfirm) {
@@ -657,7 +655,6 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
       })
     });
     const data = await response.json();
-    console.log("[GF_SAVE_TRACE] save-api", { ok: response.ok, status: response.status, savedId: data.ep?.id, error: data.error });
     if (!response.ok) {
       setSaveState(data.duplicateCheck?.isDuplicate ? "duplicate" : "error");
       setEpSaveStates((current) => ({ ...current, [sourceId]: data.duplicateCheck?.isDuplicate ? "duplicate" : "error" }));
@@ -668,7 +665,6 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     const libraryResponse = await fetch("/api/library", { cache: "no-store" });
     const libraryData = await libraryResponse.json();
     const savedExists = Boolean((libraryData.eps ?? []).some((item: GhostEp) => item.id === data.ep.id));
-    console.log("[GF_SAVE_TRACE] library-refresh", { ok: libraryResponse.ok, count: libraryData.eps?.length ?? 0, savedExists });
     if (!libraryResponse.ok || !savedExists) {
       setSaveState("error");
       setEpSaveStates((current) => ({ ...current, [sourceId]: "error" }));

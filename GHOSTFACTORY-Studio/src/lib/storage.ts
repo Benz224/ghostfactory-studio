@@ -1005,7 +1005,7 @@ export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) 
     fs.writeFile(path.join(epDir, "flow-reference-plan.md"), `${createFlowReferencePlan(production)}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "flow-frame-prompts.txt"), `${createFlowAllImagesPrompt(production)}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "flow-video-prompts.txt"), `${createFlowAllVideosPrompt(production)}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "flow-notes.md"), `${createFlowNotes(production)}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "flow-notes.md"), `${createFlowNotes(ep)}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "flow-prompts.json"), `${JSON.stringify(flowPrompts, null, 2)}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "caption.txt"), `${production.caption}\n\n${production.hashtags.join(" ")}\n`, "utf8"),
     fs.writeFile(path.join(epDir, "voice-script.txt"), `${production.voiceScript}\n`, "utf8"),

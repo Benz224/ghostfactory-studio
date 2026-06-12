@@ -270,7 +270,7 @@ function EpDetailModal({
               <h3 className="font-semibold">Frame Prompts</h3>
               <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${draft.id}`)} type="button"><Copy size={15} />Copy All Flow Frame Prompts</button>
             </div>
-            {((editMode ? draft.frames : production.frames) ?? []).map((frame) => (
+            {(draft.frames ?? []).map((frame) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={frame.frameId}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
@@ -330,7 +330,7 @@ function EpDetailModal({
               <h3 className="font-semibold">Video Prompts</h3>
               <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Flow Video Prompts</button>
             </div>
-            {((editMode ? draft.videos : production.videos) ?? []).map((video) => (
+            {(draft.videos ?? []).map((video) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={video.videoId}>
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>

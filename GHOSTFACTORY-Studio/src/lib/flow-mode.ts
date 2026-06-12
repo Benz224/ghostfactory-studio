@@ -78,13 +78,35 @@ function referenceChainForFrame(frameId: string) {
   return ["@Meow", ...refs].join(" + ");
 }
 
+function flowVideos(ep: GhostEp): Video[] {
+  const frameIds = new Set((ep.frames ?? []).map((frame) => frame.frameId));
+  const validVideos = (ep.videos ?? []).filter((video) => frameIds.has(video.fromFrame) && frameIds.has(video.toFrame));
+  if (validVideos.length) return validVideos;
+  return (ep.frames ?? []).slice(0, -1).map((frame, index) => {
+    const nextFrame = ep.frames[index + 1];
+    const videoCount = Math.max(1, ep.frames.length - 1);
+    return {
+      videoId: `V${index + 1}`,
+      fromFrame: frame.frameId,
+      toFrame: nextFrame.frameId,
+      durationSec: Math.max(1, Math.round((ep.durationSec || 8 * videoCount) / videoCount)),
+      videoPrompt: `${frame.title || frame.imagePrompt} transitions into ${nextFrame.title || nextFrame.imagePrompt}.`,
+      camera: ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "",
+      motion: `Move from ${frame.frameId} to ${nextFrame.frameId} while preserving the same scene and main props.`,
+      audio: ep.episodeState?.environmentAudio || "",
+      dialogue: "",
+      mood: ep.coreIdea?.emotionTarget || ""
+    };
+  });
+}
+
 export function createFlowFrameReferenceLine(frameId: string) {
   return `Attach: ${referenceChainForFrame(frameId)}`;
 }
 
 export function createFlowReferencePlan(ep: GhostEp) {
-  const frameLines = (ep.frames ?? []).map((frame) => `- ${frame.frameId}${frame.title ? ` - ${sanitizeFlowText(frame.title)}` : ""}: ${createFlowFrameReferenceLine(frame.frameId)}`);
-  const videoLines = (ep.videos ?? []).map((video) => `- ${video.videoId}: First Frame ${video.fromFrame} -> Last Frame ${video.toFrame}, ${Number(video.durationSec || 0) || "default"}s`);
+  const frameLines = (ep.frames ?? []).map((frame) => `- ${frame.frameId} = ${referenceChainForFrame(frame.frameId)}${frame.title ? ` - ${sanitizeFlowText(frame.title)}` : ""}`);
+  const videoLines = flowVideos(ep).map((video) => `- ${video.videoId} = ${video.fromFrame} -> ${video.toFrame}; First Frame ${video.fromFrame}; Last Frame ${video.toFrame}; ${Number(video.durationSec || 0) || "default"}s`);
   return cleanWhitespace(`# Google Flow Reference Plan
 
 EP: ${sanitizeFlowText(ep.title || ep.id)}
@@ -272,45 +294,18 @@ No subtitles. No captions. No text overlay. No watermark. No logo. No UI. No com
 
 export const createFlowVideoPrompt = buildFlowVideoPrompt;
 
-export function createFlowOneShotPrompt(ep: GhostEp) {
-  const videos = (ep.videos ?? []).map((video) => `- ${video.videoId}: ${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s. ${compressForFlow(video.videoPrompt || video.motion, 240)}`);
-  const frames = (ep.frames ?? []).map((frame) => `- ${frame.frameId}: ${compressForFlow(`${frame.title}. ${frame.imagePrompt}`, 220)}`);
-  return cleanWhitespace(`Create a complete vertical 9:16 short video project.
-
-Use the uploaded character reference image as the exact visual identity for ${characterName(ep)}.
-Keep the tested reference-chain workflow, but use the actual EP content below.
-
-Story:
-${epContext(ep) || compressForFlow(ep.story, 500)}
-
-Video clips:
-${videos.join("\n") || "- Create clips from the available EP frame sequence."}
-
-Still keyframes:
-${frames.join("\n") || "- Create still keyframes from the available EP frame prompts."}
-
-Continuity:
-${sceneContinuity(ep)}
-
-Visual style:
-${createFlowGlobalStyle(ep)}
-
-Negative rules:
-Use plain production instructions only. No long internal system sections. No subtitles. No captions. No text overlay. No watermark. No logo. Do not create storyboard/collage/panel/grid output. Generate a single vertical 9:16 short video project.`);
-}
-
 export function createFlowAllImagesPrompt(ep: GhostEp) {
   return (ep.frames ?? []).map((frame) => buildFlowFramePrompt(ep, frame)).join("\n\n---\n\n");
 }
 
 export function createFlowAllVideosPrompt(ep: GhostEp) {
-  return (ep.videos ?? []).map((video) => buildFlowVideoPrompt(ep, video)).join("\n\n---\n\n");
+  return flowVideos(ep).map((video) => buildFlowVideoPrompt(ep, video)).join("\n\n---\n\n");
 }
 
 export function createFlowPromptsJson(ep: GhostEp) {
   return {
     referencePlan: createFlowReferencePlan(ep),
-    videos: (ep.videos ?? []).map((video) => ({ videoId: video.videoId, prompt: buildFlowVideoPrompt(ep, video) })),
+    videos: flowVideos(ep).map((video) => ({ videoId: video.videoId, prompt: buildFlowVideoPrompt(ep, video) })),
     images: (ep.frames ?? []).map((frame) => ({ frameId: frame.frameId, prompt: buildFlowFramePrompt(ep, frame) }))
   };
 }

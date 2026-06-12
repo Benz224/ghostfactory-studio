@@ -8,9 +8,8 @@ export type ActionFeedback = {
 };
 
 export function devButtonLog(name: string, details: Record<string, unknown> = {}) {
-  if (process.env.NODE_ENV !== "production") {
-    console.log(`[button-audit] ${name}`, details);
-  }
+  void name;
+  void details;
 }
 
 export async function copyToClipboard(text: string): Promise<boolean> {
