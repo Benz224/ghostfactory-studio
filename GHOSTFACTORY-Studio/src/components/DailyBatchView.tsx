@@ -3,10 +3,9 @@
 import { Clipboard, FilePlus2, Library, Save, X } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, QUALITY_GATE_V3_MIN_SCORE, calculateParseHealth, parseDailyResult, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
-import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
+import { appendHistoryToPrompt, buildGeneratorPrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
 type Props = {
@@ -75,6 +74,7 @@ function normalizeGenerationSetup(settings: Settings, saved?: Partial<Generation
     customFramesEnabled: Boolean(saved?.customFramesEnabled ?? defaults.customFramesEnabled),
     durationPerVideoSec: Math.max(1, durationPerVideoSec),
     framesPerEpisode: Math.max(2, Number(saved?.framesPerEpisode ?? videosPerEpisode + 1)),
+    saveAfterGeneration: false,
     totalEpisodes: Math.max(1, Number(saved?.totalEpisodes ?? saved?.totalEpCount ?? defaults.totalEpisodes)),
     videosPerEpisode: Math.max(1, videosPerEpisode)
   };
@@ -98,30 +98,6 @@ function videoText(ep: GhostEp, videoId?: string) {
 
 function qualityGateBlocked(ep: GhostEp) {
   return !passesQualityGateV3(ep);
-}
-
-function repeatedItems(items: string[]) {
-  const counts = new Map<string, number>();
-  items.map((item) => item.trim()).filter(Boolean).forEach((item) => counts.set(item, (counts.get(item) ?? 0) + 1));
-  return Array.from(counts.entries()).filter(([, count]) => count > 1).sort((a, b) => b[1] - a[1]);
-}
-
-function analyticsList(title: string, items: string[]) {
-  const counts = repeatedItems(items);
-  return `${title}:\n${counts.length ? counts.map(([item, count]) => `- ${item} (${count})`).join("\n") : "- none"}`;
-}
-
-function debugAnalyticsText(eps: GhostEp[]) {
-  return [
-    analyticsList("Story Archetype Usage", eps.map((ep) => ep.storyArchetype ?? "")),
-    analyticsList("Repeated Hooks", eps.map((ep) => ep.coreIdea?.hookMechanic || ep.hook)),
-    analyticsList("Repeated Payoffs", eps.map((ep) => ep.coreIdea?.payoffMechanic ?? "")),
-    analyticsList("Repeated Main Props", eps.map((ep) => ep.episodeState?.mainProps || ep.episodeState?.props || "")),
-    analyticsList("Repeated Mechanics", eps.map((ep) => ep.coreIdea?.noveltyAngle || ep.coreIdea?.templateLogic || "")),
-    analyticsList("Used Concepts", eps.map((ep) => ep.coreIdea?.centralIdea || ep.title)),
-    analyticsList("Used Locations", eps.map((ep) => ep.episodeState?.primaryLocation || ep.episodeState?.location || "")),
-    analyticsList("Used Endings", eps.map((ep) => ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ""))
-  ].join("\n\n");
 }
 
 function packageText(ep: GhostEp) {
@@ -378,18 +354,6 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     return passedEps.find((ep) => ep.id === selectedEpId) ?? passedEps[0];
   }, [batch, selectedEpId]);
   const modalEp = useMemo(() => batch?.eps.find((ep) => ep.id === modalEpId && !qualityGateBlocked(ep)) ?? null, [batch, modalEpId]);
-  const characterEpCount = history.filter((ep) => ep.characterId === selectedCharacter?.id).length;
-  const characterMemoryStatus = selectedCharacter ? "Ready" : "Missing";
-  const characterMemory = [
-    { label: "Image", status: selectedCharacter?.imageUrl ? "Loaded" : "Missing" },
-    { label: "Personality", status: selectedCharacter?.personality?.length ? "Loaded" : "Missing" },
-    { label: "Visual Style", status: selectedCharacter?.visualStyle ? "Loaded" : "Missing" },
-    { label: "Rules", status: selectedCharacter?.rules?.length ? "Loaded" : "Missing" },
-    { label: "Negative Rules", status: selectedCharacter?.negativeRules?.length ? "Loaded" : "Missing" },
-    { label: "Voice", status: selectedCharacter?.voicePreset ? "Loaded" : "Optional" },
-    { label: "Language", status: selectedCharacter?.defaultLanguage || selectedCharacter?.languagePreference ? "Loaded" : "Optional" },
-    { label: "Reference Images", status: selectedCharacter?.referenceImages?.length ? "Loaded" : "Optional" }
-  ];
   const videosPerEpisode = Math.max(1, Number(generationSetup.videosPerEpisode || 1));
   const automaticFramesPerEpisode = videosPerEpisode + 1;
   const framesPerEpisode = generationSetup.autoFrameCount ? Math.max(3, Math.min(6, generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : generationSetup.customFramesEnabled ? Math.max(2, Number(generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : automaticFramesPerEpisode;
@@ -536,19 +500,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
       setSaveState(checkedEps[0]?.duplicateCheck.isDuplicate ? "duplicate" : "unsaved");
       setEpSaveStates(Object.fromEntries(checkedEps.map((ep) => [ep.id, ep.duplicateCheck.isDuplicate ? "duplicate" as SaveState : "unsaved" as SaveState])));
       setSavedLibraryId(null);
-      if (generationSetup.saveAfterGeneration) {
-        const targets = generationSetup.saveOnlySelectedEp ? checkedEps.slice(0, 1) : checkedEps;
-        let savedCount = 0;
-        for (const ep of targets) {
-          if (!ep.duplicateCheck.isDuplicate && !validate(ep)) {
-            const result = await saveToLibrary(ep, { skipConfirm: true });
-            if (result === "saved") savedCount += 1;
-          }
-        }
-        setFeedback({ kind: savedCount ? "success" : "warning", message: savedCount ? `Parsed ${checkedEps.length} EPs and auto-saved ${savedCount} to Library.` : `Parsed ${checkedEps.length} EPs. Auto Save skipped incomplete or duplicate EPs.` });
-      } else {
-        setFeedback({ kind: "success", message: `Parsed ${checkedEps.length} EPs. Select a row to compare and use.` });
-      }
+      setFeedback({ kind: "success", message: `Parsed ${checkedEps.length} EPs. Select a row to compare and use.` });
     } finally {
       setChecking(false);
     }
@@ -648,20 +600,6 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
     return "saved";
   }
 
-  function savePromptVersion() {
-    if (!promptText.trim()) {
-      setFeedback({ kind: "warning", message: "Prompt is empty. Add prompt text before saving a version." });
-      return;
-    }
-    const now = new Date().toISOString();
-    const version = { id: `prompt-${Date.now()}`, label: `Prompt v${sessionPromptVersions.length + 1}`, prompt: promptText, createdAt: now };
-    setSessionPromptVersions((current) => [version, ...current]);
-    if (currentEp) {
-      setBatch((current) => current ? { ...current, eps: current.eps.map((ep) => ep.id === currentEp.id ? { ...ep, promptVersions: [version, ...(ep.promptVersions ?? [])], updatedAt: now } : ep) } : current);
-    }
-    setFeedback({ kind: "success", message: currentEp ? `${version.label} saved to current EP draft.` : `${version.label} saved for this Generate session.` });
-  }
-
   return (
     <div className="mx-auto max-w-[1800px] space-y-5">
       <div className="flex flex-col justify-between gap-4 lg:flex-row lg:items-center">
@@ -675,149 +613,66 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
 
       <Feedback feedback={feedback} />
 
-      <section className="space-y-5">
-        <div className="studio-card space-y-5">
-          <div>
-            <h2 className="text-lg font-semibold">Input / Setup</h2>
-            <p className="mt-1 text-sm text-[#64748B]">Select the production brief.</p>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="text-sm font-semibold">Character<select className="control mt-1" value={characterId} onChange={(event) => setCharacterId(event.target.value)}>{characters.map((character) => <option key={character.id} value={character.id}>{character.name}</option>)}</select></label>
-            <label className="text-sm font-semibold">Template<select className="control mt-1" value={templateId} onChange={(event) => setTemplateId(event.target.value)}>{templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select></label>
-            <label className="text-sm font-semibold">Goal<select className="control mt-1" value={contentGoal} onChange={(event) => setContentGoal(event.target.value as ContentGoal)}><option value="Entertainment">Entertainment</option><option value="Affiliate">Affiliate</option><option value="Educational">Educational</option><option value="Review">Review</option></select></label>
-            <label className="text-sm font-semibold">Spoken Language<select className="control mt-1" value={language} onChange={(event) => setLanguage(event.target.value as SpokenLanguage)}>{languages.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          </div>
-          <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-            <div className="flex flex-col justify-between gap-2 sm:flex-row sm:items-center">
-              <div>
-                <h3 className="text-sm font-semibold">EP Structure</h3>
-                <p className="mt-1 text-xs text-[#64748B]">Generate multiple EP options in one batch.</p>
-              </div>
-              <div className="rounded-[16px] bg-white px-4 py-3 text-sm font-semibold text-[#2563EB]">
-                Each EP: {videosPerEpisode} videos x {durationPerVideoSec}s = {totalEpisodeDurationSec}s total
-              </div>
+      <section className="grid gap-5 xl:grid-cols-[430px,minmax(0,1fr)]">
+        <div className="space-y-5">
+          <div className="studio-card space-y-4">
+            <div className="flex items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Setup</h2>
+              <span className="rounded-[8px] bg-[#EFF6FF] px-3 py-1 text-xs font-semibold text-[#2563EB]">{framesPerEpisode}F / {videosPerEpisode}V / {totalEpisodeDurationSec}s</span>
             </div>
-            <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <label className="text-sm font-semibold">Character<select className="control mt-1" value={characterId} onChange={(event) => setCharacterId(event.target.value)}>{characters.map((character) => <option key={character.id} value={character.id}>{character.name}</option>)}</select></label>
+              <label className="text-sm font-semibold">Template<select className="control mt-1" value={templateId} onChange={(event) => setTemplateId(event.target.value)}>{templates.map((template) => <option key={template.id} value={template.id}>{template.name}</option>)}</select></label>
+              <label className="text-sm font-semibold">Goal<select className="control mt-1" value={contentGoal} onChange={(event) => setContentGoal(event.target.value as ContentGoal)}><option value="Entertainment">Entertainment</option><option value="Affiliate">Affiliate</option><option value="Educational">Educational</option><option value="Review">Review</option></select></label>
+              <label className="text-sm font-semibold">Language<select className="control mt-1" value={language} onChange={(event) => setLanguage(event.target.value as SpokenLanguage)}>{languages.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
               <label className="text-sm font-semibold">EP Count<input className="control mt-1" min="1" type="number" value={generationSetup.totalEpisodes} onChange={(event) => setGenerationSetup({ ...generationSetup, totalEpisodes: Math.max(1, Number(event.target.value)) })} /></label>
-              <label className="text-sm font-semibold">Videos Per EP<input className="control mt-1" min="1" type="number" value={generationSetup.videosPerEpisode} onChange={(event) => {
+              <label className="text-sm font-semibold">Videos / EP<input className="control mt-1" min="1" type="number" value={generationSetup.videosPerEpisode} onChange={(event) => {
                 const nextVideos = Math.max(1, Number(event.target.value));
                 setGenerationSetup({ ...generationSetup, videosPerEpisode: nextVideos, framesPerEpisode: generationSetup.customFramesEnabled ? generationSetup.framesPerEpisode : nextVideos + 1 });
               }} /></label>
-              <label className="text-sm font-semibold">Video Duration<input className="control mt-1" min="1" type="number" value={generationSetup.durationPerVideoSec} onChange={(event) => setGenerationSetup({ ...generationSetup, durationPerVideoSec: Math.max(1, Number(event.target.value)) })} /></label>
-              <div className="rounded-[16px] bg-white p-3 text-sm">
-                <div className="text-xs text-[#64748B]">Frames needed per EP</div>
-                <div className="mt-1 text-lg font-semibold text-[#0F172A]">{framesPerEpisode}</div>
-              </div>
+              <label className="text-sm font-semibold">Seconds / Video<input className="control mt-1" min="1" type="number" value={generationSetup.durationPerVideoSec} onChange={(event) => setGenerationSetup({ ...generationSetup, durationPerVideoSec: Math.max(1, Number(event.target.value)) })} /></label>
             </div>
-            <div className="mt-3 grid gap-3 md:grid-cols-2">
-              <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm font-semibold"><input checked={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, autoFrameCount: event.target.checked, customFramesEnabled: event.target.checked ? false : generationSetup.customFramesEnabled })} type="checkbox" />Auto Frame Count</label>
-              <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm font-semibold"><input checked={generationSetup.customFramesEnabled} disabled={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, customFramesEnabled: event.target.checked, framesPerEpisode: event.target.checked ? framesPerEpisode : automaticFramesPerEpisode })} type="checkbox" />Override frames manually</label>
-              {generationSetup.customFramesEnabled && !generationSetup.autoFrameCount ? <label className="text-sm font-semibold">Frames Per EP<input className="control mt-1" min="2" type="number" value={generationSetup.framesPerEpisode} onChange={(event) => setGenerationSetup({ ...generationSetup, framesPerEpisode: Math.max(2, Number(event.target.value)) })} /></label> : <div className="rounded-[16px] border border-[#E2E8F0] bg-white p-3 text-sm text-[#64748B]">{generationSetup.autoFrameCount ? "Code chooses 3 / 4 / 6 frames by idea complexity." : "Auto frame logic: frames = videos + 1"}</div>}
-            </div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            <label className="text-sm font-semibold">Dialogue Language<select className="control mt-1" value={language} onChange={(event) => setLanguage(event.target.value as SpokenLanguage)}>{languages.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-            <label className="text-sm font-semibold">AI Mode<select className="control mt-1" value={generationSetup.aiMode} onChange={(event) => setGenerationSetup({ ...generationSetup, aiMode: event.target.value as GenerationSetup["aiMode"] })}><option value="manual">Manual AI Mode</option><option disabled value="openai_api">OpenAI API Mode (coming soon)</option><option disabled value="image_generation">Image Generation Mode (coming soon)</option></select></label>
-            <label className="text-sm font-semibold">Credit Mode<select className="control mt-1" value={generationSetup.creditMode} onChange={(event) => setGenerationSetup({ ...generationSetup, creditMode: event.target.value as GenerationSetup["creditMode"] })}><option value="low">low</option><option value="medium">medium</option><option value="high">high</option></select></label>
-            <label className="text-sm font-semibold">Similarity threshold<input className="control mt-1" max="1" min="0" step="0.01" type="number" value={generationSetup.duplicateSimilarityThreshold} onChange={(event) => setGenerationSetup({ ...generationSetup, duplicateSimilarityThreshold: Number(event.target.value) })} /></label>
-            <label className="text-sm font-semibold xl:col-span-2">Output Root<input className="control mt-1" value={generationSetup.outputRoot} onChange={(event) => setGenerationSetup({ ...generationSetup, outputRoot: event.target.value })} /></label>
-            <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm font-semibold"><input checked={generationSetup.duplicateCheckEnabled} onChange={(event) => setGenerationSetup({ ...generationSetup, duplicateCheckEnabled: event.target.checked })} type="checkbox" />Duplicate Check</label>
-            <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm font-semibold"><input checked={generationSetup.saveAfterGeneration} onChange={(event) => setGenerationSetup({ ...generationSetup, saveAfterGeneration: event.target.checked })} type="checkbox" />Auto Save To Library</label>
-            <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm font-semibold"><input checked={generationSetup.framePromptsOnly} onChange={(event) => setGenerationSetup({ ...generationSetup, framePromptsOnly: event.target.checked })} type="checkbox" />Generate Frame Prompts</label>
-            <label className="flex items-center gap-2 rounded-[16px] border border-[#E2E8F0] bg-[#F8FAFC] p-3 text-sm font-semibold text-[#94A3B8]"><input checked={generationSetup.autoImageGeneration} disabled onChange={() => undefined} type="checkbox" />Auto Image Generation (coming soon)</label>
-          </div>
-          {contentGoal === "Affiliate" || contentGoal === "Review" ? (
-            <div className="grid gap-3">
-              <input className="control" placeholder="Product Name" value={affiliateBrief.productName} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productName: event.target.value })} />
-              <input className="control" placeholder="Product Problem" value={affiliateBrief.productProblem} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productProblem: event.target.value })} />
-              <input className="control" placeholder="Product Benefit" value={affiliateBrief.productBenefit} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productBenefit: event.target.value })} />
-              <input className="control" placeholder="CTA Text" value={affiliateBrief.ctaText} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, ctaText: event.target.value })} />
-            </div>
-          ) : null}
 
-          <aside className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-            <div className="grid grid-cols-[86px_1fr] gap-3">
-              <ImagePreview className="aspect-square" label="Character" src={selectedCharacter?.imageUrl} />
-              <div className="min-w-0">
-                <div className="flex flex-wrap gap-2">
-                  <span className="soft-badge">{selectedCharacter?.type || "Missing"}</span>
-                  <span className="soft-badge">{characterMemoryStatus}</span>
-                </div>
-                <h3 className="mt-2 truncate font-semibold">{selectedCharacter?.name}</h3>
-                <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#64748B]">{selectedCharacter?.description || "No description yet."}</p>
+            {contentGoal === "Affiliate" || contentGoal === "Review" ? (
+              <div className="grid gap-3 border-t border-[#E2E8F0] pt-4">
+                <input className="control" placeholder="Product Name" value={affiliateBrief.productName} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productName: event.target.value })} />
+                <input className="control" placeholder="Product Problem" value={affiliateBrief.productProblem} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productProblem: event.target.value })} />
+                <input className="control" placeholder="Product Benefit" value={affiliateBrief.productBenefit} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, productBenefit: event.target.value })} />
+                <input className="control" placeholder="CTA Text" value={affiliateBrief.ctaText} onChange={(event) => setAffiliateBrief({ ...affiliateBrief, ctaText: event.target.value })} />
               </div>
-            </div>
-            <div className="mt-3 grid grid-cols-2 gap-2 text-xs">
-              <div className="rounded-[14px] bg-white p-2"><div className="text-[#64748B]">EP Count</div><div className="font-semibold">{characterEpCount}</div></div>
-              <div className="rounded-[14px] bg-white p-2"><div className="text-[#64748B]">Personality</div><div className="truncate font-semibold">{selectedCharacter?.personality?.join(", ") || "None"}</div></div>
-            </div>
-            <p className="mt-3 line-clamp-3 text-xs leading-5 text-[#64748B]">{selectedCharacter?.visualStyle || "No visual style."}</p>
-            <div className="mt-3 grid gap-1">
-              {characterMemory.map((item) => (
-                <div className="flex items-center justify-between text-xs" key={item.label}>
-                  <span className="text-[#64748B]">{item.label}</span>
-                  <span className={`font-semibold ${item.status === "Loaded" ? "text-emerald-700" : item.status === "Missing" ? "text-red-600" : "text-[#64748B]"}`}>{item.status}</span>
-                </div>
-              ))}
-            </div>
-          </aside>
-        </div>
+            ) : null}
 
-        <div className="studio-card flex flex-col gap-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <h2 className="text-lg font-semibold">Prompt Workspace</h2>
-              <p className="mt-1 text-sm text-[#64748B]">Dialogue language: {language}</p>
-            </div>
-            <button className="btn btn-primary" onClick={() => copyWithFeedback(promptText, "Copy Prompt", setFeedback)} type="button"><Clipboard size={16} />Copy Prompt</button>
+            <details className="rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+              <summary className="cursor-pointer text-sm font-semibold text-[#0F172A]">Advanced</summary>
+              <div className="mt-3 grid gap-3">
+                <label className="flex items-center gap-2 text-sm font-semibold"><input checked={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, autoFrameCount: event.target.checked, customFramesEnabled: event.target.checked ? false : generationSetup.customFramesEnabled })} type="checkbox" />Auto Frame Count</label>
+                <label className="flex items-center gap-2 text-sm font-semibold"><input checked={generationSetup.customFramesEnabled} disabled={generationSetup.autoFrameCount} onChange={(event) => setGenerationSetup({ ...generationSetup, customFramesEnabled: event.target.checked, framesPerEpisode: event.target.checked ? framesPerEpisode : automaticFramesPerEpisode })} type="checkbox" />Override frames manually</label>
+                {generationSetup.customFramesEnabled && !generationSetup.autoFrameCount ? <label className="text-sm font-semibold">Frames / EP<input className="control mt-1" min="2" type="number" value={generationSetup.framesPerEpisode} onChange={(event) => setGenerationSetup({ ...generationSetup, framesPerEpisode: Math.max(2, Number(event.target.value)) })} /></label> : null}
+                <label className="text-sm font-semibold">Output Root<input className="control mt-1" value={generationSetup.outputRoot} onChange={(event) => setGenerationSetup({ ...generationSetup, outputRoot: event.target.value })} /></label>
+                <label className="flex items-center gap-2 text-sm font-semibold"><input checked={generationSetup.duplicateCheckEnabled} onChange={(event) => setGenerationSetup({ ...generationSetup, duplicateCheckEnabled: event.target.checked })} type="checkbox" />Duplicate Check</label>
+              </div>
+            </details>
           </div>
-          <textarea className="control min-h-[520px] resize-y font-mono text-xs leading-6" value={promptText} onChange={(event) => setPromptText(event.target.value)} />
-          <div className="grid gap-2 sm:grid-cols-2">
-            <button className="btn btn-primary" onClick={generateBatch} title="Creates empty EP containers for generation workflow." type="button"><FilePlus2 size={16} />Create EP Slots</button>
-            <button className="btn" onClick={savePromptVersion} type="button">Save Prompt Version</button>
-            <button className="btn sm:col-span-2" onClick={() => copyWithFeedback(createFullDailyPackagePrompt(promptText, batch), "Copy full package prompt", setFeedback)} type="button">Copy With Current Slots</button>
-          </div>
-          <div className="rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-            <div className="mb-2 flex items-center justify-between">
-              <h3 className="text-sm font-semibold">Prompt Versions</h3>
-              <span className="text-xs text-[#64748B]">{sessionPromptVersions.length} saved</span>
+
+          <div className="studio-card flex flex-col gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <h2 className="text-lg font-semibold">Prompt</h2>
+              <button className="btn btn-primary" onClick={() => copyWithFeedback(promptText, "Copy Prompt", setFeedback)} type="button"><Clipboard size={16} />Copy Prompt</button>
             </div>
-            <div className="grid gap-2">
-              {sessionPromptVersions.map((version) => (
-                <div className="flex items-center justify-between gap-2 rounded-[14px] bg-white p-2" key={version.id}>
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-semibold">{version.label}</div>
-                    <div className="truncate text-xs text-[#64748B]">{new Date(version.createdAt).toLocaleString()}</div>
-                  </div>
-                  <div className="flex gap-2">
-                    <button className="btn h-8 px-3" onClick={() => setPromptText(version.prompt)} type="button">Restore</button>
-                    <button className="btn h-8 px-3" onClick={() => copyWithFeedback(version.prompt, `Copy ${version.label}`, setFeedback)} type="button">Copy</button>
-                  </div>
-                </div>
-              ))}
-              {!sessionPromptVersions.length ? <p className="text-sm text-[#64748B]">Save a version before editing the prompt.</p> : null}
-            </div>
+            <textarea className="control min-h-[360px] resize-y font-mono text-xs leading-6" value={promptText} onChange={(event) => setPromptText(event.target.value)} />
+            <button className="btn" onClick={generateBatch} title="Creates empty EP containers for generation workflow." type="button"><FilePlus2 size={16} />Create EP Slots</button>
           </div>
         </div>
 
         <div className="studio-card flex flex-col gap-4">
           <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
             <div>
-              <h2 className="text-lg font-semibold">Result / EP Output</h2>
-              <p className="mt-1 text-sm text-[#64748B]">Compare parsed EP cards, use one, then save it.</p>
+              <h2 className="text-lg font-semibold">Result</h2>
+              <p className="mt-1 text-sm text-[#64748B]">Paste ChatGPT output, parse, then save the EP you want.</p>
             </div>
             <button className="btn btn-primary" disabled={checking} onClick={parseResult} type="button">{checking ? "Parsing..." : "Parse Result"}</button>
           </div>
-          <details className="rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-            <summary className="cursor-pointer text-sm font-semibold text-[#0F172A]">Developer / Raw Output</summary>
-            <textarea className="control mt-3 min-h-36 resize-none" value={rawResult} onChange={(event) => setRawResult(event.target.value)} placeholder="Paste AI Result here..." />
-          </details>
-          {batch?.eps.length ? (
-            <details className="rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
-              <summary className="cursor-pointer text-sm font-semibold text-[#0F172A]">Creator Debug Analytics</summary>
-              <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-[12px] bg-white p-3 text-xs leading-5 text-[#64748B]">{debugAnalyticsText(batch.eps)}</pre>
-            </details>
-          ) : null}
+          <textarea className="control min-h-40 resize-y" value={rawResult} onChange={(event) => setRawResult(event.target.value)} placeholder="Paste AI result here..." />
 
           {batch?.eps.length && !batch.eps.some((ep) => !qualityGateBlocked(ep)) ? (
             <div className="rounded-[18px] border border-red-200 bg-red-50 p-4 text-sm font-semibold text-red-700">{QUALITY_GATE_V3_FAILED_MESSAGE}</div>
@@ -860,7 +715,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
             </div>
           ) : (
             <div className="flex min-h-64 items-center justify-center rounded-[18px] border border-dashed border-[#CBD5E1] bg-white p-6 text-center text-sm text-[#64748B]">
-              Paste AI result in Developer / Raw Output, then click Parse Result to preview your EP list.
+              Paste AI result, then click Parse Result to preview your EP list.
             </div>
           )}
         </div>
