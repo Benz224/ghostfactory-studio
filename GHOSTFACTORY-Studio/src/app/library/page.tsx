@@ -6,7 +6,8 @@ import { ImagePicker, ImagePreview } from "@/components/ImagePicker";
 import { checklistCounts, checklistForEp } from "@/lib/checklist";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
-import type { EpStatus, GhostCharacter, GhostEp } from "@/lib/types";
+import { createFlowAllImagesPrompt, createFlowAllVideosPrompt, createFlowFrameReferenceLine, createFlowImagePrompt, createFlowReferencePlan, createFlowVideoPrompt } from "@/lib/flow-mode";
+import type { EpStatus, FlowAssetStatus, GhostCharacter, GhostEp } from "@/lib/types";
 
 type SortMode = "newest" | "oldest" | "viral" | "duration";
 
@@ -18,6 +19,15 @@ const statusOptions: { value: "" | EpStatus; label: string }[] = [
   { value: "video_ready", label: "Video Ready" },
   { value: "posted", label: "Posted" },
   { value: "archived", label: "Archived" }
+];
+
+const flowStatusOptions: { value: FlowAssetStatus; label: string }[] = [
+  { value: "not_started", label: "Not started" },
+  { value: "prompt_copied", label: "Prompt copied" },
+  { value: "generated", label: "Generated" },
+  { value: "selected", label: "Selected" },
+  { value: "needs_fix", label: "Needs fix" },
+  { value: "approved", label: "Approved" }
 ];
 
 function displayDuration(ep: GhostEp) {
@@ -95,6 +105,24 @@ function packageText(ep: GhostEp) {
     "Caption",
     `${production.caption}\n${(production.hashtags ?? []).join(" ")}`
   ].join("\n");
+}
+
+function flowFramePromptText(ep: GhostEp, frameId?: string) {
+  if (qualityGateBlocked(ep)) return QUALITY_GATE_V3_FAILED_MESSAGE;
+  const production = sanitizeProductionOutput(ep);
+  return (production.frames ?? [])
+    .filter((frame) => !frameId || frame.frameId === frameId)
+    .map((frame) => createFlowImagePrompt(production, frame))
+    .join("\n\n---\n\n");
+}
+
+function flowVideoPromptText(ep: GhostEp, videoId?: string) {
+  if (qualityGateBlocked(ep)) return QUALITY_GATE_V3_FAILED_MESSAGE;
+  const production = sanitizeProductionOutput(ep);
+  return (production.videos ?? [])
+    .filter((video) => !videoId || video.videoId === videoId)
+    .map((video) => createFlowVideoPrompt(production, video))
+    .join("\n\n---\n\n");
 }
 
 function Feedback({ feedback }: { feedback: ActionFeedback | null }) {
@@ -222,22 +250,37 @@ function EpDetailModal({
             </div>
           </section>
 
+          <section className="space-y-3 rounded-[8px] border border-[#BFDBFE] bg-[#EFF6FF] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="font-semibold text-[#0F172A]">Google Flow</h3>
+                <p className="mt-1 text-xs text-[#475569]">Copy the reference plan, generate F frames one by one, then generate V clips with First Frame / Last Frame.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button className="btn btn-primary h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowReferencePlan(production), `Copy Reference Plan ${draft.id}`)} type="button"><Copy size={15} />Copy Reference Plan</button>
+                <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${draft.id}`)} type="button"><Copy size={15} />Copy All Flow Frame Prompts</button>
+                <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Flow Video Prompts</button>
+              </div>
+            </div>
+            <p className="text-xs leading-5 text-[#475569]">Use exported single images only. Do not use screenshots, contact sheets, UI overlays, black borders, or multiple-image grids as references.</p>
+          </section>
+
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-semibold">Frames</h3>
-              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(framePromptText(draft), `Copy All Frames ${draft.id}`)} type="button"><Copy size={15} />Copy All Frames</button>
+              <h3 className="font-semibold">Frame Prompts</h3>
+              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${draft.id}`)} type="button"><Copy size={15} />Copy All Flow Frame Prompts</button>
             </div>
             {((editMode ? draft.frames : production.frames) ?? []).map((frame) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={frame.frameId}>
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold">
-                    <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
-                    {frame.frameId} {frame.title}
-                  </label>
-                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(framePromptText(draft, frame.frameId), `Copy Frame Prompt ${frame.frameId}`)} type="button">Copy Frame Prompt</button>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-semibold">{frame.frameId} {frame.title}</h4>
+                    <p className="mt-1 text-xs font-semibold text-[#2563EB]">{createFlowFrameReferenceLine(frame.frameId)}</p>
+                  </div>
+                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(flowFramePromptText(draft, frame.frameId), `Copy Flow ${frame.frameId} ${draft.id}`)} type="button">Copy Flow {frame.frameId} Prompt</button>
                 </div>
                 {editMode ? (
-                  <div className="grid gap-4 md:grid-cols-[220px,1fr]">
+                  <div className="mt-3 grid gap-4 md:grid-cols-[220px,1fr]">
                     <ImagePicker
                       label={`${frame.frameId} Image`}
                       note="Optional image for this frame."
@@ -250,31 +293,54 @@ function EpDetailModal({
                     </div>
                   </div>
                 ) : (
-                  <div className="grid gap-3 md:grid-cols-[180px,1fr]">
+                  <div className="mt-3 grid gap-3 md:grid-cols-[180px,1fr]">
                     {draft.frameImages?.[frame.frameId] ? <ImagePreview className="aspect-square" label={`${frame.frameId} Image`} src={draft.frameImages[frame.frameId]} /> : null}
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt ? renderImagePrompt(production, frame) : "No frame prompt."}</p>
+                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt || "No frame prompt."}</p>
                   </div>
                 )}
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  <label className="text-xs font-semibold">Status
+                    <select className="control mt-1" value={frame.flowStatus ?? "not_started"} onChange={(event) => updateFrame(frame.frameId, { flowStatus: event.target.value as FlowAssetStatus })}>
+                      {flowStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold md:col-span-2">Selected asset label
+                    <input className="control mt-1" value={frame.flowAssetLabel ?? ""} onChange={(event) => updateFrame(frame.frameId, { flowAssetLabel: event.target.value })} placeholder="Example: F3-final-export.png" />
+                  </label>
+                  <label className="text-xs font-semibold md:col-span-3">Frame notes
+                    <textarea className="control mt-1 min-h-20" value={frame.flowNotes ?? ""} onChange={(event) => updateFrame(frame.frameId, { flowNotes: event.target.value })} />
+                  </label>
+                </div>
+                <details className="mt-3 rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-[#64748B]">Advanced checklist</summary>
+                  <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                    <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
+                    Image {frame.frameId} complete
+                  </label>
+                  <ul className="mt-3 grid gap-1 text-xs text-[#64748B] sm:grid-cols-2">
+                    {["Character identity consistent", "Scene layout consistent", "Main props consistent", "Correct action", "No future object too early", "No text/logo/UI", "Vertical 9:16"].map((item) => <li key={item}>- {item}</li>)}
+                  </ul>
+                </details>
               </article>
             ))}
           </section>
 
           <section className="space-y-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
-              <h3 className="font-semibold">Videos</h3>
-              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(videoPromptText(draft), `Copy All Videos ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Videos</button>
+              <h3 className="font-semibold">Video Prompts</h3>
+              <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${draft.id}`)} type="button"><Clipboard size={15} />Copy All Flow Video Prompts</button>
             </div>
             {((editMode ? draft.videos : production.videos) ?? []).map((video) => (
               <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={video.videoId}>
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold">
-                    <input checked={Boolean(checklist.videos[video.videoId])} onChange={(event) => setVideo(video.videoId, event.target.checked)} type="checkbox" />
-                    {video.videoId} {video.fromFrame} to {video.toFrame} ({video.durationSec}s)
-                  </label>
-                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(videoPromptText(draft, video.videoId), `Copy Video Prompt ${video.videoId}`)} type="button">Copy Video Prompt</button>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div>
+                    <h4 className="text-sm font-semibold">{video.videoId}</h4>
+                    <p className="mt-1 text-xs text-[#64748B]">First Frame {video.fromFrame} / Last Frame {video.toFrame} / {video.durationSec}s</p>
+                  </div>
+                  <button className="btn h-9 px-3" disabled={blocked} onClick={() => onCopy(flowVideoPromptText(draft, video.videoId), `Copy Flow ${video.videoId} ${draft.id}`)} type="button">Copy Flow {video.videoId} Prompt</button>
                 </div>
                 {editMode ? (
-                  <div className="grid gap-3 md:grid-cols-3">
+                  <div className="mt-3 grid gap-3 md:grid-cols-3">
                     <input className="control" value={video.fromFrame} onChange={(event) => updateVideo(video.videoId, { fromFrame: event.target.value })} placeholder="From frame" />
                     <input className="control" value={video.toFrame} onChange={(event) => updateVideo(video.videoId, { toFrame: event.target.value })} placeholder="To frame" />
                     <input className="control" min="1" type="number" value={video.durationSec} onChange={(event) => updateVideo(video.videoId, { durationSec: Number(event.target.value) })} />
@@ -286,8 +352,28 @@ function EpDetailModal({
                     <input className="control" value={video.mood} onChange={(event) => updateVideo(video.videoId, { mood: event.target.value })} placeholder="Mood" />
                   </div>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.videoPrompt ? renderVideoPrompt(production, video) : "No video prompt."}</p>
+                  <p className="mt-3 whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.motion || video.videoPrompt || "No motion summary."}</p>
                 )}
+                <div className="mt-3 grid gap-3 md:grid-cols-3">
+                  <label className="text-xs font-semibold">Status
+                    <select className="control mt-1" value={video.flowStatus ?? "not_started"} onChange={(event) => updateVideo(video.videoId, { flowStatus: event.target.value as FlowAssetStatus })}>
+                      {flowStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs font-semibold md:col-span-2">Video notes
+                    <textarea className="control mt-1 min-h-20" value={video.flowNotes ?? ""} onChange={(event) => updateVideo(video.videoId, { flowNotes: event.target.value })} />
+                  </label>
+                </div>
+                <details className="mt-3 rounded-[8px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+                  <summary className="cursor-pointer text-xs font-semibold text-[#64748B]">Advanced checklist</summary>
+                  <label className="mt-3 flex items-center gap-2 text-sm font-semibold">
+                    <input checked={Boolean(checklist.videos[video.videoId])} onChange={(event) => setVideo(video.videoId, event.target.checked)} type="checkbox" />
+                    Video {video.videoId} complete
+                  </label>
+                  <ul className="mt-3 grid gap-1 text-xs text-[#64748B] sm:grid-cols-2">
+                    {["Starts close to First Frame", "Ends close to Last Frame", "Motion matches prompt", "Character preserved", "Scene/main props preserved", "No future object too early", "No text/logo/UI", "Camera stable"].map((item) => <li key={item}>- {item}</li>)}
+                  </ul>
+                </details>
               </article>
             ))}
           </section>

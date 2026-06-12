@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
 import { QUALITY_GATE_V3_FAILED_MESSAGE, QUALITY_GATE_V3_MIN_SCORE, calculateParseHealth, parseDailyResult, passesQualityGateV3, renderImagePrompt, renderVideoPrompt, sanitizeProductionOutput } from "@/lib/ep-generator";
+import { createFlowAllImagesPrompt, createFlowAllVideosPrompt, createFlowReferencePlan } from "@/lib/flow-mode";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -275,6 +276,20 @@ function EpResultModal({
                 <CopyButton label="Hook" onClick={() => onCopy(production.hook, `Copy Hook ${production.id}`)} />
               </div>
               <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{production.hook || "No hook."}</p>
+            </div>
+          </section>
+
+          <section className="rounded-[22px] border border-[#BFDBFE] bg-[#EFF6FF] p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h3 className="font-semibold">Google Flow</h3>
+                <p className="mt-1 text-xs text-[#475569]">Copy the reference plan, make F frames one by one, then generate V clips with First Frame / Last Frame.</p>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                <button className="btn btn-primary h-9 px-3 text-xs" onClick={() => onCopy(createFlowReferencePlan(production), `Copy Reference Plan ${production.id}`)} type="button">Copy Reference Plan</button>
+                <button className="btn h-9 px-3 text-xs" onClick={() => onCopy(createFlowAllImagesPrompt(production), `Copy All Flow Frame Prompts ${production.id}`)} type="button">Copy All Flow Frame Prompts</button>
+                <button className="btn h-9 px-3 text-xs" onClick={() => onCopy(createFlowAllVideosPrompt(production), `Copy All Flow Video Prompts ${production.id}`)} type="button">Copy All Flow Video Prompts</button>
+              </div>
             </div>
           </section>
 

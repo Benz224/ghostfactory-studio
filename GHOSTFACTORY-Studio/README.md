@@ -236,6 +236,11 @@ Parser รองรับ:
 - `prompts.md`
 - `frames.txt`
 - `videos.txt`
+- `flow-reference-plan.md`
+- `flow-frame-prompts.txt`
+- `flow-video-prompts.txt`
+- `flow-notes.md`
+- `flow-prompts.json`
 - `caption.txt`
 - `voice-script.txt`
 - `ep.json`
@@ -244,14 +249,28 @@ Parser รองรับ:
 
 ในแต่ละ EP Card มีปุ่ม:
 
-- `Copy F1/F2/F3/F4`
-- `Copy All Frames`
-- `Copy V1/V2/V3`
-- `Copy All Videos`
+- `Copy Reference Plan`
+- `Copy All Flow Frame Prompts`
+- `Copy All Flow Video Prompts`
+- `Copy Flow F prompt` ต่อ frame
+- `Copy Flow V prompt` ต่อ video
 - `Copy Voice Script`
 - `Copy Caption + Hashtags`
 
-ใช้ปุ่มเหล่านี้เพื่อส่ง prompt ไปสร้างภาพ/วิดีโอเร็วขึ้น
+ใช้ปุ่มเหล่านี้เพื่อส่ง prompt ไปสร้างภาพ/วิดีโอเร็วขึ้น โดย workflow หลักของ Google Flow คือ:
+
+1. Copy Reference Plan
+2. สร้าง F1-Fn ทีละภาพใน Google Flow
+3. สร้าง V1-Vn ด้วย First Frame / Last Frame
+4. Track status, selected asset และ notes ใน Library
+5. Export Flow files จาก output folder
+
+Google Flow Mode V1 ไม่ได้สร้าง fixed red-button story เอง ระบบใช้ reference-chain workflow ที่ทดสอบแล้ว แต่เนื้อหา prompt มาจาก EP ปัจจุบัน:
+
+- actual EP frame title / image prompt
+- actual EP video prompt / camera / motion / audio / dialogue / mood
+- generic continuity locks สำหรับ scene, props, camera และ object positions
+- EP-aware future-object prevention เพื่อไม่ให้ frame ก่อนหน้าเห็น object/action ของ frame หลังเร็วเกินไป
 
 ## Status Workflow
 
@@ -270,12 +289,12 @@ EP รองรับ status:
 
 ทุก EP มี checklist:
 
-- Image F1-F4
-- Video V1-V3
+- Image F1-Fn ตามจำนวน frames จริง
+- Video V1-Vn ตามจำนวน videos จริง
 - Edited
 - Posted
 
-Checklist แสดงทั้งใน EP Card และ Library และเมื่อ EP ถูก save แล้ว การติ๊ก checkbox จะบันทึกกลับลง `data/ep-history.json`
+Checklist ยังรองรับจำนวน frame/video จริง แต่ใน Library จะถูกซ่อนไว้ใน Advanced checklist เพื่อลด clutter โดย workflow หลักใช้ status/notes ต่อ F/V แทน
 
 ## Library Filters
 
@@ -313,10 +332,12 @@ Checklist แสดงทั้งใน EP Card และ Library และเ�
 ## วิธีใช้กับ Nano Banana 2 / Google Flow
 
 1. Save EP ให้เรียบร้อย
-2. เปิด Library หรือไฟล์ `prompts.md` ในโฟลเดอร์ `output`
-3. ใช้ปุ่ม `Copy Frame Prompt` สำหรับสร้างภาพ
-4. ใช้ปุ่ม `Copy Video Prompt` สำหรับสร้างวิดีโอ
+2. เปิด Library แล้วกด `Copy Reference Plan`
+3. สร้าง F1-Fn ทีละภาพ โดย attach reference ตาม plan
+4. สร้าง V1-Vn ด้วย First Frame / Last Frame ตาม video chain
 5. ใช้ `Caption` และ `Hashtags` สำหรับโพสต์ TikTok/Reels/Shorts
+
+ใช้ exported single images เท่านั้น ห้ามใช้ screenshots, contact sheets, UI overlays, black borders หรือ multiple-image grids เป็น references
 
 ## หมายเหตุ Phase 1
 

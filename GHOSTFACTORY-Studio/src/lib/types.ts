@@ -3,6 +3,9 @@ export type FramePrompt = {
   title: string;
   imagePrompt: string;
   frameState?: VisualState;
+  flowStatus?: FlowAssetStatus;
+  flowAssetLabel?: string;
+  flowNotes?: string;
 };
 
 export type VideoState = {
@@ -26,7 +29,11 @@ export type VideoPrompt = {
   dialogue: string;
   mood: string;
   videoState?: VideoState;
+  flowStatus?: FlowAssetStatus;
+  flowNotes?: string;
 };
+
+export type FlowAssetStatus = "not_started" | "prompt_copied" | "generated" | "selected" | "needs_fix" | "approved";
 
 export type CoreIdea = {
   centralIdea: string;
