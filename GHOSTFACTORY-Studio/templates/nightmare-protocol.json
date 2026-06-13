@@ -4,8 +4,5 @@
   "coreConflict": "normal reality vs impossible evidence",
   "payoffMechanic": "disturbing unanswered question",
   "defaultComplexity": "complex",
-  "logicLayer": "Normal reality vs impossible evidence: start with one impossible detail, prove it with evidence, approach the source, reveal a manifestation, then end with an inescapable unanswered question.",
-  "storyFormula": ["hook: impossible detail", "evidence", "approach", "manifestation", "inescapable ending"],
-  "qualitySignals": ["impossible detail", "evidence", "approach", "manifestation", "unanswered question"],
   "avoid": ["simple monster reveal", "random teleport", "unearned jump scare"]
 }

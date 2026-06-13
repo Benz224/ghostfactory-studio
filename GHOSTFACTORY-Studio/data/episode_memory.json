@@ -1,54 +1,63 @@
 [
   {
-    "epId": "EP-2026-06-08-1780907023460",
-    "title": "ศึกชิงพัดลมหน้าหนาว",
-    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "epId": "EP-2026-06-12-1781290266855",
+    "title": "ศึกชิงพื้นที่เสื่อโยคะของมนุษย์",
+    "centralIdea": "มนุษย์ปูเสื่อโยคะเพื่อออกกำลังกาย? เปล่าเลย... มนุษย์ปูเสื่อให้ Meow นอนต่างหาก",
     "storyBeats": [
-      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
-      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
-      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+      "มนุษย์กำลังปูเสื่อโยคะเพื่อออกกำลังกายและรักษาสุขภาพ แต่ในมุมมองของ Meow เสื่อผืนนี้คือที่นอนหนานุ่มผืนใหม่ที่ถูกปูไว้เพื่อต้อนรับมันเท่านั้น ทันทีที่มนุษย์เริ่มโพสท่า Meow ก็เข้าไปยึดพื้นที่ตรงกลางทันทีด้วยตรรกะแมวหน้ามึน",
+      "Meow เดินเข้ามากลางเสื่อ",
+      "From the previous beat (Meow เดินเข้ามากลางเสื่อ), มนุษย์เริ่มทำท่าโยคะ",
+      "From the previous beat (มนุษย์เริ่มทำท่าโยคะ), Meow ยืดเส้นเลียนแบบ",
+      "From the previous beat (Meow ยืดเส้นเลียนแบบ), มนุษย์ยอมแพ้นั่งลงมอง",
+      "From the previous beat (มนุษย์ยอมแพ้นั่งลงมอง), Meow ยึดเสื่อสำเร็จ"
     ],
     "coreConflict": "cat logic vs human logic",
-    "hookMechanic": "เมื่ออากาศเย็นอยู่แล้ว แต่แมวบอกว่ายังเย็นไม่สะใจ",
-    "endingMechanic": "cute absurd behavior",
+    "hookMechanic": "มนุษย์ปูเสื่อโยคะเพื่อออกกำลังกาย? เปล่าเลย... มนุษย์ปูเสื่อให้ Meow นอนต่างหาก",
+    "endingMechanic": "มนุษย์กำลังปูเสื่อโยคะเพื่อออกกำลังกายและรักษาสุขภาพ แต่ในมุมมองของ Meow เสื่อผืนนี้คือที่นอนหนานุ่มผืนใหม่ที่ถูกปูไว้เพื่อต้อนรับมันเท่านั้น ทันทีที่มนุษย์เริ่มโพสท่า Meow ก็เข้าไปยึดพื้นที่ตรงกลางทันทีด้วยตรรกะแมวหน้ามึน",
     "location": "same continuous scene",
     "mainObject": "main story prop",
-    "template": "Cute Daily Life",
-    "createdAt": "2026-06-08T08:23:43.783Z"
+    "template": "POV",
+    "createdAt": "2026-06-12T18:51:07.241Z"
   },
   {
-    "epId": "EP-2026-06-08-1780906266592",
-    "title": "ศึกกับจุดแดง",
-    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "epId": "EP-2026-06-12-1781287127103",
+    "title": "ท่าไม้ตายปลาทูสุริยัน",
+    "centralIdea": "Meow กำลังปล่อยท่าไม้ตายระดับตำนาน แต่แพ้กลิ่นปลาทูในกล่องข้าว",
     "storyBeats": [
-      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
-      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
-      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+      "บนดาดฟ้าตึกสูงยามเย็น Meow ยืนเผชิญหน้ากับเงาปริศนารูปร่างเป็นก้อนเมฆดำที่ลอยอยู่เหนือแท็งก์น้ำ เขาตั้งท่านักสู้เหมือนตัวเอกอนิเมะ พลังสีทองเริ่มหมุนรอบตัว ขนฟูตั้งขึ้น ลมแรงจนใบไม้และฝุ่นปลิววน Meow พยายามรวบรวมพลังสุดท้ายเพื่อปล่อยท่าไม้ตาย แต่ทุกครั้งที่พลังใกล้ถึงจุดสูงสุด กลิ่นปลาทูย่างจากกล่องข้าวข้างประตูดาดฟ้าก็ลอยมาแทรกสมาธิ เขาฝืนต่อจนพลังขยายใหญ่เป็นออร่ารูปปลาทูยักษ์บนท้องฟ้า เงาปริศนากำลังจะแตกสลาย แต่จู่ ๆ กล่องข้าวเปิดเองเพราะลมแรง กลิ่นปลาทูพุ่งเข้าจมูก Meow แบบเต็มแรง Meow หยุดท่าไม้ตายกลางอากาศทันที ออร่าปลาทูยักษ์ตกลงมาเหมือนบอลลูนแฟบ แล้ว Meow วิ่งไปนั่งกินปลาทูอย่างจริงจัง ส่วนเงาปริศนาถูกแรงลมจากพลังที่ดับไม่สนิทพัดกระเด็นหายไปเอง",
+      "พลังเริ่มตื่น",
+      "From the previous beat (พลังเริ่มตื่น), กลิ่นที่ทำลายสมาธิ",
+      "From the previous beat (กลิ่นที่ทำลายสมาธิ), ปลาทูสุริยันก่อตัว",
+      "From the previous beat (ปลาทูสุริยันก่อตัว), กล่องข้าวเปิดเอง",
+      "From the previous beat (กล่องข้าวเปิดเอง), ท่าไม้ตายเปลี่ยนเป้าหมาย"
     ],
     "coreConflict": "cat logic vs human logic",
-    "hookMechanic": "เมื่อแมวส้มเจอศัตรูที่จับยังไงก็ไม่ติด...",
-    "endingMechanic": "cute absurd behavior",
+    "hookMechanic": "Meow กำลังปล่อยท่าไม้ตายระดับตำนาน แต่แพ้กลิ่นปลาทูในกล่องข้าว",
+    "endingMechanic": "บนดาดฟ้าตึกสูงยามเย็น Meow ยืนเผชิญหน้ากับเงาปริศนารูปร่างเป็นก้อนเมฆดำที่ลอยอยู่เหนือแท็งก์น้ำ เขาตั้งท่านักสู้เหมือนตัวเอกอนิเมะ พลังสีทองเริ่มหมุนรอบตัว ขนฟูตั้งขึ้น ลมแรงจนใบไม้และฝุ่นปลิววน Meow พยายามรวบรวมพลังสุดท้ายเพื่อปล่อยท่าไม้ตาย แต่ทุกครั้งที่พลังใกล้ถึงจุดสูงสุด กลิ่นปลาทูย่างจากกล่องข้าวข้างประตูดาดฟ้าก็ลอยมาแทรกสมาธิ เขาฝืนต่อจนพลังขยายใหญ่เป็นออร่ารูปปลาทูยักษ์บนท้องฟ้า เงาปริศนากำลังจะแตกสลาย แต่จู่ ๆ กล่องข้าวเปิดเองเพราะลมแรง กลิ่นปลาทูพุ่งเข้าจมูก Meow แบบเต็มแรง Meow หยุดท่าไม้ตายกลางอากาศทันที ออร่าปลาทูยักษ์ตกลงมาเหมือนบอลลูนแฟบ แล้ว Meow วิ่งไปนั่งกินปลาทูอย่างจริงจัง ส่วนเงาปริศนาถูกแรงลมจากพลังที่ดับไม่สนิทพัดกระเด็นหายไปเอง",
     "location": "same continuous scene",
     "mainObject": "main story prop",
-    "template": "Cute Daily Life",
-    "createdAt": "2026-06-08T08:11:06.970Z"
+    "template": "Anime Battle Standoff",
+    "createdAt": "2026-06-12T17:58:47.557Z"
   },
   {
-    "epId": "EP-2026-06-08-1780905714907",
-    "title": "มหาศึกชิงพื้นที่แป้นพิมพ์ของมนุษย์",
-    "centralIdea": "Human logic says main story prop is useful, but Meow uses cat logic in same continuous scene and chooses the least useful object nearby instead",
+    "epId": "EP-2026-06-12-1781285034213",
+    "title": "กล้องเห็นแมวที่ยังไม่มาถึง",
+    "centralIdea": "Meow เห็นตัวเองอีกตัวในกล้อง ทั้งที่ข้างหลังไม่มีอะไรอยู่จริง",
     "storyBeats": [
-      "Observation: a human expects main story prop to be the obvious useful thing in same continuous scene.",
-      "Problem: human logic makes main story prop look correct, but Meow's cat logic rejects the obvious answer.",
-      "Payoff: Meow ignores main story prop and chooses the least useful object nearby as the serious cat-approved solution."
+      "กลางดึกในห้องนั่งเล่นเงียบสนิท Meow สะดุ้งตื่นเพราะเสียงกล้องเด็กเก่าดังขึ้นเอง ทั้งที่ไม่มีใครเปิดมัน Meow เดินไปดูจอมอนิเตอร์และเห็นภาพห้องเดียวกันแบบสด ๆ แต่ในจอกลับมี Meow อีกตัวนั่งอยู่ข้างหลังเขา พอ Meow หันกลับไป พื้นหลังเขาว่างเปล่า ทันใดนั้นรอยอุ้งเท้าเปียกเริ่มปรากฏบนพื้นแห้งทีละรอย มันนำไปยังตู้เสื้อผ้าที่ปิดสนิท Meow เปิดตู้ด้วยความกลัว แต่ข้างในมีแค่ผ้าห่มเก่าและกระดิ่งปลอกคอของเขาเอง ทั้งที่กระดิ่งจริงยังอยู่บนคอ เมื่อเขาก้มมองกระดิ่งในมือ จอมอนิเตอร์ด้านหลังเปลี่ยนภาพเป็นมุมสูง เห็น Meow ในอนาคตกำลังยืนถือกระดิ่งเหมือนกันทุกท่า แล้วกล้องในจอค่อย ๆ หันมามองตรงมาที่ Meow เอง ตอนจบ Meow ถอยหนี แต่จอมอนิเตอร์ดับไป เหลือเพียงเสียงกระดิ่งดังจากในตู้ที่เพิ่งเปิดทิ้งไว้",
+      "ภาพที่ไม่ควรอยู่ในจอ",
+      "From the previous beat (ภาพที่ไม่ควรอยู่ในจอ), รอยเท้าเกิดก่อนเจ้าของ",
+      "From the previous beat (รอยเท้าเกิดก่อนเจ้าของ), ของที่อยู่สองที่พร้อมกัน",
+      "From the previous beat (ของที่อยู่สองที่พร้อมกัน), กล้องเริ่มทำนาย",
+      "เสียงในตู้ที่ว่างเปล่า"
     ],
-    "coreConflict": "cat logic vs human logic",
-    "hookMechanic": "เมื่อมนุษย์มีงานด่วนต้องส่ง... แต่ดันเจอสิ่งมีชีวิตส้มเข้ามากดดันระดับ VIP",
-    "endingMechanic": "cute absurd behavior",
+    "coreConflict": "normal reality vs impossible evidence",
+    "hookMechanic": "Meow เห็นตัวเองอีกตัวในกล้อง ทั้งที่ข้างหลังไม่มีอะไรอยู่จริง",
+    "endingMechanic": "กลางดึกในห้องนั่งเล่นเงียบสนิท Meow สะดุ้งตื่นเพราะเสียงกล้องเด็กเก่าดังขึ้นเอง ทั้งที่ไม่มีใครเปิดมัน Meow เดินไปดูจอมอนิเตอร์และเห็นภาพห้องเดียวกันแบบสด ๆ แต่ในจอกลับมี Meow อีกตัวนั่งอยู่ข้างหลังเขา พอ Meow หันกลับไป พื้นหลังเขาว่างเปล่า ทันใดนั้นรอยอุ้งเท้าเปียกเริ่มปรากฏบนพื้นแห้งทีละรอย มันนำไปยังตู้เสื้อผ้าที่ปิดสนิท Meow เปิดตู้ด้วยความกลัว แต่ข้างในมีแค่ผ้าห่มเก่าและกระดิ่งปลอกคอของเขาเอง ทั้งที่กระดิ่งจริงยังอยู่บนคอ เมื่อเขาก้มมองกระดิ่งในมือ จอมอนิเตอร์ด้านหลังเปลี่ยนภาพเป็นมุมสูง เห็น Meow ในอนาคตกำลังยืนถือกระดิ่งเหมือนกันทุกท่า แล้วกล้องในจอค่อย ๆ หันมามองตรงมาที่ Meow เอง ตอนจบ Meow ถอยหนี แต่จอมอนิเตอร์ดับไป เหลือเพียงเสียงกระดิ่งดังจากในตู้ที่เพิ่งเปิดทิ้งไว้",
     "location": "same continuous scene",
     "mainObject": "main story prop",
-    "template": "Cute Daily Life",
-    "createdAt": "2026-06-08T08:01:56.835Z"
+    "template": "Nightmare Protocol",
+    "createdAt": "2026-06-12T17:23:54.678Z"
   },
   {
     "epId": "EP-2026-06-07-1780854993817",

@@ -8,7 +8,7 @@ Repository: `https://github.com/Benz224/ghostfactory-studio`
 
 - สร้าง daily content batch สำหรับ short-form video
 - จัดการ character, template, idea bank และ project ในเครื่อง
-- Copy prompt ไปใช้กับ ChatGPT, Nano Banana 2 หรือเครื่องมือ AI อื่นได้
+- Copy prompt ไปใช้กับ ChatGPT, Nano Banana 2, Google Flow หรือเครื่องมือ AI อื่นได้
 - Parse ผลลัพธ์จาก ChatGPT กลับมาเป็น EP cards
 - เช็ค prompt ซ้ำด้วย local history
 - Export prompt package เป็นไฟล์ใน `output/`
@@ -240,18 +240,18 @@ Parser รองรับ:
 - `voice-script.txt`
 - `ep.json`
 
-## Copy ไปใช้กับ Nano Banana / เครื่องมือ AI อื่น
+## Copy ไปใช้กับ Nano Banana / Google Flow
 
 ในแต่ละ EP Card มีปุ่ม:
 
+- `Copy F1/F2/F3/F4`
 - `Copy All Frames`
-- `Copy F prompt` ต่อ frame
+- `Copy V1/V2/V3`
 - `Copy All Videos`
-- `Copy V prompt` ต่อ video
 - `Copy Voice Script`
 - `Copy Caption + Hashtags`
 
-ใช้ปุ่มเหล่านี้เพื่อ copy prompt จาก EP ปัจจุบันไปสร้างภาพหรือวิดีโอในเครื่องมือภายนอกแบบ manual workflow
+ใช้ปุ่มเหล่านี้เพื่อส่ง prompt ไปสร้างภาพ/วิดีโอเร็วขึ้น
 
 ## Status Workflow
 
@@ -270,12 +270,12 @@ EP รองรับ status:
 
 ทุก EP มี checklist:
 
-- Image F1-Fn ตามจำนวน frames จริง
-- Video V1-Vn ตามจำนวน videos จริง
+- Image F1-F4
+- Video V1-V3
 - Edited
 - Posted
 
-Checklist รองรับจำนวน frame/video จริง และบันทึกกลับลง EP ได้จากหน้า Library
+Checklist แสดงทั้งใน EP Card และ Library และเมื่อ EP ถูก save แล้ว การติ๊ก checkbox จะบันทึกกลับลง `data/ep-history.json`
 
 ## Library Filters
 
@@ -310,12 +310,13 @@ Checklist รองรับจำนวน frame/video จริง และ�
 
 จากนั้น normalize text, ตัดเครื่องหมายวรรคตอน, แยก token และคำนวณ similarity แบบ Jaccard/character n-gram ถ้าคะแนนมากกว่า `duplicateSimilarityThreshold` ใน `settings.json` จะถือว่าซ้ำ
 
-## วิธีใช้กับ Nano Banana 2 / เครื่องมือ AI อื่น
+## วิธีใช้กับ Nano Banana 2 / Google Flow
 
 1. Save EP ให้เรียบร้อย
-2. เปิด Library แล้วกด `Copy F` หรือ `Copy All Frames` เพื่อสร้างภาพ
-3. กด `Copy V` หรือ `Copy All Videos` เพื่อสร้างวิดีโอ
-4. ใช้ `Caption` และ `Hashtags` สำหรับโพสต์ TikTok/Reels/Shorts
+2. เปิด Library หรือไฟล์ `prompts.md` ในโฟลเดอร์ `output`
+3. ใช้ปุ่ม `Copy Frame Prompt` สำหรับสร้างภาพ
+4. ใช้ปุ่ม `Copy Video Prompt` สำหรับสร้างวิดีโอ
+5. ใช้ `Caption` และ `Hashtags` สำหรับโพสต์ TikTok/Reels/Shorts
 
 ## หมายเหตุ Phase 1
 

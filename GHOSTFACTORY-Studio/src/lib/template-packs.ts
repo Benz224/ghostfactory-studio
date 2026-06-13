@@ -12,9 +12,6 @@ export type TemplatePack = {
   coreConflict: string;
   payoffMechanic: string;
   defaultComplexity: "simple" | "medium" | "complex";
-  logicLayer?: string;
-  storyFormula?: string[];
-  qualitySignals?: string[];
   avoid: string[];
 };
 

@@ -1,110 +1,30 @@
 [
   {
-    "id": "template-1780933063829",
-    "name": "Reality Breach",
-    "category": "Psychological Horror",
-    "goal": "Make viewers question reality itself.\nFear should come from impossible evidence appearing inside normal environments.\nThe horror should escalate naturally without needing violence.\nLeave the audience with unanswered questions.",
-    "structure": [
-      "normal scene",
-      "small anomaly",
-      "impossible evidence",
-      "denial",
-      "escalation",
-      "manifestation",
-      "unresolved ending"
-    ],
-    "bestFor": [
-      "impossible footprints",
-      "extra reflections",
-      "moving photographs",
-      "missing doors",
-      "duplicate people",
-      "wrong shadows",
-      "objects changing position",
-      "things that should not exist"
-    ],
-    "defaultFrameCount": 4,
-    "defaultVideoCount": 3,
-    "tone": "deeply unsettling, oppressive, uncanny, disturbing, hopeless, realistic horror",
-    "languageSupport": [
-      "Thai",
-      "English",
-      "Japanese",
-      "Korean",
-      "Chinese",
-      "No Dialogue"
-    ],
-    "isDefault": false
-  },
-  {
-    "id": "template-1780904487352",
-    "name": "Universal Manga",
-    "category": "Manga Story",
-    "goal": "Create a swipeable manga-style story that keeps the audience reading until the final panel.\n\nEvery page must introduce new information, increase curiosity, build tension, or develop the situation.\n\nThe final page must deliver a payoff, twist, reveal, emotional moment, victory, defeat, joke, lesson, or mystery answer.",
-    "structure": [
-      "Hook",
-      "Discovery",
-      "Development",
-      "Escalation",
-      "Turning Point",
-      "Climax",
-      "Payoff"
-    ],
-    "bestFor": [
-      "Comedy",
-      "Horror",
-      "Mystery",
-      "Adventure",
-      "Action",
-      "Slice of Life",
-      "Sigma",
-      "Fantasy",
-      "Sci-Fi",
-      "Romance",
-      "Educational",
-      "Documentary Style",
-      "Cat Logic",
-      "VS Battle"
-    ],
-    "defaultFrameCount": 12,
-    "defaultVideoCount": 2,
-    "tone": "adaptive based on story genre",
-    "languageSupport": [
-      "Thai",
-      "English",
-      "Japanese",
-      "Korean",
-      "Chinese",
-      "No Dialogue"
-    ],
-    "isDefault": false
-  },
-  {
     "id": "template-1780843486900",
-    "name": "VS Challenge",
-    "category": "VS Battle",
-    "goal": "Create immediate conflict between two characters, creatures, objects, or concepts.\n\nAudience should instantly understand both sides and want to know who wins.\n\nEnding should contain a twist, unexpected winner, or absurd outcome.",
+    "name": "Nightmare Protocol",
+    "category": "Extreme Horror",
+    "goal": "Create overwhelming fear and suspense from the first second.\nThe audience should feel that something is deeply wrong.\nNo comedy.\nNo happy ending.\nNo joke.\nNo twist.\nFocus on mystery, dread, and fear.",
     "structure": [
-      "introduction",
-      "opponent reveal",
-      "confrontation",
-      "outcome"
+      "forbidden discovery",
+      "evidence",
+      "approach",
+      "manifestation"
     ],
     "bestFor": [
-      "cat vs cockroach",
-      "cat vs cucumber",
-      "cat vs robot",
-      "cat vs shadow",
-      "cat vs laser",
-      "cat vs vacuum cleaner",
-      "cat vs ghost",
-      "cat vs mirror",
-      "cat vs fish",
-      "cat vs box"
+      "shadow entity",
+      "haunted building",
+      "abandoned hospital",
+      "dark forest",
+      "unknown creature",
+      "forbidden room",
+      "ancient curse",
+      "paranormal activity",
+      "analog horror",
+      "backrooms"
     ],
     "defaultFrameCount": 4,
     "defaultVideoCount": 3,
-    "tone": "funny competitive dramatic unexpected",
+    "tone": "terrifying oppressive nightmare mysterious cinematic dark unsettling",
     "languageSupport": [
       "Thai",
       "English",
@@ -116,32 +36,21 @@
     "isDefault": false
   },
   {
-    "id": "template-1780933063829",
-    "name": "Reality Breach",
-    "category": "Psychological Horror",
-    "goal": "Make viewers question reality itself.\nFear should come from impossible evidence appearing inside normal environments.\nThe horror should escalate naturally without needing violence.\nLeave the audience with unanswered questions.",
+    "id": "01",
+    "name": "Anime Battle Standoff",
+    "category": "Anime",
+    "goal": "สร้างฉากเผชิญหน้าสไตล์อนิเมะ",
     "structure": [
-      "normal scene",
-      "small anomaly",
-      "impossible evidence",
-      "denial",
-      "escalation",
-      "manifestation",
-      "unresolved ending"
+      "encounter",
+      "power-up",
+      "twist"
     ],
     "bestFor": [
-      "impossible footprints",
-      "extra reflections",
-      "moving photographs",
-      "missing doors",
-      "duplicate people",
-      "wrong shadows",
-      "objects changing position",
-      "things that should not exist"
+      "anime, action comedy, sigma"
     ],
-    "defaultFrameCount": 4,
-    "defaultVideoCount": 3,
-    "tone": "deeply unsettling, oppressive, uncanny, disturbing, hopeless, realistic horror",
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "epic, dramatic, intense, cinematic",
     "languageSupport": [
       "Thai",
       "English",

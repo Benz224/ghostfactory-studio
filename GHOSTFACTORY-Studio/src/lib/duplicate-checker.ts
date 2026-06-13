@@ -41,7 +41,7 @@ function jaccard(a: Set<string>, b: Set<string>) {
   return union ? intersection / union : 0;
 }
 
-type DuplicateComparableEp = Pick<GhostEp, "title" | "story" | "hook" | "category"> & Partial<Pick<GhostEp, "coreIdea" | "episodeState" | "storyArchetype">>;
+type DuplicateComparableEp = Pick<GhostEp, "title" | "story" | "hook" | "category"> & Partial<Pick<GhostEp, "coreIdea" | "episodeState">>;
 
 function mainObject(ep: DuplicateComparableEp) {
   return ep.episodeState?.mainProps || ep.episodeState?.props || "";
@@ -54,8 +54,6 @@ function locationText(ep: DuplicateComparableEp) {
 function epComparableText(ep: DuplicateComparableEp) {
   return [
     ep.title,
-    ep.hook,
-    ep.storyArchetype,
     ep.coreIdea?.centralIdea,
     ep.coreIdea?.coreConflict,
     ep.coreIdea?.hookMechanic,
@@ -79,14 +77,9 @@ export function calculateSimilarity(
   const phraseScore = jaccard(phraseNgrams(incomingText, 2), phraseNgrams(existingText, 2));
   const titleScore = jaccard(phraseNgrams(incoming.title, 2), phraseNgrams(existing.title, 2));
   const centralIdeaScore = jaccard(phraseNgrams(incoming.coreIdea?.centralIdea || incoming.story, 2), phraseNgrams(existing.coreIdea?.centralIdea || existing.story, 2));
-  const hookScore = jaccard(phraseNgrams(incoming.coreIdea?.hookMechanic || incoming.hook, 2), phraseNgrams(existing.coreIdea?.hookMechanic || existing.hook, 2));
-  const payoffScore = jaccard(phraseNgrams(incoming.coreIdea?.payoffMechanic || incoming.story, 2), phraseNgrams(existing.coreIdea?.payoffMechanic || existing.story, 2));
-  const objectScore = jaccard(new Set(phraseTokens(mainObject(incoming))), new Set(phraseTokens(mainObject(existing))));
-  const archetypeScore = normalizeText(incoming.storyArchetype ?? "") && normalizeText(incoming.storyArchetype ?? "") === normalizeText(existing.storyArchetype ?? "") ? 0.42 : 0;
   const sameCategory = normalizeText(incoming.category) && normalizeText(incoming.category) === normalizeText(existing.category) ? 0.08 : 0;
 
-  const mechanicScore = Math.max(hookScore * 0.9, payoffScore * 0.95, objectScore * 0.8);
-  return Math.min(1, Math.max(wordScore, keywordScore, phraseScore, titleScore * 0.9, centralIdeaScore * 0.95, mechanicScore, archetypeScore) + sameCategory);
+  return Math.min(1, Math.max(wordScore, keywordScore, phraseScore, titleScore * 0.9, centralIdeaScore * 0.95) + sameCategory);
 }
 
 export async function checkDuplicate(
@@ -115,30 +108,29 @@ export async function checkDuplicate(
   for (const memory of episodeMemory) {
     const memoryComparable: DuplicateComparableEp = {
       title: memory.title,
-      storyArchetype: memory.episodeFacts?.storyArchetype || memory.storyArchetype,
       story: memory.storyBeats.join(" "),
-      hook: memory.episodeFacts?.hookType || memory.hookMechanic,
+      hook: memory.hookMechanic,
       category: memory.template,
       coreIdea: {
         centralIdea: memory.centralIdea,
         coreConflict: memory.coreConflict,
-        hookMechanic: memory.episodeFacts?.hookType || memory.hookMechanic,
-        payoffMechanic: memory.episodeFacts?.endingMechanic || memory.endingMechanic,
+        hookMechanic: memory.hookMechanic,
+        payoffMechanic: memory.endingMechanic,
         emotionTarget: "",
         noveltyAngle: "",
         templateLogic: memory.template
       },
       episodeState: {
-        primaryLocation: memory.episodeFacts?.location || memory.location,
-        location: memory.episodeFacts?.location || memory.location,
+        primaryLocation: memory.location,
+        location: memory.location,
         timeOfDay: "",
         lightingStyle: "",
-        mainProps: memory.episodeFacts?.mainObject || memory.mainObject,
+        mainProps: memory.mainObject,
         continuityAnchor: "",
         characterStartPosition: "",
         characterEndPosition: "",
         lighting: "",
-        props: memory.episodeFacts?.mainObject || memory.mainObject,
+        props: memory.mainObject,
         voice: "",
         camera: "",
         cameraLanguage: "",

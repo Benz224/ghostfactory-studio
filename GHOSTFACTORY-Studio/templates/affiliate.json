@@ -4,8 +4,5 @@
   "coreConflict": "problem vs product solution",
   "payoffMechanic": "product solves problem naturally",
   "defaultComplexity": "medium",
-  "logicLayer": "Problem vs product solution: open with a pain point, show the product as a natural solution, prove it through action, then end with a soft call to action.",
-  "storyFormula": ["hook: pain point", "solution", "proof", "call to action"],
-  "qualitySignals": ["pain point", "solution", "proof", "soft call to action"],
   "avoid": ["hard sell", "exaggerated claims", "guaranteed results"]
 }

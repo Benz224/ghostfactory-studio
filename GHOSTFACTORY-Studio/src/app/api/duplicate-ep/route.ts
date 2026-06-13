@@ -1,6 +1,5 @@
 import { NextResponse } from "next/server";
 import { appendEpToHistory, exportEpPackage, getEpHistory, normalizeStoredEp, updateEpisodeMemoryFromEp, updateIdeaMemoryFromEp } from "@/lib/storage";
-import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3 } from "@/lib/ep-generator";
 import type { GhostEp } from "@/lib/types";
 
 export async function POST(request: Request) {
@@ -22,10 +21,6 @@ export async function POST(request: Request) {
     createdAt: now,
     updatedAt: now
   });
-
-  if (!passesQualityGateV3(copy)) {
-    return NextResponse.json({ error: QUALITY_GATE_V3_FAILED_MESSAGE, qualityReview: copy.qualityReview }, { status: 422 });
-  }
 
   await appendEpToHistory(copy);
   await exportEpPackage(copy, body.outputRootOverride);

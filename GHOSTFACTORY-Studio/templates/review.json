@@ -4,8 +4,5 @@
   "coreConflict": "expectation vs real usage",
   "payoffMechanic": "clear user benefit",
   "defaultComplexity": "medium",
-  "logicLayer": "Expectation vs real usage: show the problem, introduce the product in context, demonstrate one clear use, then show the practical result.",
-  "storyFormula": ["hook: problem", "show product", "demonstrate", "result"],
-  "qualitySignals": ["problem", "product", "demonstrate", "clear benefit"],
   "avoid": ["fake certainty", "hard sell"]
 }

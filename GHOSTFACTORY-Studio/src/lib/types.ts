@@ -40,18 +40,8 @@ export type CoreIdea = {
 
 export type StoryBeat = {
   beatId: string;
-  role?: "hook" | "goal" | "obstacle" | "escalation" | "payoff";
   function: string;
   beat: string;
-  beatFunction?: string;
-  visibleEvent?: string;
-  characterAction?: string;
-  characterEmotion?: string;
-  environmentChange?: string;
-  mainPropState?: string;
-  dialogueIntent?: string;
-  tensionLevel?: number;
-  endingRole?: string;
 };
 
 export type EpisodeState = {
@@ -71,15 +61,6 @@ export type EpisodeState = {
   environmentAudio: string;
   visualAnchor: string;
   emotionProgression: string;
-};
-
-export type ContinuityAnchor = {
-  location: string;
-  mainProp: string;
-  lighting: string;
-  timeOfDay: string;
-  cameraStyle: string;
-  emotionArc: string;
 };
 
 export type VoiceProfile = {
@@ -130,21 +111,11 @@ export type ContinuitySelfCheck = {
 
 export type QualityReview = {
   storyQualityScore: number;
-  storyDepthScore: number;
-  promptDetailScore: number;
   storyBeatContinuityScore: number;
   visualContinuityScore: number;
   videoContinuityScore: number;
   dialogueConsistencyScore: number;
   voiceContinuityScore: number;
-  storyBeatAlignmentScore: number;
-  hookBeatConsistencyScore: number;
-  dialogueBeatConsistencyScore: number;
-  templateToneConsistencyScore: number;
-  endingMechanicScore: number;
-  objectConsistencyScore: number;
-  crossFieldConsistencyScore: number;
-  repetitionScore: number;
   noveltyScore: number;
   templateMatchScore: number;
   characterConsistencyScore: number;
@@ -152,16 +123,6 @@ export type QualityReview = {
   threshold: number;
   passed: boolean;
   notes: string;
-};
-
-export type EpisodeFacts = {
-  mainObject: string;
-  secondaryObject: string;
-  location: string;
-  hookType: string;
-  endingMechanic: string;
-  storyArchetype: string;
-  catLogicType: string;
 };
 
 export type ProductionChecklist = {
@@ -268,12 +229,9 @@ export type GhostEp = {
   postedDate?: string;
   analytics?: EpAnalytics;
   title: string;
-  storyArchetype?: string;
-  episodeFacts?: EpisodeFacts;
   coreIdea?: CoreIdea;
   storyBeats?: StoryBeat[];
   episodeState?: EpisodeState;
-  continuityAnchor?: ContinuityAnchor;
   characterAnchor?: string;
   voiceProfile?: VoiceProfile;
   visualStates?: VisualState[];

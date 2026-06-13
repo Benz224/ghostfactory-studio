@@ -2,8 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
-import { QUALITY_GATE_V3_FAILED_MESSAGE, passesQualityGateV3, sanitizeProductionOutput } from "./ep-generator";
-import type { CharacterProfile, EpisodeFacts, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
+import type { CharacterProfile, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
 const dataDir = path.join(root, "data");
@@ -194,11 +193,6 @@ export const defaultIdeaMemory: IdeaMemory = {
 export type EpisodeMemoryEntry = {
   epId: string;
   title: string;
-  storyArchetype?: string;
-  episodeFacts?: EpisodeFacts;
-  secondaryObject?: string;
-  hookType?: string;
-  catLogicType?: string;
   centralIdea: string;
   storyBeats: string[];
   coreConflict: string;
@@ -273,15 +267,6 @@ const defaultEpisodeState = {
   emotionProgression: ""
 };
 
-const defaultEpContinuityAnchor = {
-  location: "",
-  mainProp: "",
-  lighting: "",
-  timeOfDay: "",
-  cameraStyle: "",
-  emotionArc: ""
-};
-
 const defaultCoreIdea = {
   centralIdea: "",
   coreConflict: "",
@@ -320,21 +305,11 @@ const defaultContinuitySelfCheck = {
 
 const defaultQualityReview = {
   storyQualityScore: 0,
-  storyDepthScore: 0,
-  promptDetailScore: 0,
   storyBeatContinuityScore: 0,
   visualContinuityScore: 0,
   videoContinuityScore: 0,
   dialogueConsistencyScore: 0,
   voiceContinuityScore: 0,
-  storyBeatAlignmentScore: 0,
-  hookBeatConsistencyScore: 0,
-  dialogueBeatConsistencyScore: 0,
-  templateToneConsistencyScore: 0,
-  endingMechanicScore: 0,
-  objectConsistencyScore: 0,
-  crossFieldConsistencyScore: 0,
-  repetitionScore: 0,
   noveltyScore: 0,
   templateMatchScore: 0,
   characterConsistencyScore: 0,
@@ -633,45 +608,23 @@ export async function saveEpisodeMemory(memory: EpisodeMemoryEntry[]) {
   await writeJsonFile(paths.episodeMemory, memory.slice(0, 500));
 }
 
-function isMeaningfulMemoryPhrase(value: string) {
-  const text = value.trim();
-  if (text.length < 3) return false;
-  return !/^(same continuous scene|same room|main story prop|least useful object nearby|same time of day|cinematic lighting|continuous cinematic camera|continuous environment audio|controlled progression|curiosity\s*->\s*reaction|curious\s*->\s*tense\s*->\s*payoff|opening hook|initial beat position|final beat position|story beat|connector \d+)$/i.test(text);
-}
-
-function cleanMemoryPhrase(value = "") {
-  const text = value
-    .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, "")
-    .replace(/\b(Observation|Goal|Problem|Escalation|Payoff):\s*/gi, "")
-    .replace(/\s+/g, " ")
-    .trim();
-  return isMeaningfulMemoryPhrase(text) ? text : "";
-}
-
 export async function updateEpisodeMemoryFromEp(ep: GhostEp) {
   const memory = await getEpisodeMemory();
-  const cleanEp = sanitizeProductionOutput(ep);
-  const facts = cleanEp.episodeFacts;
-  const endingMechanic = cleanMemoryPhrase(facts?.endingMechanic || cleanEp.coreIdea?.payoffMechanic || cleanEp.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "");
+  const endingMechanic = ep.coreIdea?.payoffMechanic || ep.storyBeats?.[ep.storyBeats.length - 1]?.beat || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || "";
   const entry: EpisodeMemoryEntry = {
-    epId: cleanEp.id,
-    title: cleanMemoryPhrase(cleanEp.title),
-    storyArchetype: cleanMemoryPhrase(facts?.storyArchetype || cleanEp.storyArchetype || ""),
-    episodeFacts: facts,
-    secondaryObject: cleanMemoryPhrase(facts?.secondaryObject ?? ""),
-    hookType: cleanMemoryPhrase(facts?.hookType ?? ""),
-    catLogicType: cleanMemoryPhrase(facts?.catLogicType ?? ""),
-    centralIdea: cleanMemoryPhrase(cleanEp.coreIdea?.centralIdea ?? ""),
-    storyBeats: (cleanEp.storyBeats ?? []).map((beat) => cleanMemoryPhrase(beat.beat)).filter(Boolean),
-    coreConflict: cleanMemoryPhrase(cleanEp.coreIdea?.coreConflict ?? ""),
-    hookMechanic: cleanMemoryPhrase(facts?.hookType || cleanEp.coreIdea?.hookMechanic || cleanEp.hook),
+    epId: ep.id,
+    title: ep.title,
+    centralIdea: ep.coreIdea?.centralIdea ?? "",
+    storyBeats: (ep.storyBeats ?? []).map((beat) => beat.beat).filter(Boolean),
+    coreConflict: ep.coreIdea?.coreConflict ?? "",
+    hookMechanic: ep.coreIdea?.hookMechanic || ep.hook,
     endingMechanic,
-    location: cleanMemoryPhrase(facts?.location || cleanEp.episodeState?.primaryLocation || cleanEp.episodeState?.location || ""),
-    mainObject: cleanMemoryPhrase(facts?.mainObject || cleanEp.episodeState?.mainProps || cleanEp.episodeState?.props || ""),
-    template: cleanMemoryPhrase(cleanEp.templateName || cleanEp.category),
+    location: ep.episodeState?.primaryLocation || ep.episodeState?.location || "",
+    mainObject: ep.episodeState?.mainProps || ep.episodeState?.props || "",
+    template: ep.templateName || ep.category,
     createdAt: new Date().toISOString()
   };
-  const next = [entry, ...memory.filter((item) => item.epId !== cleanEp.id)];
+  const next = [entry, ...memory.filter((item) => item.epId !== ep.id)];
   await saveEpisodeMemory(next);
   return entry;
 }
@@ -694,7 +647,6 @@ function extractKeywords(ep: GhostEp) {
       .replace(/^#+/, "")
       .trim())
     .filter((phrase) => phrase.length >= 2)
-    .filter(isMeaningfulMemoryPhrase)
     .slice(0, 30);
 }
 
@@ -765,49 +717,20 @@ export async function deleteEpById(epId: string) {
   return target;
 }
 
-function escapeRegExp(value: string) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
-function compactStoredPrompt(prompt = "", suppress: string[] = []) {
-  let clean = prompt
-    .replace(/SECTION\s+[A-I]\s*-\s*[A-Z ]+:/gi, " ")
-    .replace(/\b(START STATE|TRANSITION|END STATE|CAMERA|MOTION|AUDIO|DIALOGUE|VOICE PROFILE LOCK):/gi, " ")
-    .replace(/From the previous beat\s*\([^)]*\),?\s*/gi, " ")
-    .replace(/\b(hook|evidence|escalation|realization|payoff|final approach|first action)\s*:\s*[\s\S]*?(?=\b(?:Meow|A fluffy|The fluffy|The camera|An orange|A small|Camera)\b)/gi, " ")
-    .replace(/Meow is the exact same fluffy orange tabby cat[\s\S]*?(?:no logo\.|no logo)/gi, " ")
-    .replace(/no subtitles, no caption overlay, no text overlay, no watermark, no logo, no background music by default, vertical 9:16, commercial quality visuals/gi, " ")
-    .replace(/\b(primaryLocation|timeOfDay|lightingStyle|mainProps|continuityAnchor|cameraLanguage|environmentAudio|visualAnchor|emotionProgression|locationLayout|characterPosition|characterFacingDirection|cameraPosition|cameraAngle|cameraDistance|mainPropPosition|lightingDirection|emotionState|actionState|dialogueIntent|storyBeat|emotionalIntensity|speechPattern|forbiddenToneShift|preset|gender|age|tone|energy|speakingSpeed|accent|personality|sentenceLength|vocabularyStyle|emotionalRange):\s*[^.。!?\n]+/gi, " ")
-    .replace(/\s+/g, " ")
-    .trim();
-  suppress.map((value) => value.trim()).filter(Boolean).forEach((value) => {
-    const escaped = escapeRegExp(value);
-    clean = clean
-      .replace(new RegExp(`^${escaped}\\s*[.。,:;-]*\\s*`, "i"), "")
-      .replace(new RegExp(`\\s*[.。,:;-]*\\s*${escaped}\\s*$`, "i"), "")
-      .replace(new RegExp(`\\s{2,}${escaped}\\s*`, "i"), " ")
-      .replace(new RegExp(escaped, "gi"), " ");
-  });
-  return clean
-    .replace(/\.\.\s*\.\.\.[\s\S]*$/g, ".")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
 export function normalizeStoredEp(ep: GhostEp): GhostEp {
   const frames = Array.isArray(ep.frames) ? ep.frames : [];
   const videos = Array.isArray(ep.videos) ? ep.videos : [];
   const leanFrames = frames.map((frame) => ({
     frameId: frame.frameId,
     title: frame.title,
-    imagePrompt: compactStoredPrompt(frame.imagePrompt, [frame.title])
+    imagePrompt: frame.imagePrompt
   }));
   const leanVideos = videos.map((video) => ({
     videoId: video.videoId,
     fromFrame: video.fromFrame,
     toFrame: video.toFrame,
     durationSec: video.durationSec,
-    videoPrompt: compactStoredPrompt(video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "", [video.motion, video.camera, video.audio, video.dialogue, video.mood]),
+    videoPrompt: video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "",
     camera: video.camera ?? "",
     motion: video.motion ?? "",
     audio: video.audio ?? "",
@@ -838,7 +761,6 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     coreIdea: { ...defaultCoreIdea, ...(ep.coreIdea ?? {}) },
     storyBeats: Array.isArray(ep.storyBeats) ? ep.storyBeats : [],
     episodeState: { ...defaultEpisodeState, ...(ep.episodeState ?? {}) },
-    continuityAnchor: { ...defaultEpContinuityAnchor, ...(ep.continuityAnchor ?? {}) },
     characterAnchor: ep.characterAnchor || defaultCharacterAnchor,
     voiceProfile: { ...defaultVoiceProfile, ...(ep.voiceProfile ?? {}) },
     visualStates: Array.isArray(ep.visualStates) ? ep.visualStates : [],
@@ -861,89 +783,138 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     createdAt: ep.createdAt || new Date().toISOString(),
     updatedAt: ep.updatedAt || ep.createdAt || new Date().toISOString()
   };
-  const production = sanitizeProductionOutput({ ...normalized, checklist: checklistForEp(normalized) });
-  return { ...production, checklist: checklistForEp(production) };
+  return { ...normalized, checklist: checklistForEp(normalized) };
 }
 
 function safeSegment(input: string) {
   return input.replace(/[^a-zA-Z0-9ก-๙_-]+/g, "-").replace(/-+/g, "-").replace(/^-|-$/g, "");
 }
 
-function publicExportEp(ep: GhostEp) {
-  const production = sanitizeProductionOutput(ep);
-  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
-  return {
-    id: production.id,
-    title: production.title,
-    format: production.format,
-    durationSec: production.durationSec,
-    category: production.category,
-    viralScore: production.viralScore,
-    characterId: production.characterId,
-    characterName: production.characterName,
-    templateId: production.templateId,
-    templateName: production.templateName,
-    contentGoal: production.contentGoal,
-    language: production.language,
-    story: production.story,
-    hook: production.hook,
-    frames: production.frames,
-    videos: production.videos,
-    voiceScript: production.voiceScript,
-    soundEffects: production.soundEffects,
-    caption: production.caption,
-    hashtags: production.hashtags
-  };
-}
-
 export function createMarkdown(ep: GhostEp) {
-  const production = sanitizeProductionOutput(ep);
-  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
-  const frames = production.frames
-    .map((frame) => `### ${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`)
+  const storyBeats = (ep.storyBeats ?? [])
+    .map((beat) => `- ${beat.beatId}: ${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
+    .join("\n");
+  const visualStates = (ep.visualStates ?? [])
+    .map(
+      (state) =>
+        `### ${state.frameId}\nlocationLayout: ${state.locationLayout}\ncharacterPosition: ${state.characterPosition}\ncharacterFacingDirection: ${state.characterFacingDirection}\ncameraPosition: ${state.cameraPosition}\ncameraAngle: ${state.cameraAngle}\ncameraDistance: ${state.cameraDistance}\nmainPropPosition: ${state.mainPropPosition}\nlightingDirection: ${state.lightingDirection}\nemotionState: ${state.emotionState}\nactionState: ${state.actionState}`
+    )
     .join("\n\n");
-  const videos = production.videos
+  const dialogueOutline = (ep.dialogueOutline ?? [])
+    .map((item) => `- ${item.videoId}: intent=${item.dialogueIntent}; intensity=${item.emotionalIntensity}; speechPattern=${item.speechPattern}; forbiddenToneShift=${item.forbiddenToneShift}`)
+    .join("\n");
+  const frames = ep.frames
+    .map((frame) => `### ${frame.frameId}\nTitle: ${frame.title}\nImage Prompt: ${frame.imagePrompt}`)
+    .join("\n\n");
+  const videos = ep.videos
     .map(
       (video) =>
-        `### ${video.videoId}\n${video.videoPrompt}`
+        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${video.videoPrompt}`
         + `\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 
-  return `# ${production.title}
+  return `# ${ep.title}
 
 ## Format
-${production.format}
+${ep.format}
 
 ## Status
-${production.status}
+${ep.status}
 
 ## Character
-${production.characterName} (${production.characterId})
+${ep.characterName} (${ep.characterId})
 
 ## Template
-${production.templateName} (${production.templateId})
+${ep.templateName} (${ep.templateId})
 
 ## Content Goal
-${production.contentGoal}
+${ep.contentGoal}
 
 ## Spoken Language
-${production.language}
+${ep.language}
 
 ## Thumbnail Image
-${production.thumbnailImage ? "stored in ep.json" : ""}
+${ep.thumbnailImage ? "stored in ep.json" : ""}
 
 ## Category
-${production.category}
+${ep.category}
 
 ## Viral Score
-${production.viralScore}
+${ep.viralScore}
+
+## Core Idea
+centralIdea: ${ep.coreIdea?.centralIdea ?? ""}
+coreConflict: ${ep.coreIdea?.coreConflict ?? ""}
+hookMechanic: ${ep.coreIdea?.hookMechanic ?? ""}
+payoffMechanic: ${ep.coreIdea?.payoffMechanic ?? ""}
+emotionTarget: ${ep.coreIdea?.emotionTarget ?? ""}
+noveltyAngle: ${ep.coreIdea?.noveltyAngle ?? ""}
+templateLogic: ${ep.coreIdea?.templateLogic ?? ""}
+
+## Story Beats
+${storyBeats}
+
+## Episode State
+primaryLocation: ${ep.episodeState?.primaryLocation ?? ""}
+location: ${ep.episodeState?.location ?? ""}
+timeOfDay: ${ep.episodeState?.timeOfDay ?? ""}
+lightingStyle: ${ep.episodeState?.lightingStyle ?? ""}
+mainProps: ${ep.episodeState?.mainProps ?? ""}
+continuityAnchor: ${ep.episodeState?.continuityAnchor ?? ""}
+characterStartPosition: ${ep.episodeState?.characterStartPosition ?? ""}
+characterEndPosition: ${ep.episodeState?.characterEndPosition ?? ""}
+lighting: ${ep.episodeState?.lighting ?? ""}
+props: ${ep.episodeState?.props ?? ""}
+voice: ${ep.episodeState?.voice ?? ""}
+camera: ${ep.episodeState?.camera ?? ""}
+cameraLanguage: ${ep.episodeState?.cameraLanguage ?? ""}
+environmentAudio: ${ep.episodeState?.environmentAudio ?? ""}
+visualAnchor: ${ep.episodeState?.visualAnchor ?? ""}
+emotionProgression: ${ep.episodeState?.emotionProgression ?? ""}
+
+## Character Anchor
+${ep.characterAnchor ?? ""}
+
+## Voice Profile
+preset: ${ep.voiceProfile?.preset ?? ""}
+gender: ${ep.voiceProfile?.gender ?? ""}
+age: ${ep.voiceProfile?.age ?? ""}
+tone: ${ep.voiceProfile?.tone ?? ""}
+energy: ${ep.voiceProfile?.energy ?? ""}
+speakingSpeed: ${ep.voiceProfile?.speakingSpeed ?? ""}
+accent: ${ep.voiceProfile?.accent ?? ""}
+personality: ${ep.voiceProfile?.personality ?? ""}
+sentenceLength: ${ep.voiceProfile?.sentenceLength ?? ""}
+vocabularyStyle: ${ep.voiceProfile?.vocabularyStyle ?? ""}
+emotionalRange: ${ep.voiceProfile?.emotionalRange ?? ""}
+
+## Visual States
+${visualStates}
+
+## Dialogue Outline
+${dialogueOutline}
+
+## Quality Review
+storyQualityScore: ${ep.qualityReview?.storyQualityScore ?? 0}
+storyBeatContinuityScore: ${ep.qualityReview?.storyBeatContinuityScore ?? 0}
+visualContinuityScore: ${ep.qualityReview?.visualContinuityScore ?? 0}
+videoContinuityScore: ${ep.qualityReview?.videoContinuityScore ?? 0}
+dialogueConsistencyScore: ${ep.qualityReview?.dialogueConsistencyScore ?? 0}
+voiceContinuityScore: ${ep.qualityReview?.voiceContinuityScore ?? 0}
+noveltyScore: ${ep.qualityReview?.noveltyScore ?? 0}
+templateMatchScore: ${ep.qualityReview?.templateMatchScore ?? 0}
+characterConsistencyScore: ${ep.qualityReview?.characterConsistencyScore ?? 0}
+episodeCompletenessScore: ${ep.qualityReview?.episodeCompletenessScore ?? 0}
+threshold: ${ep.qualityReview?.threshold ?? 85}
+passed: ${ep.qualityReview?.passed ?? false}
+notes: ${ep.qualityReview?.notes ?? ""}
 
 ## Story
-${production.story}
+${ep.story}
 
 ## Hook
-${production.hook}
+${ep.hook}
 
 ## Frames
 
@@ -954,50 +925,61 @@ ${frames}
 ${videos}
 
 ## Voice Script
-${production.voiceScript}
+${ep.voiceScript}
 
 ## Sound Effects
-${production.soundEffects}
+${ep.soundEffects}
 
 ## Caption
-${production.caption}
+${ep.caption}
 
 ## Hashtags
-${production.hashtags.join(" ")}
+${ep.hashtags.join(" ")}
+
+## Parse Health
+score: ${ep.parseHealth?.score ?? 0}
+status: ${ep.parseHealth?.status ?? "warning"}
+missing: ${ep.parseHealth?.missing?.join(", ") ?? ""}
+
+## Duplicate Check
+isDuplicate: ${ep.duplicateCheck.isDuplicate}
+similarityScore: ${ep.duplicateCheck.similarityScore}
+matchedEpId: ${ep.duplicateCheck.matchedEpId ?? ""}
+matchedTitle: ${ep.duplicateCheck.matchedTitle ?? ""}
+
+## Production Checklist
+${ep.frames.map((frame) => `- [${ep.checklist.frames?.[frame.frameId] ? "x" : " "}] สร้างรูป ${frame.frameId}`).join("\n")}
+${ep.videos.map((video) => `- [${ep.checklist.videos?.[video.videoId] ? "x" : " "}] สร้าง ${video.videoId}`).join("\n")}
+- [${ep.checklist.editedDone ? "x" : " "}] ตัดต่อ
+- [${ep.checklist.postedDone ? "x" : " "}] โพสต์
 `;
 }
 
 export function framesText(ep: GhostEp) {
-  const production = sanitizeProductionOutput(ep);
-  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
-  return production.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
+  return ep.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
 }
 
 export function videosText(ep: GhostEp) {
-  const production = sanitizeProductionOutput(ep);
-  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
-  return production.videos
+  return ep.videos
     .map(
       (video) =>
-        `${video.videoId}\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
+        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 }
 
 export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) {
   const settings = await getSettings();
-  const production = sanitizeProductionOutput(ep);
-  if (!passesQualityGateV3(production)) throw new Error(QUALITY_GATE_V3_FAILED_MESSAGE);
-  const epDir = path.join(root, outputRootOverride || settings.outputRoot, production.date, production.format, safeSegment(production.id));
+  const epDir = path.join(root, outputRootOverride || settings.outputRoot, ep.date, ep.format, safeSegment(ep.id));
   await fs.mkdir(epDir, { recursive: true });
   const filePath = path.join(epDir, "prompts.md");
-  await fs.writeFile(filePath, createMarkdown(production), "utf8");
+  await fs.writeFile(filePath, createMarkdown(ep), "utf8");
   await Promise.all([
-    fs.writeFile(path.join(epDir, "frames.txt"), framesText(production), "utf8"),
-    fs.writeFile(path.join(epDir, "videos.txt"), videosText(production), "utf8"),
-    fs.writeFile(path.join(epDir, "caption.txt"), `${production.caption}\n\n${production.hashtags.join(" ")}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "voice-script.txt"), `${production.voiceScript}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(publicExportEp(production), null, 2)}\n`, "utf8")
+    fs.writeFile(path.join(epDir, "frames.txt"), framesText(ep), "utf8"),
+    fs.writeFile(path.join(epDir, "videos.txt"), videosText(ep), "utf8"),
+    fs.writeFile(path.join(epDir, "caption.txt"), `${ep.caption}\n\n${ep.hashtags.join(" ")}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "voice-script.txt"), `${ep.voiceScript}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(ep, null, 2)}\n`, "utf8")
   ]);
   return { epDir, markdownPath: filePath };
 }
