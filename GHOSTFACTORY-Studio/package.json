@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "validate:video-prompts": "node scripts/validate-video-prompts.mjs",
     "start": "next start",
     "lint": "next lint"
   },

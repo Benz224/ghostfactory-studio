@@ -250,7 +250,7 @@ function EpResultModal({
 
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Frames</h3>
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-3">
               {ep.frames.map((frame, index) => {
                 const renderedPrompt = renderImagePrompt(ep, frame, index);
                 return (
@@ -259,7 +259,7 @@ function EpResultModal({
                     <div className="text-sm font-semibold">{frame.frameId} {frame.title}</div>
                     <CopyButton label={frame.frameId} onClick={() => onCopy(renderedPrompt, `Copy ${frame.frameId}`)} />
                   </div>
-                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{renderedPrompt}</p>
+                  <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{renderedPrompt}</p>
                 </article>
                 );
               })}
@@ -274,10 +274,14 @@ function EpResultModal({
                 return (
                 <article className="rounded-[18px] bg-white p-3" key={video.videoId}>
                   <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                    <div className="text-sm font-semibold">{video.videoId} {video.fromFrame} to {video.toFrame} ({video.durationSec}s)</div>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <div className="text-sm font-semibold">{video.videoId} {video.fromFrame} to {video.toFrame} ({video.durationSec}s)</div>
+                      {video.durationSec === 8 ? <span className="rounded-full bg-[#ECFDF5] px-2 py-1 text-[11px] font-semibold text-[#047857]">8s Story Timeline</span> : null}
+                      <span className="rounded-full bg-[#EFF6FF] px-2 py-1 text-[11px] font-semibold text-[#2563EB]">Voice Continuity Lock</span>
+                    </div>
                     <CopyButton label={video.videoId} onClick={() => onCopy(renderedPrompt, `Copy ${video.videoId}`)} />
                   </div>
-                  <p className="whitespace-pre-wrap text-xs leading-5 text-[#64748B]">{renderedPrompt}</p>
+                  <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{renderedPrompt}</p>
                   <div className="mt-3 grid gap-2 text-xs md:grid-cols-5">
                     <div><strong>Camera:</strong> {video.camera || "-"}</div>
                     <div><strong>Motion:</strong> {video.motion || "-"}</div>

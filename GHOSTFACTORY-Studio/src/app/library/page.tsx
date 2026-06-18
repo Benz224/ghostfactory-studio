@@ -120,7 +120,7 @@ function EpDetailModal({
 
   return (
     <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
-      <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-[12px] bg-white shadow-2xl">
+      <div className="mx-auto flex h-full w-full max-w-6xl flex-col overflow-hidden rounded-[12px] bg-white shadow-2xl">
         <header className="flex items-start justify-between gap-4 border-b border-[#E2E8F0] p-5">
           <div className="min-w-0">
             <div className="flex flex-wrap gap-2 text-xs font-semibold text-[#64748B]">
@@ -193,36 +193,39 @@ function EpDetailModal({
               <h3 className="font-semibold">Frames</h3>
               <button className="btn h-9 px-3" onClick={() => onCopy(framePromptText(draft), `Copy All Frames ${draft.id}`)} type="button"><Copy size={15} />Copy All Frames</button>
             </div>
-            {(draft.frames ?? []).map((frame) => (
-              <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={frame.frameId}>
-                <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <label className="flex items-center gap-2 text-sm font-semibold">
-                    <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
-                    {frame.frameId} {frame.title}
-                  </label>
-                  <button className="btn h-9 px-3" onClick={() => onCopy(framePromptText(draft, frame.frameId), `Copy Frame Prompt ${frame.frameId}`)} type="button">Copy Frame Prompt</button>
-                </div>
-                {editMode ? (
-                  <div className="grid gap-4 md:grid-cols-[220px,1fr]">
-                    <ImagePicker
-                      label={`${frame.frameId} Image`}
-                      note="Optional image for this frame."
-                      value={draft.frameImages?.[frame.frameId] ?? ""}
-                      onChange={(value) => updateDraft({ frameImages: { ...(draft.frameImages ?? {}), [frame.frameId]: value } })}
-                    />
-                    <div className="space-y-3">
-                      <input className="control" value={frame.title} onChange={(event) => updateFrame(frame.frameId, { title: event.target.value })} placeholder="Frame title" />
-                      <textarea className="control min-h-36" value={frame.imagePrompt} onChange={(event) => updateFrame(frame.frameId, { imagePrompt: event.target.value })} />
+            {(draft.frames ?? []).map((frame) => {
+              const frameImage = draft.frameImages?.[frame.frameId];
+              return (
+                <article className="rounded-[8px] border border-[#E2E8F0] p-4" key={frame.frameId}>
+                  <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                    <label className="flex items-center gap-2 text-sm font-semibold">
+                      <input checked={Boolean(checklist.frames[frame.frameId])} onChange={(event) => setFrame(frame.frameId, event.target.checked)} type="checkbox" />
+                      {frame.frameId} {frame.title}
+                    </label>
+                    <button className="btn h-9 px-3" onClick={() => onCopy(framePromptText(draft, frame.frameId), `Copy Frame Prompt ${frame.frameId}`)} type="button">Copy Frame Prompt</button>
+                  </div>
+                  {editMode ? (
+                    <div className="grid gap-4 md:grid-cols-[220px,1fr]">
+                      <ImagePicker
+                        label={`${frame.frameId} Image`}
+                        note="Optional image for this frame."
+                        value={frameImage ?? ""}
+                        onChange={(value) => updateDraft({ frameImages: { ...(draft.frameImages ?? {}), [frame.frameId]: value } })}
+                      />
+                      <div className="space-y-3">
+                        <input className="control" value={frame.title} onChange={(event) => updateFrame(frame.frameId, { title: event.target.value })} placeholder="Frame title" />
+                        <textarea className="control min-h-36" value={frame.imagePrompt} onChange={(event) => updateFrame(frame.frameId, { imagePrompt: event.target.value })} />
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="grid gap-3 md:grid-cols-[180px,1fr]">
-                    {draft.frameImages?.[frame.frameId] ? <ImagePreview className="aspect-square" label={`${frame.frameId} Image`} src={draft.frameImages[frame.frameId]} /> : null}
-                    <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{frame.imagePrompt ? renderImagePrompt(draft, frame) : "No frame prompt."}</p>
-                  </div>
-                )}
-              </article>
-            ))}
+                  ) : (
+                    <div className={frameImage ? "grid gap-3 md:grid-cols-[180px,minmax(0,1fr)]" : "block"}>
+                      {frameImage ? <ImagePreview className="aspect-square" label={`${frame.frameId} Image`} src={frameImage} /> : null}
+                      <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{frame.imagePrompt ? renderImagePrompt(draft, frame) : "No frame prompt."}</p>
+                    </div>
+                  )}
+                </article>
+              );
+            })}
           </section>
 
           <section className="space-y-3">
@@ -237,6 +240,10 @@ function EpDetailModal({
                     <input checked={Boolean(checklist.videos[video.videoId])} onChange={(event) => setVideo(video.videoId, event.target.checked)} type="checkbox" />
                     {video.videoId} {video.fromFrame} to {video.toFrame} ({video.durationSec}s)
                   </label>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {video.durationSec === 8 ? <span className="rounded-full bg-[#ECFDF5] px-2 py-1 text-[11px] font-semibold text-[#047857]">8s Story Timeline</span> : null}
+                    <span className="rounded-full bg-[#EFF6FF] px-2 py-1 text-[11px] font-semibold text-[#2563EB]">Voice Continuity Lock</span>
+                  </div>
                   <button className="btn h-9 px-3" onClick={() => onCopy(videoPromptText(draft, video.videoId), `Copy Video Prompt ${video.videoId}`)} type="button">Copy Video Prompt</button>
                 </div>
                 {editMode ? (
@@ -252,7 +259,7 @@ function EpDetailModal({
                     <input className="control" value={video.mood} onChange={(event) => updateVideo(video.videoId, { mood: event.target.value })} placeholder="Mood" />
                   </div>
                 ) : (
-                  <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{video.videoPrompt ? renderVideoPrompt(draft, video) : "No video prompt."}</p>
+                  <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{video.videoPrompt ? renderVideoPrompt(draft, video) : "No video prompt."}</p>
                 )}
               </article>
             ))}

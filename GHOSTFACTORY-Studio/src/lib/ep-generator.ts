@@ -633,15 +633,24 @@ function hasTransitionVideoPrompts(ep: GhostEp) {
   return ep.videos.every((video) => {
     const text = renderVideoPrompt(ep, video).toLowerCase();
     return [
-      "section a - character anchor",
-      "section b - episode state",
-      "section c - start state",
-      "section d - transition",
-      "section e - end state",
-      "section f - camera",
-      "section g - audio",
-      "section h - dialogue",
-      "section i - global visual style"
+      "clip instruction:",
+      "references:",
+      "important audio rule:",
+      "voice continuity lock:",
+      "character:",
+      "scene:",
+      "story continuity:",
+      "action timeline:",
+      "0-2s:",
+      "2-4s:",
+      "4-6s:",
+      "6-8s:",
+      "camera:",
+      "lighting:",
+      "audio:",
+      "dialogue:",
+      "mood:",
+      "negative:"
     ].every((section) => text.includes(section));
   });
 }
@@ -738,6 +747,7 @@ function dialogueOutlineForVideo(ep: GhostEp, videoId: string) {
 function stripAssemblySections(prompt: string) {
   return prompt
     .replace(/SECTION\s+[A-I]\s*-\s*[A-Z ]+:/gi, "")
+    .replace(/\b(Clip instruction|References|IMPORTANT AUDIO RULE|VOICE CONTINUITY LOCK|Character|Scene|Story continuity|Action timeline|Camera|Lighting|Audio|Dialogue|Mood|Negative):/gi, "")
     .replace(/\b(START STATE|TRANSITION|END STATE|CAMERA|MOTION|AUDIO|DIALOGUE):/gi, "")
     .replace(/\s+/g, " ")
     .trim();
@@ -774,35 +784,179 @@ export function renderImagePrompt(ep: GhostEp, frame: GhostEp["frames"][number],
   ].join("\n\n");
 }
 
+function frameTitle(ep: GhostEp, frameId: string) {
+  const frame = ep.frames.find((item) => item.frameId.toLowerCase() === frameId.toLowerCase());
+  return frame?.title || frame?.imagePrompt || frameId;
+}
+
+function compactLine(input: string, fallback: string) {
+  const clean = stripAssemblySections(input).replace(/\s+/g, " ").trim();
+  return clean || fallback;
+}
+
+function clipIndex(ep: GhostEp, video: GhostEp["videos"][number], fallbackIndex = 0) {
+  const byId = ep.videos.findIndex((item) => item.videoId === video.videoId);
+  return byId >= 0 ? byId : fallbackIndex;
+}
+
+function renderImportantAudioRule(ep: GhostEp, index: number, totalVideos: number) {
+  if (ep.language === "No Dialogue") {
+    return [
+      "IMPORTANT AUDIO RULE:",
+      "No spoken voice and no narration should be generated for this clip.",
+      "Keep dialogue empty and voiceScript empty.",
+      "Use only environment sound and listed SFX."
+    ].join("\n");
+  }
+
+  if (totalVideos > 0 && index === totalVideos - 1) {
+    return [
+      "IMPORTANT AUDIO RULE:",
+      "This is the final clip of the same episode. Continue using the exact same voice from all previous clips and end with the same voice identity."
+    ].join("\n");
+  }
+
+  if (index === 0) {
+    return [
+      "IMPORTANT AUDIO RULE:",
+      "This is the first clip of the same episode. Establish the voice and keep it consistent for all later clips."
+    ].join("\n");
+  }
+
+  return [
+    "IMPORTANT AUDIO RULE:",
+    "This is part of the same episode. Continue using the exact same voice from all previous clips. Same pitch, same rhythm, same accent, same speaking speed, and same emotional style."
+  ].join("\n");
+}
+
+function renderVoiceContinuityLock(ep: GhostEp) {
+  if (ep.language === "No Dialogue") {
+    return [
+      "VOICE CONTINUITY LOCK:",
+      "No spoken dialogue, no narration, and no generated voice.",
+      "Keep dialogue empty.",
+      "Keep voiceScript empty.",
+      "Use environment sound only.",
+      "No background music by default.",
+      "No subtitles.",
+      "No text on screen."
+    ].join("\n");
+  }
+
+  return [
+    "VOICE CONTINUITY LOCK:",
+    "Use the exact same voice in every clip of this episode.",
+    `Voice identity: ${ep.characterName || "Character"}'s Thai adult cute animated character voice.`,
+    `Language: ${ep.language}.`,
+    "Voice style: cute, soft, curious, slightly scared, funny but not exaggerated.",
+    "Pitch: medium-high cute voice.",
+    "Timbre: soft, rounded, slightly nasal, playful but nervous.",
+    "Speaking speed: natural and clear, not too fast.",
+    "Emotion progression must follow the episode mood but keep the same voice identity.",
+    "Do not change voice actor.",
+    "Do not change accent.",
+    "Do not change pitch.",
+    "Do not change speaking speed.",
+    "Do not make the voice deep, old, robotic, ghostly, angry, or human-realistic.",
+    "No background music by default.",
+    "No subtitles.",
+    "No text on screen."
+  ].join("\n");
+}
+
+function renderCharacterInstruction(ep: GhostEp, characterAnchor: string) {
+  const name = ep.characterName || "Character";
+  const base = [
+    `${name} is the selected character.`,
+    characterAnchor,
+    ep.voiceProfile ? `Voice profile: ${voiceProfilePrompt(ep.voiceProfile)}` : ""
+  ].filter(Boolean).join("\n");
+
+  if (name.toLowerCase() === "meow" || ep.characterId === "meow") {
+    return [
+      base,
+      "Meow is the only character.",
+      "Meow must stay as the same cute Pixar-quality 3D orange tabby cat from the reference.",
+      "Keep fluffy orange striped fur, large glossy eyes, round cute face, pink nose, black collar, and round gold pendant.",
+      "Do not make Meow a realistic adult cat.",
+      "Do not remove collar or pendant.",
+      "Do not add readable text on the pendant."
+    ].join("\n");
+  }
+
+  return base;
+}
+
+export function renderVideoBeatTimeline(video: GhostEp["videos"][number], ep: GhostEp, index = clipIndex(ep, video), totalVideos = ep.videos.length) {
+  const from = frameTitle(ep, video.fromFrame);
+  const to = frameTitle(ep, video.toFrame);
+  const fromState = visualStateForFrame(ep, video.fromFrame);
+  const toState = visualStateForFrame(ep, video.toFrame);
+  const motion = compactLine(video.motion || video.videoPrompt, `continue from ${video.fromFrame} toward ${video.toFrame}`);
+  const action = compactLine(video.videoPrompt || video.motion, motion);
+  const camera = compactLine(video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "", "keep the same camera axis and follow the character gently");
+  const audio = compactLine(video.audio || ep.episodeState?.environmentAudio || "", "keep continuous environment sound and subtle SFX");
+  const mood = compactLine(video.mood || ep.episodeState?.emotionProgression || "", "curious, tense, and funny but controlled");
+  const location = compactLine(ep.episodeState?.primaryLocation || ep.episodeState?.location || fromState?.locationLayout || "", "the same location");
+  const prop = compactLine(ep.episodeState?.mainProps || ep.episodeState?.props || fromState?.mainPropPosition || "", "the same main prop");
+  const transitionTarget = totalVideos > 0 && index === totalVideos - 1 ? "hold the final reaction without starting a new scene" : `hold a visual cue that naturally connects into ${video.toFrame}`;
+
+  return [
+    "Action timeline:",
+    `0-2s:\nEstablish the exact current frame state from ${video.fromFrame}: ${from}. Keep ${location}, ${prop}, same lighting, and same camera axis.`,
+    `2-4s:\n${ep.characterName} investigates or reacts in one continuous movement: ${motion}. Do not cut away or change scene.`,
+    `4-6s:\nReveal the main impossible evidence or key action: ${action}. Preserve visual continuity toward ${video.toFrame}: ${to}.`,
+    `6-8s:\nHold the reaction with ${mood}. ${transitionTarget}. Maintain ${camera}; audio stays continuous: ${audio}.`
+  ].join("\n");
+}
+
 export function renderVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
   const characterAnchor = ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR;
   const fromState = visualStateForFrame(ep, video.fromFrame);
   const toState = visualStateForFrame(ep, video.toFrame);
   const outline = dialogueOutlineForVideo(ep, video.videoId);
-  const transition = [
-    outline?.dialogueIntent ? `dialogueIntent: ${outline.dialogueIntent}` : "",
-    outline?.emotionalIntensity ? `emotionalIntensity: ${outline.emotionalIntensity}` : "",
-    video.motion ? `motion: ${video.motion}` : "",
-    stripAssemblySections(video.videoPrompt)
-  ].filter(Boolean).join("\n");
-  const dialogue = [
-    "VOICE PROFILE LOCK:",
-    voiceProfilePrompt(ep.voiceProfile),
-    outline?.speechPattern ? `speechPattern: ${outline.speechPattern}` : "",
-    outline?.forbiddenToneShift ? `forbiddenToneShift: ${outline.forbiddenToneShift}` : "",
-    `dialogue: ${video.dialogue}`
+  const index = clipIndex(ep, video);
+  const durationSec = Math.max(1, Number(video.durationSec || 8));
+  const isEightSecondClip = durationSec === 8;
+  const cleanPrompt = compactLine(video.videoPrompt, `connect ${video.fromFrame} to ${video.toFrame}`);
+  const location = ep.episodeState?.primaryLocation || ep.episodeState?.location || fromState?.locationLayout || "same location";
+  const prop = ep.episodeState?.mainProps || ep.episodeState?.props || fromState?.mainPropPosition || "same main prop";
+  const lighting = ep.episodeState?.lightingStyle || ep.episodeState?.lighting || fromState?.lightingDirection || "same lighting";
+  const camera = video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "same camera axis, vertical 9:16 cinematic camera";
+  const audio = video.audio || ep.episodeState?.environmentAudio || "continuous environment sound and subtle SFX";
+  const dialogueText = ep.language === "No Dialogue" ? "" : video.dialogue;
+  const previousText = index === 0 ? `This clip starts the episode from ${video.fromFrame}.` : `This clip continues exactly after ${ep.videos[index - 1]?.videoId || `V${index}`}.`;
+  const nextText = index === ep.videos.length - 1 ? "This clip ends the episode with a held moment." : `It leads naturally into ${ep.videos[index + 1]?.videoId || "the next video"} and ${video.toFrame}.`;
+  const storyContinuity = [
+    previousText,
+    `The visual state moves from ${video.fromFrame} (${frameTitle(ep, video.fromFrame)}) to ${video.toFrame} (${frameTitle(ep, video.toFrame)}).`,
+    cleanPrompt,
+    nextText
+  ].join(" ");
+  const scene = [
+    `Same location: ${location}.`,
+    `Same main prop: ${prop}.`,
+    `Same lighting: ${lighting}.`,
+    `Same camera axis: ${camera}.`,
+    ep.episodeState?.continuityAnchor ? `Continuity anchor: ${ep.episodeState.continuityAnchor}.` : "",
+    outline?.dialogueIntent ? `Episode/video continuity: ${outline.dialogueIntent}.` : ""
   ].filter(Boolean).join("\n");
 
   return [
-    formatSection("SECTION A - CHARACTER ANCHOR:", characterAnchor),
-    formatSection("SECTION B - EPISODE STATE:", episodeStatePrompt(ep.episodeState)),
-    formatSection("SECTION C - START STATE:", visualStatePrompt(fromState) || `${video.fromFrame} visual state`),
-    formatSection("SECTION D - TRANSITION:", transition),
-    formatSection("SECTION E - END STATE:", visualStatePrompt(toState) || `${video.toFrame} visual state`),
-    formatSection("SECTION F - CAMERA:", video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || ""),
-    formatSection("SECTION G - AUDIO:", video.audio || ep.episodeState?.environmentAudio || ""),
-    formatSection("SECTION H - DIALOGUE:", dialogue),
-    formatSection("SECTION I - GLOBAL VISUAL STYLE:", GLOBAL_NEGATIVE_RULES)
+    formatSection("Clip instruction:", `Create one continuous vertical 9:16 cinematic video clip, ${durationSec} seconds.\nNo fast cuts.\nKeep same location, same camera axis, same main prop, same lighting.\nPreserve visual continuity from previous frame to next frame.\nEnd with a held moment that naturally connects to the next video.\nThe timeline is continuous from ${video.fromFrame} to ${video.toFrame}; do not treat each beat as a separate scene.`),
+    formatSection("References:", `Use uploaded character reference as strict character identity.\nUse ${video.fromFrame} and ${video.toFrame} as strict visual continuity references.\nStart state: ${visualStatePrompt(fromState) || `${video.fromFrame} visual state`}.\nEnd state: ${visualStatePrompt(toState) || `${video.toFrame} visual state`}.`),
+    renderImportantAudioRule(ep, index, ep.videos.length),
+    renderVoiceContinuityLock(ep),
+    formatSection("Character:", renderCharacterInstruction(ep, characterAnchor)),
+    formatSection("Scene:", scene),
+    formatSection("Story continuity:", storyContinuity),
+    isEightSecondClip ? renderVideoBeatTimeline(video, ep, index, ep.videos.length) : formatSection("Action timeline:", `Use a continuous ${durationSec}-second transition from ${video.fromFrame} to ${video.toFrame}: ${cleanPrompt}`),
+    formatSection("Camera:", `${camera}\nDetailed direction: keep a continuous vertical 9:16 cinematic camera move; no fast cuts, no new angle that breaks continuity.`),
+    formatSection("Lighting:", `${lighting}\nKeep lighting continuous from ${video.fromFrame} to ${video.toFrame}.`),
+    formatSection("Audio:", `${audio}\nNo background music by default. Keep SFX and environment sound continuous.`),
+    formatSection("Dialogue:", ep.language === "No Dialogue" ? "No spoken dialogue. No narration. dialogue must remain empty and voiceScript must remain empty." : `${ep.language} only. Use same character voice. Do not include subtitles.\ndialogue: ${dialogueText}\n${outline?.speechPattern ? `speechPattern: ${outline.speechPattern}` : ""}\n${outline?.forbiddenToneShift ? `forbiddenToneShift: ${outline.forbiddenToneShift}` : ""}`),
+    formatSection("Mood:", video.mood || ep.episodeState?.emotionProgression || "curious, slightly scared, funny but not exaggerated"),
+    formatSection("Negative:", "No subtitles, no caption overlay, no text overlay, no watermark, no logo, no UI, no background music.")
   ].join("\n\n");
 }
 
@@ -998,7 +1152,7 @@ export function generateVideos(ep: GhostEp): GhostEp {
       camera: video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "",
       audio: video.audio || ep.episodeState?.environmentAudio || "",
       motion: video.motion || transition,
-      dialogue: video.dialogue,
+      dialogue: ep.language === "No Dialogue" ? "" : video.dialogue,
       mood: video.mood
     };
   });
@@ -1104,6 +1258,7 @@ function confidenceScore(dialogue: string) {
 }
 
 export function detectVoiceDrift(ep: GhostEp) {
+  if (ep.language === "No Dialogue") return { score: 100, failures: 0 };
   const scores = ep.videos.map((video) => confidenceScore(video.dialogue));
   const jumps = scores
     .map((score, index) => index === 0 ? 0 : Math.abs(score - scores[index - 1]))
@@ -1114,6 +1269,13 @@ export function detectVoiceDrift(ep: GhostEp) {
 }
 
 export function rewriteDialogue(ep: GhostEp): GhostEp {
+  if (ep.language === "No Dialogue") {
+    return {
+      ...ep,
+      videos: ep.videos.map((video) => ({ ...video, dialogue: "" })),
+      voiceScript: ""
+    };
+  }
   const drift = detectVoiceDrift(ep);
   if (drift.score >= 85) return ep;
   return {
@@ -1387,7 +1549,10 @@ function mapJsonEp(source: Record<string, unknown>, index: number, date: string)
   const rawVoiceScript = stringValue(source, ["voice_script", "voiceScript", "voice"]);
   ep.soundEffects = stringValue(source, ["sound_effects", "soundEffects", "sfx"]);
   ep.frames = Array.from({ length: frameCount }, (_, frameIndex) => framesInput[frameIndex] !== undefined ? mapJsonFrame(framesInput[frameIndex], frameIndex) : ep.frames[frameIndex]);
-  ep.videos = Array.from({ length: videoCount }, (_, videoIndex) => videosInput[videoIndex] !== undefined ? mapJsonVideo(videosInput[videoIndex], videoIndex) : ep.videos[videoIndex]);
+  ep.videos = Array.from({ length: videoCount }, (_, videoIndex) => {
+    const video = videosInput[videoIndex] !== undefined ? mapJsonVideo(videosInput[videoIndex], videoIndex) : ep.videos[videoIndex];
+    return ep.language === "No Dialogue" ? { ...video, dialogue: "" } : video;
+  });
   ep.voiceScript = buildVoiceScriptFromDialogue(ep.videos, rawVoiceScript, ep.language);
   const generated = runInternalGeneratorPipeline(ep);
   generated.durationSec = generated.durationSec || generated.videos.reduce((sum, video) => sum + video.durationSec, 0);

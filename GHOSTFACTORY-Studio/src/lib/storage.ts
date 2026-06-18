@@ -2,6 +2,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
 import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
+import { renderVideoPrompt } from "./ep-generator";
 import type { CharacterProfile, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
@@ -809,7 +810,7 @@ export function createMarkdown(ep: GhostEp) {
   const videos = ep.videos
     .map(
       (video) =>
-        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${video.videoPrompt}`
+        `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${renderVideoPrompt(ep, video)}`
         + `\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
@@ -963,7 +964,7 @@ export function videosText(ep: GhostEp) {
   return ep.videos
     .map(
       (video) =>
-        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${video.videoPrompt}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
+        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 }
