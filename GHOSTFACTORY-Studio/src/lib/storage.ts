@@ -1,8 +1,8 @@
 import { promises as fs } from "fs";
 import path from "path";
 import { checklistForEp, createChecklistFromParts } from "./checklist";
-import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
-import { renderVideoPrompt } from "./ep-generator";
+import { buildCharacterPromptCapsule, getCharacterAsset } from "./character-assets";
+import { FLOW_VIDEO_DURATION_SEC, buildVoiceManifest, ensureEpLocks, renderImagePrompt, renderVideoPrompt, voiceScriptFromManifest } from "./ep-generator";
 import type { CharacterProfile, EpStatus, GhostCharacter, GhostEp, GhostTemplate, Idea, IdeaMemory, ParseHealth, Project, Settings, SpokenLanguage } from "./types";
 
 const root = process.cwd();
@@ -30,6 +30,7 @@ export const defaultCharacters: GhostCharacter[] = [
     type: "cat",
     description: "fluffy orange tabby cat with orange striped fur, cute expressive face, high quality fur",
     visualStyle: "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+    promptCapsule: "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
     personality: ["cute", "funny", "absurd", "expressive"],
     rules: [
       "always keep the same orange tabby cat identity",
@@ -278,7 +279,7 @@ const defaultCoreIdea = {
   templateLogic: ""
 };
 
-const defaultCharacterAnchor = buildCharacterAnchorFromAsset(getCharacterAsset("meow"));
+const defaultCharacterAnchor = buildCharacterPromptCapsule({ asset: getCharacterAsset("meow") });
 
 const defaultVoiceProfile = {
   preset: "",
@@ -730,7 +731,7 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     videoId: video.videoId,
     fromFrame: video.fromFrame,
     toFrame: video.toFrame,
-    durationSec: video.durationSec,
+    durationSec: FLOW_VIDEO_DURATION_SEC,
     videoPrompt: video.videoPrompt || (video as unknown as { prompt?: string }).prompt || "",
     camera: video.camera ?? "",
     motion: video.motion ?? "",
@@ -738,7 +739,7 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     dialogue: video.dialogue ?? "",
     mood: video.mood ?? ""
   }));
-  const durationSec = (ep.durationSec ?? videos.reduce((sum, video) => sum + (Number(video.durationSec) || 0), 0)) || Number(String(ep.format || "").match(/\d+(\.\d+)?/)?.[0] ?? 0);
+  const durationSec = (videos.length || leanVideos.length) * FLOW_VIDEO_DURATION_SEC || (ep.durationSec ?? Number(String(ep.format || "").match(/\d+(\.\d+)?/)?.[0] ?? 0));
   const normalized: GhostEp = {
     ...ep,
     date: ep.date || new Date().toISOString().slice(0, 10),
@@ -763,6 +764,8 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     storyBeats: Array.isArray(ep.storyBeats) ? ep.storyBeats : [],
     episodeState: { ...defaultEpisodeState, ...(ep.episodeState ?? {}) },
     characterAnchor: ep.characterAnchor || defaultCharacterAnchor,
+    visualLock: ep.visualLock,
+    voiceLock: ep.voiceLock,
     voiceProfile: { ...defaultVoiceProfile, ...(ep.voiceProfile ?? {}) },
     visualStates: Array.isArray(ep.visualStates) ? ep.visualStates : [],
     dialogueOutline: Array.isArray(ep.dialogueOutline) ? ep.dialogueOutline : [],
@@ -784,7 +787,9 @@ export function normalizeStoredEp(ep: GhostEp): GhostEp {
     createdAt: ep.createdAt || new Date().toISOString(),
     updatedAt: ep.updatedAt || ep.createdAt || new Date().toISOString()
   };
-  return { ...normalized, checklist: checklistForEp(normalized) };
+  const migrated = ensureEpLocks(normalized);
+  migrated.voiceScript = migrated.language === "No Dialogue" ? "" : voiceScriptFromManifest(buildVoiceManifest(migrated));
+  return { ...migrated, checklist: checklistForEp(migrated) };
 }
 
 function safeSegment(input: string) {
@@ -792,6 +797,9 @@ function safeSegment(input: string) {
 }
 
 export function createMarkdown(ep: GhostEp) {
+  const normalized = ensureEpLocks(ep);
+  const manifest = buildVoiceManifest(normalized);
+  const voiceScript = voiceScriptFromManifest(manifest);
   const storyBeats = (ep.storyBeats ?? [])
     .map((beat) => `- ${beat.beatId}: ${beat.function}${beat.function ? " - " : ""}${beat.beat}`)
     .join("\n");
@@ -805,13 +813,12 @@ export function createMarkdown(ep: GhostEp) {
     .map((item) => `- ${item.videoId}: intent=${item.dialogueIntent}; intensity=${item.emotionalIntensity}; speechPattern=${item.speechPattern}; forbiddenToneShift=${item.forbiddenToneShift}`)
     .join("\n");
   const frames = ep.frames
-    .map((frame) => `### ${frame.frameId}\nTitle: ${frame.title}\nImage Prompt: ${frame.imagePrompt}`)
+    .map((frame) => `### ${frame.frameId}\nTitle: ${frame.title}\nImage Prompt: ${renderImagePrompt(ep, frame)}`)
     .join("\n\n");
   const videos = ep.videos
     .map(
       (video) =>
         `### ${video.videoId}\nFrom: ${video.fromFrame}\nTo: ${video.toFrame}\nDuration: ${video.durationSec}\nVideo Prompt: ${renderVideoPrompt(ep, video)}`
-        + `\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
     )
     .join("\n\n");
 
@@ -875,7 +882,24 @@ visualAnchor: ${ep.episodeState?.visualAnchor ?? ""}
 emotionProgression: ${ep.episodeState?.emotionProgression ?? ""}
 
 ## Character Anchor
-${ep.characterAnchor ?? ""}
+${normalized.characterAnchor ?? ""}
+
+## Visual Lock
+visualLockId: ${normalized.visualLock?.visualLockId ?? ""}
+characterCapsule: ${normalized.visualLock?.characterCapsule ?? ""}
+referenceImageUrls: ${normalized.visualLock?.referenceImageUrls.join(", ") ?? ""}
+primaryLocation: ${normalized.visualLock?.primaryLocation ?? ""}
+lightingStyle: ${normalized.visualLock?.lightingStyle ?? ""}
+continuityAnchor: ${normalized.visualLock?.continuityAnchor ?? ""}
+mainProps: ${normalized.visualLock?.mainProps.join(", ") ?? ""}
+locked: ${normalized.visualLock?.locked ?? false}
+
+## Voice Lock
+voiceLockId: ${normalized.voiceLock?.voiceLockId ?? ""}
+renderMode: ${normalized.voiceLock?.renderMode ?? "external_tts"}
+provider: ${normalized.voiceLock?.provider ?? "manual"}
+providerVoiceId: ${normalized.voiceLock?.providerVoiceId ?? ""}
+referenceAudioUrl: ${normalized.voiceLock?.referenceAudioUrl ?? ""}
 
 ## Voice Profile
 preset: ${ep.voiceProfile?.preset ?? ""}
@@ -926,7 +950,10 @@ ${frames}
 ${videos}
 
 ## Voice Script
-${ep.voiceScript}
+${voiceScript}
+
+## Voice Manifest
+${JSON.stringify(manifest, null, 2)}
 
 ## Sound Effects
 ${ep.soundEffects}
@@ -957,14 +984,14 @@ ${ep.videos.map((video) => `- [${ep.checklist.videos?.[video.videoId] ? "x" : " 
 }
 
 export function framesText(ep: GhostEp) {
-  return ep.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${frame.imagePrompt}`).join("\n\n");
+  return ep.frames.map((frame) => `${frame.frameId}${frame.title ? ` - ${frame.title}` : ""}\n${renderImagePrompt(ep, frame)}`).join("\n\n");
 }
 
 export function videosText(ep: GhostEp) {
   return ep.videos
     .map(
       (video) =>
-        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`
+        `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}`
     )
     .join("\n\n");
 }
@@ -973,14 +1000,32 @@ export async function exportEpPackage(ep: GhostEp, outputRootOverride?: string) 
   const settings = await getSettings();
   const epDir = path.join(root, outputRootOverride || settings.outputRoot, ep.date, ep.format, safeSegment(ep.id));
   await fs.mkdir(epDir, { recursive: true });
+  const normalized = normalizeStoredEp(ep);
+  const manifest = buildVoiceManifest(normalized);
+  const voiceScript = voiceScriptFromManifest(manifest);
+  const timingPlan = {
+    episodeId: normalized.id,
+    provider: "google-flow-veo",
+    providerDurationSec: FLOW_VIDEO_DURATION_SEC,
+    totalDurationSec: normalized.videos.length * FLOW_VIDEO_DURATION_SEC,
+    videos: normalized.videos.map((video) => ({
+      videoId: video.videoId,
+      fromFrame: video.fromFrame,
+      toFrame: video.toFrame,
+      durationSec: video.durationSec,
+      timingPlan: video.timingPlan
+    }))
+  };
   const filePath = path.join(epDir, "prompts.md");
-  await fs.writeFile(filePath, createMarkdown(ep), "utf8");
+  await fs.writeFile(filePath, createMarkdown(normalized), "utf8");
   await Promise.all([
-    fs.writeFile(path.join(epDir, "frames.txt"), framesText(ep), "utf8"),
-    fs.writeFile(path.join(epDir, "videos.txt"), videosText(ep), "utf8"),
-    fs.writeFile(path.join(epDir, "caption.txt"), `${ep.caption}\n\n${ep.hashtags.join(" ")}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "voice-script.txt"), `${ep.voiceScript}\n`, "utf8"),
-    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(ep, null, 2)}\n`, "utf8")
+    fs.writeFile(path.join(epDir, "frames.txt"), framesText(normalized), "utf8"),
+    fs.writeFile(path.join(epDir, "videos.txt"), videosText(normalized), "utf8"),
+    fs.writeFile(path.join(epDir, "caption.txt"), `${normalized.caption}\n\n${normalized.hashtags.join(" ")}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "voice-manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "voice-script.txt"), `${voiceScript}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "timing-plan.json"), `${JSON.stringify(timingPlan, null, 2)}\n`, "utf8"),
+    fs.writeFile(path.join(epDir, "ep.json"), `${JSON.stringify(normalized, null, 2)}\n`, "utf8")
   ]);
   return { epDir, markdownPath: filePath };
 }

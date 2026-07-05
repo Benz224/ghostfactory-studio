@@ -1,5 +1,33 @@
 [
   {
+    "id": "template-1783242152510",
+    "name": "Thai Ghost Universal Horror",
+    "category": "Horror",
+    "goal": "สร้างคอนเทนต์สยองขวัญแนวผีไทยที่ใช้งานได้กว้างกับหลายสถานที่และหลายรูปแบบของเรื่องหลอน เน้นบรรยากาศกดดัน ความเงียบผิดปกติ สิ่งเหนือธรรมชาติที่ค่อย ๆ เผยตัว และการหักมุมตอนท้าย โดยให้เรื่องเริ่มจากเหตุการณ์ผิดปกติเล็ก ๆ ที่ดูไม่น่ากลัว ก่อนลุกลามเป็นความหลอนที่ใกล้ตัวขึ้นเรื่อย ๆ จนจบด้วยการเปิดเผยความจริงบางอย่างเกี่ยวกับวิญญาณ สถานที่ หรืออดีตของตัวละคร",
+    "structure": [
+      "hook",
+      "omen",
+      "investigation",
+      "escalation",
+      "twist"
+    ],
+    "bestFor": [
+      "creator, horror creator, Thai ghost stories, suspense shorts, short-form storytelling"
+    ],
+    "defaultFrameCount": 3,
+    "defaultVideoCount": 2,
+    "tone": "eerie, suspenseful, scary, unsettling, Thai ghost atmosphere, mysterious, cinematic",
+    "languageSupport": [
+      "Thai",
+      "English",
+      "Japanese",
+      "Korean",
+      "Chinese",
+      "No Dialogue"
+    ],
+    "isDefault": false
+  },
+  {
     "id": "template-1780843486900",
     "name": "Nightmare Protocol",
     "category": "Extreme Horror",

@@ -1,5 +1,2706 @@
 [
   {
+    "id": "EP-2026-07-05-1783242308520",
+    "date": "2026-07-05",
+    "format": "16s",
+    "durationSec": 16,
+    "status": "prompt_ready",
+    "projectId": "default-project",
+    "characterId": "meow",
+    "characterName": "Meow",
+    "templateId": "template-1783242152510",
+    "templateName": "Thai Ghost Universal Horror",
+    "contentGoal": "Entertainment",
+    "language": "Thai",
+    "thumbnailImage": "",
+    "frameImages": {},
+    "promptVersions": [],
+    "plannedPostDate": "",
+    "postedDate": "",
+    "analytics": {
+      "views": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "revenue": 0,
+      "affiliateClicks": 0
+    },
+    "title": "ธูปไหม้ย้อนกลับ",
+    "coreIdea": {
+      "centralIdea": "ศาลเจ้าที่ร้างเริ่มทำพิธีถวายของให้ผู้มาเยือนที่ยังมีชีวิต",
+      "coreConflict": "แมวต้องเผชิญพิธีที่เปลี่ยนมันจากผู้สังเกตเป็นผู้ถูกบูชา",
+      "hookMechanic": "ธูปที่ดับแล้วเผาไหม้ย้อนกลับเป็นหลักฐานว่าพิธีเริ่มก่อนที่ใครจะมาถึง",
+      "payoffMechanic": "ถาดของไหว้ปรากฏขนมข้าวรูปอุ้งเท้าใหม่สด ทั้งที่ไม่มีมนุษย์อยู่ในศาลา",
+      "emotionTarget": "curious tension to payoff",
+      "noveltyAngle": "Thai Ghost Horror angle",
+      "templateLogic": "nightmare-protocol: normal reality vs impossible evidence; disturbing unanswered question"
+    },
+    "storyBeats": [
+      {
+        "beatId": "F1",
+        "function": "hook",
+        "beat": "แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง"
+      },
+      {
+        "beatId": "F2",
+        "function": "escalation",
+        "beat": "Continuing after แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง, พวงมาลัยลอยขึ้นและรวมเป็นเงาคนคุกเข่าถวายของ"
+      },
+      {
+        "beatId": "F3",
+        "function": "twist",
+        "beat": "Continuing after พวงมาลัยลอยขึ้นและรวมเป็นเงาคนคุกเข่าถวายของ, เงาหายไป แต่ถาดของไหว้ถูกจัดเป็นขนมข้าวรูปอุ้งเท้าสำหรับแมว"
+      }
+    ],
+    "episodeState": {
+      "primaryLocation": "ศาลเจ้าที่ไม้เก่าริมทุ่งนา",
+      "location": "ศาลเจ้าที่ไม้เก่าริมทุ่งนา",
+      "timeOfDay": "หลังเที่ยงคืน",
+      "lightingStyle": "แสงจันทร์หม่นและแสงแดงจากปลายธูป",
+      "mainProps": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+      "continuityAnchor": "ธูปไหม้ย้อนกลับและพวงมาลัยลอยเหนือแท่น",
+      "characterStartPosition": "opening position",
+      "characterEndPosition": "ending position",
+      "lighting": "แสงจันทร์หม่นและแสงแดงจากปลายธูป",
+      "props": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+      "voice": "Meow",
+      "camera": "continuous cinematic camera",
+      "cameraLanguage": "continuous cinematic camera",
+      "environmentAudio": "continuous environment audio",
+      "visualAnchor": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+      "emotionProgression": "curious tension to payoff"
+    },
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+    "voiceProfile": {
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "sentenceLength": "short",
+      "vocabularyStyle": "simple, consistent",
+      "emotionalRange": "curious tension to payoff"
+    },
+    "visualStates": [
+      {
+        "frameId": "F1",
+        "locationLayout": "ศาลเจ้าที่ไม้เก่าริมทุ่งนา",
+        "characterPosition": "opening position",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "establishing medium distance",
+        "mainPropPosition": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+        "lightingDirection": "แสงจันทร์หม่นและแสงแดงจากปลายธูป",
+        "emotionState": "hook",
+        "actionState": "แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง"
+      },
+      {
+        "frameId": "F2",
+        "locationLayout": "ศาลเจ้าที่ไม้เก่าริมทุ่งนา",
+        "characterPosition": "opening position; continues into escalation",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+        "lightingDirection": "แสงจันทร์หม่นและแสงแดงจากปลายธูป",
+        "emotionState": "escalation",
+        "actionState": "Continuing after แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง, พวงมาลัยลอยขึ้นและรวมเป็นเงาคนคุกเข่าถวายของ"
+      },
+      {
+        "frameId": "F3",
+        "locationLayout": "ศาลเจ้าที่ไม้เก่าริมทุ่งนา",
+        "characterPosition": "opening position; continues into escalation; continues into twist",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้",
+        "lightingDirection": "แสงจันทร์หม่นและแสงแดงจากปลายธูป",
+        "emotionState": "twist",
+        "actionState": "Continuing after พวงมาลัยลอยขึ้นและรวมเป็นเงาคนคุกเข่าถวายของ, เงาหายไป แต่ถาดของไหว้ถูกจัดเป็นขนมข้าวรูปอุ้งเท้าสำหรับแมว"
+      }
+    ],
+    "dialogueOutline": [
+      {
+        "videoId": "V1",
+        "dialogueIntent": "แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง",
+        "emotionalIntensity": "1/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V2",
+        "dialogueIntent": "Continuing after แมวพบธูปที่ดับแล้วลุกไหม้ย้อนกลับหน้าศาลเจ้าที่ร้าง, พวงมาลัยลอยขึ้นและรวมเป็นเงาคนคุกเข่าถวายของ",
+        "emotionalIntensity": "2/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      }
+    ],
+    "continuitySelfCheck": {
+      "storyContinuityScore": 0,
+      "frameContinuityScore": 0,
+      "videoContinuityScore": 0,
+      "voiceContinuityScore": 0,
+      "threshold": 85,
+      "passed": false,
+      "notes": ""
+    },
+    "qualityReview": {
+      "storyQualityScore": 100,
+      "storyBeatContinuityScore": 100,
+      "visualContinuityScore": 100,
+      "videoContinuityScore": 65,
+      "dialogueConsistencyScore": 100,
+      "voiceContinuityScore": 100,
+      "noveltyScore": 93,
+      "templateMatchScore": 50,
+      "characterConsistencyScore": 100,
+      "episodeCompletenessScore": 90,
+      "threshold": 85,
+      "passed": true,
+      "notes": "Code quality review passed."
+    },
+    "story": "แมวหลบฝนเข้าศาลเจ้าที่ริมทุ่งนา ก่อนเห็นธูปที่ดับแล้วเผาไหม้ย้อนกลับและพวงมาลัยลอยเอง เมื่อเงาคนถวายของค่อย ๆ คุกเข่าต่อหน้าแท่นบูชา ถาดของไหว้กลับถูกจัดไว้สำหรับมัน",
+    "hook": "ธูปที่ดับแล้วเริ่มไหม้ย้อนกลับ เมื่อแมวเดินผ่านศาลาร้าง",
+    "category": "Thai Ghost Horror",
+    "frames": [
+      {
+        "frameId": "F1",
+        "title": "ธูปย้อนเวลา",
+        "imagePrompt": "A lone cat stands before a rural Thai spirit house as extinguished incense glows backward through night mist."
+      },
+      {
+        "frameId": "F2",
+        "title": "เงาคนถวายของ",
+        "imagePrompt": "The cat watches marigold garlands lift from a wooden altar while a kneeling shadow forms inside an empty pavilion."
+      },
+      {
+        "frameId": "F3",
+        "title": "ของไหว้ของผู้มาเยือน",
+        "imagePrompt": "The cat faces a fresh offering tray holding paw-shaped rice cakes beneath a dark shrine, asking who prepared them."
+      }
+    ],
+    "videos": [
+      {
+        "videoId": "V1",
+        "fromFrame": "F1",
+        "toFrame": "F2",
+        "durationSec": 8,
+        "videoPrompt": "A cat circles a rural spirit house while extinguished incense burns backward and marigold garlands rise from the altar.",
+        "camera": "Low tracking orbit, slow push-in",
+        "motion": "Cautious circle, rising ritual objects",
+        "audio": "Crickets fade, reverse incense crackle, distant temple bell",
+        "dialogue": "ใครจุดธูปไว้?",
+        "mood": "Ritual dread",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: ศาลเจ้าที่ไม้เก่าริมทุ่งนา, opening position, กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking orbit, slow push-in",
+              "soundCue": "Crickets fade, reverse incense crackle, distant temple bell"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat circles a rural spirit house while extinguished incense burns backward and marigold garlands rise from the altar.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking orbit, slow push-in",
+              "soundCue": "Crickets fade, reverse incense crackle, distant temple bell"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking orbit, slow push-in",
+              "soundCue": "Crickets fade, reverse incense crackle, distant temple bell"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: ศาลเจ้าที่ไม้เก่าริมทุ่งนา, opening position; continues into escalation, กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้, Continuing after.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Ritual dread",
+              "cameraMotion": "Low tracking orbit, slow push-in",
+              "soundCue": "Crickets fade, reverse incense crackle, distant temple bell"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V2",
+        "fromFrame": "F2",
+        "toFrame": "F3",
+        "durationSec": 8,
+        "videoPrompt": "A cat follows a kneeling shadow to an altar as the shadow dissolves and paw-shaped rice cakes appear on an empty tray.",
+        "camera": "Slow forward dolly, altar-level close-up",
+        "motion": "Measured approach, shadow drifting away",
+        "audio": "Soft offering-bowl clink, windless chime, fading whisper",
+        "dialogue": "ของไหว้นี้ เตรียมไว้ให้ใคร?",
+        "mood": "Unanswered supernatural fear",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: ศาลเจ้าที่ไม้เก่าริมทุ่งนา, opening position; continues into escalation, กระถางธูป พวงมาลัยดอกดาวเรือง ถาดของไหว้, Continuing after.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward dolly, altar-level close-up",
+              "soundCue": "Soft offering-bowl clink, windless chime, fading whisper"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat follows a kneeling shadow to an altar as the shadow dissolves and paw-shaped rice cakes appear on an empty tray.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward dolly, altar-level close-up",
+              "soundCue": "Soft offering-bowl clink, windless chime, fading whisper"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward dolly, altar-level close-up",
+              "soundCue": "Soft offering-bowl clink, windless chime, fading whisper"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: ศาลเจ้าที่ไม้เก่าริมทุ่งนา, opening position; continues into escalation; continues into twist, กระถางธูป พวงมาลัยดอกดาวเรือง.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Unanswered supernatural fear",
+              "cameraMotion": "Slow forward dolly, altar-level close-up",
+              "soundCue": "Soft offering-bowl clink, windless chime, fading whisper"
+            }
+          ]
+        }
+      }
+    ],
+    "voiceScript": "ใครจุดธูปไว้? ของไหว้นี้ เตรียมไว้ให้ใคร?",
+    "soundEffects": "แมลงกลางคืนเงียบลง, เสียงธูปแตกเบา ๆ, กระดิ่งไกล ๆ, ถ้วยกระทบไม้",
+    "caption": "ถ้าธูปไหม้ย้อนกลับ แปลว่าใครกำลังเริ่มพิธี?",
+    "hashtags": [
+      "#ผีไทย",
+      "#เรื่องผี",
+      "#หลอนก่อนนอน",
+      "#ศาลเจ้าที่",
+      "#GhostFactory"
+    ],
+    "checklist": {
+      "frames": {
+        "F1": false,
+        "F2": false,
+        "F3": false
+      },
+      "videos": {
+        "V1": false,
+        "V2": false
+      },
+      "editedDone": false,
+      "postedDone": false
+    },
+    "viralScore": 86,
+    "duplicateCheck": {
+      "isDuplicate": false,
+      "similarityScore": 0.07,
+      "matchedEpId": "EP-2026-07-05-1783240287910",
+      "matchedTitle": "ดาวที่เดินตาม"
+    },
+    "parseHealth": {
+      "score": 77,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missing": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ],
+      "status": "warning"
+    },
+    "createdAt": "2026-07-05T09:05:08.520Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "",
+      "lightingStyle": "",
+      "continuityAnchor": "",
+      "mainProps": [],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:thai-boy:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Thai Boy",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    },
+    "parseDebug": {
+      "epLabel": "EP01",
+      "title": "ธูปไหม้ย้อนกลับ",
+      "format": "16s",
+      "category": "Thai Ghost Horror",
+      "viralScore": 86,
+      "story": "แมวหลบฝนเข้าศาลเจ้าที่ริมทุ่งนา ก่อนเห็นธูปที่ดับแล้วเผาไหม้ย้อนกลับและพวงมาลัยลอยเอง เมื่อเงาคนถวายของค่อย ๆ คุกเข่าต่อหน้าแท่นบูชา ถาดของไหว้กลับถูกจัดไว้สำหรับมัน",
+      "hook": "ธูปที่ดับแล้วเริ่มไหม้ย้อนกลับ เมื่อแมวเดินผ่านศาลาร้าง",
+      "framesCount": 3,
+      "videosCount": 2,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missingFields": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ]
+    },
+    "updatedAt": "2026-07-05T09:05:08.994Z"
+  },
+  {
+    "id": "EP-2026-07-05-1783240287910",
+    "date": "2026-07-05",
+    "format": "16s",
+    "durationSec": 16,
+    "status": "prompt_ready",
+    "projectId": "default-project",
+    "characterId": "meow",
+    "characterName": "Meow",
+    "templateId": "template-1780843486900",
+    "templateName": "Nightmare Protocol",
+    "contentGoal": "Entertainment",
+    "language": "Thai",
+    "thumbnailImage": "",
+    "frameImages": {},
+    "promptVersions": [],
+    "plannedPostDate": "",
+    "postedDate": "",
+    "analytics": {
+      "views": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "revenue": 0,
+      "affiliateClicks": 0
+    },
+    "title": "ดาวที่เดินตาม",
+    "coreIdea": {
+      "centralIdea": "เครื่องฉายดาวเริ่มสะท้อนการมีอยู่ของสิ่งมีชีวิตแทนท้องฟ้า",
+      "coreConflict": "Meow ต้องเผชิญกับดาวประหลาดที่เลียนแบบทุกการเคลื่อนไหว",
+      "hookMechanic": "ดาวทุกดวงกะพริบพร้อมดวงตาของแมว",
+      "payoffMechanic": "ดาวดวงเดียวหลุดจากโดมและไล่ตามบนผนัง",
+      "emotionTarget": "curious tension to payoff",
+      "noveltyAngle": "Horror Mystery angle",
+      "templateLogic": "nightmare-protocol: normal reality vs impossible evidence; disturbing unanswered question"
+    },
+    "storyBeats": [
+      {
+        "beatId": "F1",
+        "function": "hook",
+        "beat": "Meow มองโดมฉายดาวที่กะพริบพร้อมจังหวะดวงตาของมัน"
+      },
+      {
+        "beatId": "F2",
+        "function": "discovery",
+        "beat": "Meow เดินวนรอบเครื่องฉาย ขณะที่ดาวทั้งหมดขยับตามตำแหน่งของมัน"
+      },
+      {
+        "beatId": "F3",
+        "function": "payoff",
+        "beat": "เครื่องฉายหยุดทำงาน แต่ดาวดวงเดียวเคลื่อนจากโดมลงมาตามผนัง"
+      }
+    ],
+    "episodeState": {
+      "primaryLocation": "ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง",
+      "location": "ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง",
+      "timeOfDay": "หลังเที่ยงคืน",
+      "lightingStyle": "ความมืดน้ำเงินเข้มสลับแสงดาวเย็นจัด",
+      "mainProps": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+      "continuityAnchor": "ดาวสีขาวดวงเล็กกะพริบตรงกับจังหวะดวงตาของ Meow",
+      "characterStartPosition": "opening position",
+      "characterEndPosition": "ending position",
+      "lighting": "ความมืดน้ำเงินเข้มสลับแสงดาวเย็นจัด",
+      "props": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+      "voice": "Meow",
+      "camera": "continuous cinematic camera",
+      "cameraLanguage": "continuous cinematic camera",
+      "environmentAudio": "continuous environment audio",
+      "visualAnchor": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+      "emotionProgression": "curious tension to payoff"
+    },
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+    "voiceProfile": {
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "sentenceLength": "short",
+      "vocabularyStyle": "simple, consistent",
+      "emotionalRange": "curious tension to payoff"
+    },
+    "visualStates": [
+      {
+        "frameId": "F1",
+        "locationLayout": "ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง",
+        "characterPosition": "opening position",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "establishing medium distance",
+        "mainPropPosition": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+        "lightingDirection": "ความมืดน้ำเงินเข้มสลับแสงดาวเย็นจัด",
+        "emotionState": "hook",
+        "actionState": "Meow มองโดมฉายดาวที่กะพริบพร้อมจังหวะดวงตาของมัน"
+      },
+      {
+        "frameId": "F2",
+        "locationLayout": "ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง",
+        "characterPosition": "opening position; continues into discovery",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+        "lightingDirection": "ความมืดน้ำเงินเข้มสลับแสงดาวเย็นจัด",
+        "emotionState": "discovery",
+        "actionState": "Meow เดินวนรอบเครื่องฉาย ขณะที่ดาวทั้งหมดขยับตามตำแหน่งของมัน"
+      },
+      {
+        "frameId": "F3",
+        "locationLayout": "ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง",
+        "characterPosition": "opening position; continues into discovery; continues into payoff",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ",
+        "lightingDirection": "ความมืดน้ำเงินเข้มสลับแสงดาวเย็นจัด",
+        "emotionState": "payoff",
+        "actionState": "เครื่องฉายหยุดทำงาน แต่ดาวดวงเดียวเคลื่อนจากโดมลงมาตามผนัง"
+      }
+    ],
+    "dialogueOutline": [
+      {
+        "videoId": "V1",
+        "dialogueIntent": "Meow มองโดมฉายดาวที่กะพริบพร้อมจังหวะดวงตาของมัน",
+        "emotionalIntensity": "1/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V2",
+        "dialogueIntent": "Meow เดินวนรอบเครื่องฉาย ขณะที่ดาวทั้งหมดขยับตามตำแหน่งของมัน",
+        "emotionalIntensity": "2/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      }
+    ],
+    "continuitySelfCheck": {
+      "storyContinuityScore": 0,
+      "frameContinuityScore": 0,
+      "videoContinuityScore": 0,
+      "voiceContinuityScore": 0,
+      "threshold": 85,
+      "passed": false,
+      "notes": ""
+    },
+    "qualityReview": {
+      "storyQualityScore": 100,
+      "storyBeatContinuityScore": 100,
+      "visualContinuityScore": 100,
+      "videoContinuityScore": 65,
+      "dialogueConsistencyScore": 100,
+      "voiceContinuityScore": 55,
+      "noveltyScore": 86,
+      "templateMatchScore": 50,
+      "characterConsistencyScore": 100,
+      "episodeCompletenessScore": 84,
+      "threshold": 85,
+      "passed": false,
+      "notes": "Code quality review found continuity or quality gaps."
+    },
+    "story": "Meow เข้าไปในห้องฉายดาวที่ปิดปรับปรุง และพบว่าดาวบนโดมกะพริบตามจังหวะการกระพริบตาของมัน เมื่อเครื่องฉายดับลง ดาวดวงหนึ่งกลับยังเคลื่อนตาม Meow ไปทั่วห้อง",
+    "hook": "เครื่องฉายดับแล้ว แต่ดาวดวงหนึ่งยังตาม Meow",
+    "category": "Horror Mystery",
+    "frames": [
+      {
+        "frameId": "F1",
+        "title": "ดาวกะพริบพร้อมกัน",
+        "imagePrompt": "A cat sits beneath a dark planetarium dome as projected stars blink in perfect rhythm with its eyes, eerie blue darkness."
+      },
+      {
+        "frameId": "F2",
+        "title": "ท้องฟ้าตามการเดิน",
+        "imagePrompt": "A cat circles a spherical planetarium projector while constellations slowly rotate above, following its path across the dome."
+      },
+      {
+        "frameId": "F3",
+        "title": "ดาวหลุดจากโดม",
+        "imagePrompt": "A cat faces the exit as one bright projected star slides down the wall toward it after the projector powers off."
+      }
+    ],
+    "videos": [
+      {
+        "videoId": "V1",
+        "fromFrame": "F1",
+        "toFrame": "F2",
+        "durationSec": 8,
+        "videoPrompt": "A cat circles a dormant planetarium projector while every projected star blinks and shifts in perfect sync with the cat's movement.",
+        "camera": "slow circular tracking",
+        "motion": "careful orbit",
+        "audio": "soft electrical hum, distant room tone",
+        "dialogue": "ทำไมดาวถึงมองตามเราอยู่",
+        "mood": "unnatural curiosity",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง, opening position, เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง โดมฉายภาพ, Meow.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "slow circular tracking",
+              "soundCue": "soft electrical hum, distant room tone"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat circles a dormant planetarium projector while every projected star blinks and shifts in perfect sync with the cat's movement.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "slow circular tracking",
+              "soundCue": "soft electrical hum, distant room tone"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "slow circular tracking",
+              "soundCue": "soft electrical hum, distant room tone"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง, opening position; continues into discovery, เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "unnatural curiosity",
+              "cameraMotion": "slow circular tracking",
+              "soundCue": "soft electrical hum, distant room tone"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V2",
+        "fromFrame": "F2",
+        "toFrame": "F3",
+        "durationSec": 8,
+        "videoPrompt": "A cat walks toward a planetarium exit as the powered-down projection leaves the dome and follows across the walls.",
+        "camera": "rear follow shot",
+        "motion": "slow retreat",
+        "audio": "projector shutdown click, faint ringing tone",
+        "dialogue": "เครื่องดับแล้ว... แล้วนั่นคืออะไร",
+        "mood": "silent dread",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง, opening position; continues into discovery, เครื่องฉายดาวทรงกลม เก้าอี้เรียงว่าง.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "rear follow shot",
+              "soundCue": "projector shutdown click, faint ringing tone"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat walks toward a planetarium exit as the powered-down projection leaves the dome and follows across the walls.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "rear follow shot",
+              "soundCue": "projector shutdown click, faint ringing tone"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "rear follow shot",
+              "soundCue": "projector shutdown click, faint ringing tone"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: ห้องฉายดาวของพิพิธภัณฑ์วิทยาศาสตร์ปิดปรับปรุง, opening position; continues into discovery; continues into payoff.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "silent dread",
+              "cameraMotion": "rear follow shot",
+              "soundCue": "projector shutdown click, faint ringing tone"
+            }
+          ]
+        }
+      }
+    ],
+    "voiceScript": "ทำไมดาวถึงมองตามเราอยู่ เครื่องดับแล้ว. แล้วนั่นคืออะไร",
+    "soundEffects": "เสียงเครื่องฉายเบา ๆ เสียงสวิตช์ตัด เสียงกังวานไกล",
+    "caption": "เมื่อเครื่องฉายดาวดับลง... ทำไมยังมีดาวตามออกมา?",
+    "hashtags": [
+      "#Meow",
+      "#เรื่องสั้นสยองขวัญ",
+      "#HorrorShort",
+      "#เรื่องลึกลับ",
+      "#NightmareProtocol"
+    ],
+    "checklist": {
+      "frames": {
+        "F1": false,
+        "F2": false,
+        "F3": false
+      },
+      "videos": {
+        "V1": false,
+        "V2": false
+      },
+      "editedDone": false,
+      "postedDone": false
+    },
+    "viralScore": 92,
+    "duplicateCheck": {
+      "isDuplicate": false,
+      "similarityScore": 0.14,
+      "matchedEpId": "EP-2026-07-05-1783240061851",
+      "matchedTitle": "ตู้ล็อกเกอร์ที่หายใจ"
+    },
+    "parseHealth": {
+      "score": 77,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missing": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ],
+      "status": "warning"
+    },
+    "createdAt": "2026-07-05T08:31:27.910Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "",
+      "lightingStyle": "",
+      "continuityAnchor": "",
+      "mainProps": [],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:thai-boy:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Thai Boy",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    },
+    "parseDebug": {
+      "epLabel": "EP01",
+      "title": "ดาวที่เดินตาม",
+      "format": "16s",
+      "category": "Horror Mystery",
+      "viralScore": 92,
+      "story": "Meow เข้าไปในห้องฉายดาวที่ปิดปรับปรุง และพบว่าดาวบนโดมกะพริบตามจังหวะการกระพริบตาของมัน เมื่อเครื่องฉายดับลง ดาวดวงหนึ่งกลับยังเคลื่อนตาม Meow ไปทั่วห้อง",
+      "hook": "เครื่องฉายดับแล้ว แต่ดาวดวงหนึ่งยังตาม Meow",
+      "framesCount": 3,
+      "videosCount": 2,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missingFields": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ]
+    },
+    "updatedAt": "2026-07-05T08:31:28.058Z"
+  },
+  {
+    "id": "EP-2026-07-05-1783240061851",
+    "date": "2026-07-05",
+    "format": "24s",
+    "durationSec": 24,
+    "status": "prompt_ready",
+    "projectId": "default-project",
+    "characterId": "meow",
+    "characterName": "Meow",
+    "templateId": "template-1780843486900",
+    "templateName": "Nightmare Protocol",
+    "contentGoal": "Entertainment",
+    "language": "Thai",
+    "thumbnailImage": "",
+    "frameImages": {},
+    "promptVersions": [],
+    "plannedPostDate": "",
+    "postedDate": "",
+    "analytics": {
+      "views": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "revenue": 0,
+      "affiliateClicks": 0
+    },
+    "title": "ตู้ล็อกเกอร์ที่หายใจ",
+    "coreIdea": {
+      "centralIdea": "หลักฐานจากพื้นที่ปิดตายเผยโลกอีกด้านที่กำลังเข้ามาใกล้",
+      "coreConflict": "Meow ต้องตัดสินใจถอยหนีหรือเผชิญสิ่งที่อยู่หลังประตูโลหะ",
+      "hookMechanic": "เสียงหายใจดังจากตู้ล็อกเกอร์ที่ไม่มีทางมีชีวิต",
+      "payoffMechanic": "ประตูเปิดออกพร้อมตู้รอบห้องที่ปลดล็อกสู่ความมืด",
+      "emotionTarget": "curious tension to payoff",
+      "noveltyAngle": "Horror Mystery angle",
+      "templateLogic": "nightmare-protocol: normal reality vs impossible evidence; disturbing unanswered question"
+    },
+    "storyBeats": [
+      {
+        "beatId": "F1",
+        "function": "hook",
+        "beat": "Meow ได้ยินเสียงหายใจชัดเจนจากตู้ล็อกเกอร์สีฟ้าที่ปิดสนิท"
+      },
+      {
+        "beatId": "F2",
+        "function": "discovery",
+        "beat": "บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น"
+      },
+      {
+        "beatId": "F3",
+        "function": "escalation",
+        "beat": "Continuing after บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น, ช่องระบายอากาศเผยภาพรถไฟกำลังวิ่งผ่านอุโมงค์ใต้ดิน"
+      },
+      {
+        "beatId": "F4",
+        "function": "payoff",
+        "beat": "Continuing after ช่องระบายอากาศเผยภาพรถไฟกำลังวิ่งผ่านอุโมงค์ใต้ดิน, ตู้เปิดออกสู่ความมืด ขณะที่ตู้ทั้งห้องปลดล็อกพร้อมกัน"
+      }
+    ],
+    "episodeState": {
+      "primaryLocation": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+      "location": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+      "timeOfDay": "02:17 น.",
+      "lightingStyle": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+      "mainProps": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+      "continuityAnchor": "ตู้ล็อกเกอร์หมายเลข 17 สั่นเป็นจังหวะเหมือนกำลังหายใจ",
+      "characterStartPosition": "opening position",
+      "characterEndPosition": "ending position",
+      "lighting": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+      "props": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+      "voice": "Meow",
+      "camera": "continuous cinematic camera",
+      "cameraLanguage": "continuous cinematic camera",
+      "environmentAudio": "continuous environment audio",
+      "visualAnchor": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+      "emotionProgression": "curious tension to payoff"
+    },
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+    "voiceProfile": {
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "sentenceLength": "short",
+      "vocabularyStyle": "simple, consistent",
+      "emotionalRange": "curious tension to payoff"
+    },
+    "visualStates": [
+      {
+        "frameId": "F1",
+        "locationLayout": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+        "characterPosition": "opening position",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "establishing medium distance",
+        "mainPropPosition": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+        "lightingDirection": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+        "emotionState": "hook",
+        "actionState": "Meow ได้ยินเสียงหายใจชัดเจนจากตู้ล็อกเกอร์สีฟ้าที่ปิดสนิท"
+      },
+      {
+        "frameId": "F2",
+        "locationLayout": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+        "characterPosition": "opening position; continues into discovery",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+        "lightingDirection": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+        "emotionState": "discovery",
+        "actionState": "บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น"
+      },
+      {
+        "frameId": "F3",
+        "locationLayout": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+        "characterPosition": "opening position; continues into discovery; continues into escalation",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+        "lightingDirection": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+        "emotionState": "escalation",
+        "actionState": "Continuing after บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น, ช่องระบายอากาศเผยภาพรถไฟกำลังวิ่งผ่านอุโมงค์ใต้ดิน"
+      },
+      {
+        "frameId": "F4",
+        "locationLayout": "ห้องรับของหายสถานีรถไฟใต้ดินร้าง",
+        "characterPosition": "opening position; continues into discovery; continues into escalation; continues into payoff",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ",
+        "lightingDirection": "ไฟฉุกเฉินกะพริบสลับแสงเย็นซีด",
+        "emotionState": "payoff",
+        "actionState": "Continuing after ช่องระบายอากาศเผยภาพรถไฟกำลังวิ่งผ่านอุโมงค์ใต้ดิน, ตู้เปิดออกสู่ความมืด ขณะที่ตู้ทั้งห้องปลดล็อกพร้อมกัน"
+      }
+    ],
+    "dialogueOutline": [
+      {
+        "videoId": "V1",
+        "dialogueIntent": "Meow ได้ยินเสียงหายใจชัดเจนจากตู้ล็อกเกอร์สีฟ้าที่ปิดสนิท",
+        "emotionalIntensity": "1/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V2",
+        "dialogueIntent": "บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น",
+        "emotionalIntensity": "2/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V3",
+        "dialogueIntent": "Continuing after บัตรโดยสารฉีกขาดเลื่อนออกมาจากใต้ประตูพร้อมไอเย็น, ช่องระบายอากาศเผยภาพรถไฟกำลังวิ่งผ่านอุโมงค์ใต้ดิน",
+        "emotionalIntensity": "3/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      }
+    ],
+    "continuitySelfCheck": {
+      "storyContinuityScore": 0,
+      "frameContinuityScore": 0,
+      "videoContinuityScore": 0,
+      "voiceContinuityScore": 0,
+      "threshold": 85,
+      "passed": false,
+      "notes": ""
+    },
+    "qualityReview": {
+      "storyQualityScore": 100,
+      "storyBeatContinuityScore": 100,
+      "visualContinuityScore": 100,
+      "videoContinuityScore": 65,
+      "dialogueConsistencyScore": 100,
+      "voiceContinuityScore": 100,
+      "noveltyScore": 95,
+      "templateMatchScore": 50,
+      "characterConsistencyScore": 100,
+      "episodeCompletenessScore": 90,
+      "threshold": 85,
+      "passed": true,
+      "notes": "Code quality review passed."
+    },
+    "story": "Meow พบตู้ล็อกเกอร์ปิดตายกำลังหายใจอยู่ในห้องรับของหายร้าง เมื่อมองผ่านช่องระบายอากาศ ข้างในกลับมีรถไฟวิ่งผ่านในอุโมงค์ที่ไม่ควรอยู่ตรงนั้น",
+    "hook": "ตู้ล็อกเกอร์ปิดตาย แต่กำลังหายใจอยู่",
+    "category": "Horror Mystery",
+    "frames": [
+      {
+        "frameId": "F1",
+        "title": "เสียงจากตู้ปิดตาย",
+        "imagePrompt": "A cat watches a sealed blue station locker pulse gently in an empty lost-and-found room, emergency lights flickering."
+      },
+      {
+        "frameId": "F2",
+        "title": "บัตรโดยสารเย็นจัด",
+        "imagePrompt": "A cat crouches beside a vibrating blue locker as a torn train ticket slides beneath its door, cold mist gathering."
+      },
+      {
+        "frameId": "F3",
+        "title": "อุโมงค์หลังช่องลม",
+        "imagePrompt": "A cat peers through a locker vent where a moving subway tunnel appears behind the metal grate, wind lifting dust."
+      },
+      {
+        "frameId": "F4",
+        "title": "ตู้ทุกบานเปิดพร้อมกัน",
+        "imagePrompt": "A cat faces an open blue locker filled with darkness while every surrounding locker stands silently ajar."
+      }
+    ],
+    "videos": [
+      {
+        "videoId": "V1",
+        "fromFrame": "F1",
+        "toFrame": "F2",
+        "durationSec": 8,
+        "videoPrompt": "A cat crosses an empty lost-and-found room toward a sealed blue locker as its metal door pulses like slow breathing.",
+        "camera": "low tracking push-in",
+        "motion": "slow cautious approach",
+        "audio": "ventilation hum, soft latch clicks",
+        "dialogue": "",
+        "mood": "quiet alarm",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position, ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ, Meow.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "low tracking push-in",
+              "soundCue": "ventilation hum, soft latch clicks"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat crosses an empty lost-and-found room toward a sealed blue locker as its metal door pulses like slow breathing.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "low tracking push-in",
+              "soundCue": "ventilation hum, soft latch clicks"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "low tracking push-in",
+              "soundCue": "ventilation hum, soft latch clicks"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position; continues into discovery, ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "quiet alarm",
+              "cameraMotion": "low tracking push-in",
+              "soundCue": "ventilation hum, soft latch clicks"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V2",
+        "fromFrame": "F2",
+        "toFrame": "F3",
+        "durationSec": 8,
+        "videoPrompt": "A cat presses close to a locker vent while a cold draft reveals a moving subway tunnel behind the metal grate.",
+        "camera": "tight side profile",
+        "motion": "slow inward drift",
+        "audio": "distant rail rumble, rushing wind",
+        "dialogue": "",
+        "mood": "impossible evidence",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position; continues into discovery, ตู้ล็อกเกอร์สีฟ้า บัตรโดยสารฉีกขาด ช่องระบายอากาศ.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "tight side profile",
+              "soundCue": "distant rail rumble, rushing wind"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat presses close to a locker vent while a cold draft reveals a moving subway tunnel behind the metal grate.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "tight side profile",
+              "soundCue": "distant rail rumble, rushing wind"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "tight side profile",
+              "soundCue": "distant rail rumble, rushing wind"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position; continues into discovery; continues into escalation, ตู้ล็อกเกอร์สีฟ้า.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "impossible evidence",
+              "cameraMotion": "tight side profile",
+              "soundCue": "distant rail rumble, rushing wind"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V3",
+        "fromFrame": "F3",
+        "toFrame": "F4",
+        "durationSec": 8,
+        "videoPrompt": "A cat retreats from the locker as its door opens completely and the surrounding lockers unlock into silent darkness.",
+        "camera": "rear dolly out",
+        "motion": "measured retreat",
+        "audio": "one long metal creak, sudden silence",
+        "dialogue": "",
+        "mood": "unanswered dread",
+        "voiceLockId": "meow:thai-boy:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position; continues into discovery; continues into escalation, ตู้ล็อกเกอร์สีฟ้า.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "rear dolly out",
+              "soundCue": "one long metal creak, sudden silence"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat retreats from the locker as its door opens completely and the surrounding lockers unlock into silent darkness.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "rear dolly out",
+              "soundCue": "one long metal creak, sudden silence"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "rear dolly out",
+              "soundCue": "one long metal creak, sudden silence"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: ห้องรับของหายสถานีรถไฟใต้ดินร้าง, opening position; continues into discovery; continues into escalation; continues into payoff.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "unanswered dread",
+              "cameraMotion": "rear dolly out",
+              "soundCue": "one long metal creak, sudden silence"
+            }
+          ]
+        }
+      }
+    ],
+    "voiceScript": "",
+    "soundEffects": "เสียงลมระบายอากาศ กลอนตู้คลิกเบา ๆ รถไฟไกล ๆ ประตูโลหะครูด",
+    "caption": "ตู้ล็อกเกอร์ปิดตาย ใส่รถไฟไว้ข้างในได้อย่างไร?",
+    "hashtags": [
+      "#เรื่องสั้นสยองขวัญ",
+      "#HorrorShort",
+      "#Meow",
+      "#เรื่องลึกลับ",
+      "#NightmareProtocol"
+    ],
+    "checklist": {
+      "frames": {
+        "F1": false,
+        "F2": false,
+        "F3": false,
+        "F4": false
+      },
+      "videos": {
+        "V1": false,
+        "V2": false,
+        "V3": false
+      },
+      "editedDone": false,
+      "postedDone": false
+    },
+    "viralScore": 91,
+    "duplicateCheck": {
+      "isDuplicate": false,
+      "similarityScore": 0.05,
+      "matchedEpId": "EP-2026-06-12-1781287127103",
+      "matchedTitle": "ท่าไม้ตายปลาทูสุริยัน"
+    },
+    "parseHealth": {
+      "score": 77,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missing": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ],
+      "status": "warning"
+    },
+    "createdAt": "2026-07-05T08:27:41.851Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "",
+      "lightingStyle": "",
+      "continuityAnchor": "",
+      "mainProps": [],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:thai-boy:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Thai Boy",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    },
+    "parseDebug": {
+      "epLabel": "EP01",
+      "title": "ตู้ล็อกเกอร์ที่หายใจ",
+      "format": "24s",
+      "category": "Horror Mystery",
+      "viralScore": 91,
+      "story": "Meow พบตู้ล็อกเกอร์ปิดตายกำลังหายใจอยู่ในห้องรับของหายร้าง เมื่อมองผ่านช่องระบายอากาศ ข้างในกลับมีรถไฟวิ่งผ่านในอุโมงค์ที่ไม่ควรอยู่ตรงนั้น",
+      "hook": "ตู้ล็อกเกอร์ปิดตาย แต่กำลังหายใจอยู่",
+      "framesCount": 4,
+      "videosCount": 3,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Videos",
+        "Caption",
+        "Hashtags"
+      ],
+      "missingFields": [
+        "Quality Review",
+        "Image Prompt Assembly",
+        "Video Prompt Assembly"
+      ]
+    },
+    "updatedAt": "2026-07-05T08:27:42.696Z"
+  },
+  {
+    "id": "EP-2026-07-05-1783237465410",
+    "date": "2026-07-05",
+    "format": "25s",
+    "durationSec": 40,
+    "status": "prompt_ready",
+    "projectId": "default-project",
+    "characterId": "meow",
+    "characterName": "Meow",
+    "templateId": "horror-comedy",
+    "templateName": "Horror Comedy",
+    "contentGoal": "Entertainment",
+    "language": "Thai",
+    "thumbnailImage": "",
+    "frameImages": {},
+    "promptVersions": [],
+    "plannedPostDate": "",
+    "postedDate": "",
+    "analytics": {
+      "views": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "revenue": 0,
+      "affiliateClicks": 0
+    },
+    "title": "สำเนาที่มาก่อน",
+    "coreIdea": {
+      "centralIdea": "เครื่องถ่ายเอกสารทำนายการกระทำถัดไปผ่านภาพขาวดำ",
+      "coreConflict": "แมวต้องหยุดภาพลึกลับก่อนรอยเท้าจากกระดาษจะออกมาจริง",
+      "hookMechanic": "ภาพที่พิมพ์ออกมาตรงกับเหตุการณ์ทันที",
+      "payoffMechanic": "เครื่องหยุดทำงาน แต่รอยเท้าเปียกจริงปรากฏบนกระดาษแผ่นสุดท้าย",
+      "emotionTarget": "curiosity -> reaction",
+      "noveltyAngle": "Horror Comedy angle",
+      "templateLogic": "nightmare-protocol: normal reality vs impossible evidence; disturbing unanswered question"
+    },
+    "storyBeats": [
+      {
+        "beatId": "F1",
+        "function": "hook",
+        "beat": "เครื่องถ่ายเอกสารเงียบ ๆ คายกระดาษที่มีภาพแมวก้มมองถาดกระดาษ"
+      },
+      {
+        "beatId": "F2",
+        "function": "discovery",
+        "beat": "แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที"
+      },
+      {
+        "beatId": "F3",
+        "function": "escalation",
+        "beat": "From the previous beat (แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที), กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท"
+      },
+      {
+        "beatId": "F4",
+        "function": "reveal",
+        "beat": "From the previous beat (กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท), ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด"
+      },
+      {
+        "beatId": "F5",
+        "function": "attempt",
+        "beat": "From the previous beat (ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด), แมวกระโดดขึ้นนั่งทับเครื่องเพื่อหยุดมันอย่างจริงจัง"
+      },
+      {
+        "beatId": "F6",
+        "function": "payoff",
+        "beat": "From the previous beat (แมวกระโดดขึ้นนั่งทับเครื่องเพื่อหยุดมันอย่างจริงจัง), เครื่องเงียบลง แต่รอยเท้าเปียกหนึ่งรอยค่อย ๆ ปรากฏข้างอุ้งเท้าบนกระดาษ"
+      }
+    ],
+    "episodeState": {
+      "primaryLocation": "ออฟฟิศเก่าหลังเวลางาน",
+      "location": "ออฟฟิศเก่าหลังเวลางาน",
+      "timeOfDay": "หลังเที่ยงคืน",
+      "lightingStyle": "แสงหลอดนีออนเย็นสลับเงามืด",
+      "mainProps": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+      "continuityAnchor": "ภาพขาวดำที่พิมพ์ออกมาก่อนเหตุการณ์จริง",
+      "characterStartPosition": "initial beat position",
+      "characterEndPosition": "final beat position",
+      "lighting": "แสงหลอดนีออนเย็นสลับเงามืด",
+      "props": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+      "voice": "Meow",
+      "camera": "continuous cinematic camera",
+      "cameraLanguage": "continuous cinematic camera",
+      "environmentAudio": "continuous environment audio",
+      "visualAnchor": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+      "emotionProgression": "curiosity -> reaction"
+    },
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+    "voiceProfile": {
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "sentenceLength": "short",
+      "vocabularyStyle": "simple, consistent",
+      "emotionalRange": "curiosity -> reaction"
+    },
+    "visualStates": [
+      {
+        "frameId": "F1",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "establishing medium distance",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "hook",
+        "actionState": "เครื่องถ่ายเอกสารเงียบ ๆ คายกระดาษที่มีภาพแมวก้มมองถาดกระดาษ"
+      },
+      {
+        "frameId": "F2",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position; progressed by discovery",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "discovery",
+        "actionState": "แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที"
+      },
+      {
+        "frameId": "F3",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "escalation",
+        "actionState": "From the previous beat (แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที), กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท"
+      },
+      {
+        "frameId": "F4",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "reveal",
+        "actionState": "From the previous beat (กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท), ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด"
+      },
+      {
+        "frameId": "F5",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal; progressed by attempt",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "attempt",
+        "actionState": "From the previous beat (ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด), แมวกระโดดขึ้นนั่งทับเครื่องเพื่อหยุดมันอย่างจริงจัง"
+      },
+      {
+        "frameId": "F6",
+        "locationLayout": "ออฟฟิศเก่าหลังเวลางาน",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal; progressed by attempt; progressed by payoff",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก",
+        "lightingDirection": "แสงหลอดนีออนเย็นสลับเงามืด",
+        "emotionState": "payoff",
+        "actionState": "From the previous beat (แมวกระโดดขึ้นนั่งทับเครื่องเพื่อหยุดมันอย่างจริงจัง), เครื่องเงียบลง แต่รอยเท้าเปียกหนึ่งรอยค่อย ๆ ปรากฏข้างอุ้งเท้าบนกระดาษ"
+      }
+    ],
+    "dialogueOutline": [
+      {
+        "videoId": "V1",
+        "dialogueIntent": "เครื่องถ่ายเอกสารเงียบ ๆ คายกระดาษที่มีภาพแมวก้มมองถาดกระดาษ",
+        "emotionalIntensity": "1/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V2",
+        "dialogueIntent": "แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที",
+        "emotionalIntensity": "2/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V3",
+        "dialogueIntent": "From the previous beat (แมวก้มมองกระดาษตามภาพ และเครื่องเริ่มทำงานเองทันที), กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท",
+        "emotionalIntensity": "3/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V4",
+        "dialogueIntent": "From the previous beat (กระดาษแผ่นใหม่เผยภาพฝาเครื่องกำลังเปิด ทั้งที่ยังปิดสนิท), ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด",
+        "emotionalIntensity": "4/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V5",
+        "dialogueIntent": "From the previous beat (ฝาเครื่องยกขึ้นเองพร้อมกระดาษปลิว และมีรอยเท้าเปียกบนถาด), แมวกระโดดขึ้นนั่งทับเครื่องเพื่อหยุดมันอย่างจริงจัง",
+        "emotionalIntensity": "5/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      }
+    ],
+    "continuitySelfCheck": {
+      "storyContinuityScore": 0,
+      "frameContinuityScore": 0,
+      "videoContinuityScore": 0,
+      "voiceContinuityScore": 0,
+      "threshold": 85,
+      "passed": false,
+      "notes": ""
+    },
+    "qualityReview": {
+      "storyQualityScore": 100,
+      "storyBeatContinuityScore": 100,
+      "visualContinuityScore": 100,
+      "videoContinuityScore": 100,
+      "dialogueConsistencyScore": 100,
+      "voiceContinuityScore": 100,
+      "noveltyScore": 84,
+      "templateMatchScore": 50,
+      "characterConsistencyScore": 100,
+      "episodeCompletenessScore": 93,
+      "threshold": 85,
+      "passed": true,
+      "notes": "Code quality review passed."
+    },
+    "story": "ในออฟฟิศเงียบหลังเที่ยงคืน เครื่องถ่ายเอกสารเริ่มพิมพ์ภาพเหตุการณ์ก่อนมันเกิดไม่กี่วินาที เมื่อเจ้าของรอยเท้าเปียกบนกระดาษยังไม่มีใครเห็น",
+    "hook": "เครื่องถ่ายเอกสารพิมพ์ภาพก่อนเหตุการณ์จะเกิดห้าวินาที",
+    "category": "Horror Comedy",
+    "frames": [
+      {
+        "frameId": "F1",
+        "title": "กระดาษปริศนา",
+        "imagePrompt": "Silent midnight office, old copier ejecting a black-and-white photo of a cat near its paper tray, eerie fluorescent atmosphere."
+      },
+      {
+        "frameId": "F2",
+        "title": "ภาพเริ่มจริง",
+        "imagePrompt": "A cat lowers its head toward a fresh photocopy while the old copier suddenly glows and begins operating."
+      },
+      {
+        "frameId": "F3",
+        "title": "สำเนาล่วงหน้า",
+        "imagePrompt": "A new black-and-white copy shows an opening copier lid while the real lid remains closed, tense surreal framing."
+      },
+      {
+        "frameId": "F4",
+        "title": "รอยเท้าจากถาด",
+        "imagePrompt": "Copier lid rises by itself, loose papers flutter through cold office light, wet pawprints visible inside the tray."
+      },
+      {
+        "frameId": "F5",
+        "title": "วิธีแก้แบบแมว",
+        "imagePrompt": "A cat sits firmly on top of an active copier, papers settle around the machine, absurd horror-comedy tension."
+      },
+      {
+        "frameId": "F6",
+        "title": "รอยสุดท้าย",
+        "imagePrompt": "Silent copier beside a final black-and-white page, a fresh wet pawprint appears next to a printed paw image."
+      }
+    ],
+    "videos": [
+      {
+        "videoId": "V1",
+        "fromFrame": "F1",
+        "toFrame": "F2",
+        "durationSec": 8,
+        "videoPrompt": "An old copier slowly ejects a photograph, then a cat leans down and matches the pose shown on the page.",
+        "camera": "Slow push-in",
+        "motion": "Paper slides forward",
+        "audio": "Copier hum, paper scrape",
+        "dialogue": "เดี๋ยวนะ ภาพนี้เพิ่งถ่ายเมื่อไร",
+        "mood": "Curious unease",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก, เครื่องถ่ายเอกสารเงียบ ๆ.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Copier hum, paper scrape"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "An old copier slowly ejects a photograph, then a cat leans down and matches the pose shown on the page.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Copier hum, paper scrape"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Copier hum, paper scrape"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก, แมวก้มมองกระดาษตามภาพ.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Curious unease",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Copier hum, paper scrape"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V2",
+        "fromFrame": "F2",
+        "toFrame": "F3",
+        "durationSec": 8,
+        "videoPrompt": "The copier activates by itself and ejects another page showing its lid opening before anything moves.",
+        "camera": "Close handheld",
+        "motion": "Mechanical vibration",
+        "audio": "Motor whirr, fluorescent buzz",
+        "dialogue": "มันรู้ก่อนฉันอีกแล้ว",
+        "mood": "Rising dread",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก, แมวก้มมองกระดาษตามภาพ.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Close handheld",
+              "soundCue": "Motor whirr, fluorescent buzz"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The copier activates by itself and ejects another page showing its lid opening before anything moves.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Close handheld",
+              "soundCue": "Motor whirr, fluorescent buzz"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Close handheld",
+              "soundCue": "Motor whirr, fluorescent buzz"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก, From the.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Rising dread",
+              "cameraMotion": "Close handheld",
+              "soundCue": "Motor whirr, fluorescent buzz"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V3",
+        "fromFrame": "F3",
+        "toFrame": "F4",
+        "durationSec": 8,
+        "videoPrompt": "The copier lid lifts on its own as papers flutter upward, revealing wet pawprints spreading across the tray.",
+        "camera": "Low angle tilt",
+        "motion": "Lid rises slowly",
+        "audio": "Hinge creak, paper flutter",
+        "dialogue": "รอยเท้านั่นไม่ใช่ของฉัน",
+        "mood": "Disturbing absurdity",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก, From the.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Low angle tilt",
+              "soundCue": "Hinge creak, paper flutter"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The copier lid lifts on its own as papers flutter upward, revealing wet pawprints spreading across the tray.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Low angle tilt",
+              "soundCue": "Hinge creak, paper flutter"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Low angle tilt",
+              "soundCue": "Hinge creak, paper flutter"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Disturbing absurdity",
+              "cameraMotion": "Low angle tilt",
+              "soundCue": "Hinge creak, paper flutter"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V4",
+        "fromFrame": "F4",
+        "toFrame": "F5",
+        "durationSec": 8,
+        "videoPrompt": "A cat jumps onto the copier and sits heavily on the lid, making the machine shudder and fall silent.",
+        "camera": "Medium static",
+        "motion": "Quick jump, sudden stop",
+        "audio": "Thump, motor cuts out",
+        "dialogue": "นั่งทับไว้ก่อนก็แล้วกัน",
+        "mood": "Comedic relief",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F4: ออฟฟิศเก่าหลังเวลางาน, initial beat position, เครื่องถ่ายเอกสารเก่า กระดาษขาว.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Medium static",
+              "soundCue": "Thump, motor cuts out"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A cat jumps onto the copier and sits heavily on the lid, making the machine shudder and fall silent.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Medium static",
+              "soundCue": "Thump, motor cuts out"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F5",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Medium static",
+              "soundCue": "Thump, motor cuts out"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F5: ออฟฟิศเก่าหลังเวลางาน, initial beat position; progressed by attempt.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Comedic relief",
+              "cameraMotion": "Medium static",
+              "soundCue": "Thump, motor cuts out"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V5",
+        "fromFrame": "F5",
+        "toFrame": "F6",
+        "durationSec": 8,
+        "videoPrompt": "A final page slowly slides from the silent copier as a wet pawprint appears beside the printed image.",
+        "camera": "Extreme close-up",
+        "motion": "Ink-dark pawprint emerges",
+        "audio": "Paper slide, distant drip",
+        "dialogue": "แล้วรอยนี้ของใคร",
+        "mood": "Quiet unresolved chill",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F5: ออฟฟิศเก่าหลังเวลางาน, initial beat position; progressed by attempt.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Extreme close-up",
+              "soundCue": "Paper slide, distant drip"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A final page slowly slides from the silent copier as a wet pawprint appears beside the printed image.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Extreme close-up",
+              "soundCue": "Paper slide, distant drip"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F6",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Extreme close-up",
+              "soundCue": "Paper slide, distant drip"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F6: ออฟฟิศเก่าหลังเวลางาน, initial beat position; progressed by attempt; progressed by.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Quiet unresolved chill",
+              "cameraMotion": "Extreme close-up",
+              "soundCue": "Paper slide, distant drip"
+            }
+          ]
+        }
+      }
+    ],
+    "voiceScript": "เดี๋ยวนะ ภาพนี้เพิ่งถ่ายเมื่อไร มันรู้ก่อนฉันอีกแล้ว รอยเท้านั่นไม่ใช่ของฉัน นั่งทับไว้ก่อนก็แล้วกัน แล้วรอยนี้ของใคร",
+    "soundEffects": "เครื่องถ่ายเอกสารทำงานเอง เสียงกระดาษเลื่อน เสียงหลอดนีออน เสียงหยดน้ำ",
+    "caption": "เมื่อเครื่องถ่ายเอกสารรู้ว่าคุณจะทำอะไรต่อไป",
+    "hashtags": [
+      "#เรื่องสั้นหลอน",
+      "#แมวตลก",
+      "#horrorcomedy",
+      "#เรื่องลึกลับ",
+      "#catstory"
+    ],
+    "checklist": {
+      "frames": {
+        "F1": false,
+        "F2": false,
+        "F3": false,
+        "F4": false,
+        "F5": false,
+        "F6": false
+      },
+      "videos": {
+        "V1": false,
+        "V2": false,
+        "V3": false,
+        "V4": false,
+        "V5": false
+      },
+      "editedDone": false,
+      "postedDone": false
+    },
+    "viralScore": 91,
+    "duplicateCheck": {
+      "isDuplicate": false,
+      "similarityScore": 0.16,
+      "matchedEpId": "EP-2026-07-05-1783235382706",
+      "matchedTitle": "เครื่องอบคืนถุงเท้า"
+    },
+    "parseHealth": {
+      "score": 92,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Image Prompt Assembly",
+        "Videos",
+        "Video Prompt Assembly",
+        "Caption",
+        "Hashtags"
+      ],
+      "missing": [
+        "Quality Review"
+      ],
+      "status": "ok"
+    },
+    "createdAt": "2026-07-05T07:44:25.410Z",
+    "parseDebug": {
+      "epLabel": "EP01",
+      "title": "สำเนาที่มาก่อน",
+      "format": "25s",
+      "category": "Horror Comedy",
+      "viralScore": 91,
+      "story": "ในออฟฟิศเงียบหลังเที่ยงคืน เครื่องถ่ายเอกสารเริ่มพิมพ์ภาพเหตุการณ์ก่อนมันเกิดไม่กี่วินาที เมื่อเจ้าของรอยเท้าเปียกบนกระดาษยังไม่มีใครเห็น",
+      "hook": "เครื่องถ่ายเอกสารพิมพ์ภาพก่อนเหตุการณ์จะเกิดห้าวินาที",
+      "framesCount": 6,
+      "videosCount": 5,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Image Prompt Assembly",
+        "Videos",
+        "Video Prompt Assembly",
+        "Caption",
+        "Hashtags"
+      ],
+      "missingFields": [
+        "Quality Review"
+      ]
+    },
+    "updatedAt": "2026-07-05T07:44:25.820Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "ออฟฟิศเก่าหลังเวลางาน",
+      "lightingStyle": "แสงหลอดนีออนเย็นสลับเงามืด",
+      "continuityAnchor": "ภาพขาวดำที่พิมพ์ออกมาก่อนเหตุการณ์จริง",
+      "mainProps": [
+        "เครื่องถ่ายเอกสารเก่า กระดาษขาว รอยเท้าเปียก"
+      ],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:meow:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    }
+  },
+  {
+    "id": "EP-2026-07-05-1783235382706",
+    "date": "2026-07-05",
+    "format": "40s",
+    "durationSec": 40,
+    "status": "prompt_ready",
+    "projectId": "default-project",
+    "characterId": "meow",
+    "characterName": "Meow",
+    "templateId": "horror-comedy",
+    "templateName": "Horror Comedy",
+    "contentGoal": "Entertainment",
+    "language": "Thai",
+    "thumbnailImage": "",
+    "frameImages": {},
+    "promptVersions": [],
+    "plannedPostDate": "",
+    "postedDate": "",
+    "analytics": {
+      "views": 0,
+      "likes": 0,
+      "comments": 0,
+      "shares": 0,
+      "saves": 0,
+      "revenue": 0,
+      "affiliateClicks": 0
+    },
+    "title": "เครื่องอบคืนถุงเท้า",
+    "coreIdea": {
+      "centralIdea": "เครื่องอบผ้าหยอดเหรียญทำพิธีคืนถุงเท้าที่หายไป พร้อมซ่อนกุญแจปริศนาไว้ในกองผ้า",
+      "coreConflict": "ต้องหยุดเครื่องที่ทำงานเองก่อนมันจะส่งคืนของชิ้นถัดไป",
+      "hookMechanic": "ถุงเท้าเปียกคลานเองเข้าหาเครื่องอบ",
+      "payoffMechanic": "กองถุงเท้าพังลงเผยกุญแจทองเหลืองเล็ก ๆ ที่ยังอุ่นอยู่",
+      "emotionTarget": "curiosity -> reaction",
+      "noveltyAngle": "สยองขำ angle",
+      "templateLogic": "nightmare-protocol: normal reality vs impossible evidence; disturbing unanswered question"
+    },
+    "storyBeats": [
+      {
+        "beatId": "F1",
+        "function": "hook",
+        "beat": "ถุงเท้าเปียกคลานข้ามพื้นกระเบื้องเข้าหาเครื่องอบที่กำลังเรืองแสง"
+      },
+      {
+        "beatId": "F2",
+        "function": "discovery",
+        "beat": "ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่"
+      },
+      {
+        "beatId": "F3",
+        "function": "escalation",
+        "beat": "From the previous beat (ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่), ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ"
+      },
+      {
+        "beatId": "F4",
+        "function": "reveal",
+        "beat": "From the previous beat (ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ), ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง"
+      },
+      {
+        "beatId": "F5",
+        "function": "threat",
+        "beat": "From the previous beat (ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง), กองถุงเท้าเอนตัวเข้ามา แล้วถุงเท้าหนึ่งข้างชี้ไปยังกุญแจทองเหลือง"
+      },
+      {
+        "beatId": "F6",
+        "function": "payoff",
+        "beat": "กองถุงเท้าถล่มลงรอบกุญแจ ขณะที่ประตูเครื่องอบเปิดออกสู่ความมืดสนิท"
+      }
+    ],
+    "episodeState": {
+      "primaryLocation": "ร้านซักผ้าหยอดเหรียญเก่า",
+      "location": "ร้านซักผ้าหยอดเหรียญเก่า",
+      "timeOfDay": "หลังเที่ยงคืน",
+      "lightingStyle": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+      "mainProps": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+      "continuityAnchor": "ถุงเท้าเปียกหนึ่งข้างเคลื่อนเข้าหาเครื่องอบสีแดง",
+      "characterStartPosition": "initial beat position",
+      "characterEndPosition": "final beat position",
+      "lighting": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+      "props": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+      "voice": "Meow",
+      "camera": "continuous cinematic camera",
+      "cameraLanguage": "continuous cinematic camera",
+      "environmentAudio": "continuous environment audio",
+      "visualAnchor": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+      "emotionProgression": "curiosity -> reaction"
+    },
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+    "voiceProfile": {
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "sentenceLength": "short",
+      "vocabularyStyle": "simple, consistent",
+      "emotionalRange": "curiosity -> reaction"
+    },
+    "visualStates": [
+      {
+        "frameId": "F1",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "establishing medium distance",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "hook",
+        "actionState": "ถุงเท้าเปียกคลานข้ามพื้นกระเบื้องเข้าหาเครื่องอบที่กำลังเรืองแสง"
+      },
+      {
+        "frameId": "F2",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position; progressed by discovery",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "discovery",
+        "actionState": "ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่"
+      },
+      {
+        "frameId": "F3",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "escalation",
+        "actionState": "From the previous beat (ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่), ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ"
+      },
+      {
+        "frameId": "F4",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "reveal",
+        "actionState": "From the previous beat (ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ), ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง"
+      },
+      {
+        "frameId": "F5",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal; progressed by threat",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "threat",
+        "actionState": "From the previous beat (ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง), กองถุงเท้าเอนตัวเข้ามา แล้วถุงเท้าหนึ่งข้างชี้ไปยังกุญแจทองเหลือง"
+      },
+      {
+        "frameId": "F6",
+        "locationLayout": "ร้านซักผ้าหยอดเหรียญเก่า",
+        "characterPosition": "initial beat position; progressed by discovery; progressed by escalation; progressed by reveal; progressed by threat; progressed by payoff",
+        "characterFacingDirection": "toward the continuity anchor",
+        "cameraPosition": "continuous cinematic camera",
+        "cameraAngle": "cinematic angle",
+        "cameraDistance": "slightly adjusted from previous frame",
+        "mainPropPosition": "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง",
+        "lightingDirection": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+        "emotionState": "payoff",
+        "actionState": "กองถุงเท้าถล่มลงรอบกุญแจ ขณะที่ประตูเครื่องอบเปิดออกสู่ความมืดสนิท"
+      }
+    ],
+    "dialogueOutline": [
+      {
+        "videoId": "V1",
+        "dialogueIntent": "ถุงเท้าเปียกคลานข้ามพื้นกระเบื้องเข้าหาเครื่องอบที่กำลังเรืองแสง",
+        "emotionalIntensity": "1/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V2",
+        "dialogueIntent": "ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่",
+        "emotionalIntensity": "2/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V3",
+        "dialogueIntent": "From the previous beat (ประตูเครื่องอบปิดเองพร้อมเสียงล็อก ทั้งที่เครื่องไม่มีสายไฟเสียบอยู่), ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ",
+        "emotionalIntensity": "3/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V4",
+        "dialogueIntent": "From the previous beat (ถังซักเริ่มหมุนแรงและถุงเท้าด้านในลอยวนเหมือนพายุเล็ก ๆ), ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง",
+        "emotionalIntensity": "4/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      },
+      {
+        "videoId": "V5",
+        "dialogueIntent": "From the previous beat (ถุงเท้าที่พับเรียบร้อยไหลออกจากช่องกรองและซ้อนเป็นกองสูง), กองถุงเท้าเอนตัวเข้ามา แล้วถุงเท้าหนึ่งข้างชี้ไปยังกุญแจทองเหลือง",
+        "emotionalIntensity": "5/10",
+        "speechPattern": "short",
+        "forbiddenToneShift": "do not change personality, vocabulary, language level, or speaking rhythm"
+      }
+    ],
+    "continuitySelfCheck": {
+      "storyContinuityScore": 0,
+      "frameContinuityScore": 0,
+      "videoContinuityScore": 0,
+      "voiceContinuityScore": 0,
+      "threshold": 85,
+      "passed": false,
+      "notes": ""
+    },
+    "qualityReview": {
+      "storyQualityScore": 100,
+      "storyBeatContinuityScore": 100,
+      "visualContinuityScore": 100,
+      "videoContinuityScore": 100,
+      "dialogueConsistencyScore": 100,
+      "voiceContinuityScore": 100,
+      "noveltyScore": 96,
+      "templateMatchScore": 50,
+      "characterConsistencyScore": 100,
+      "episodeCompletenessScore": 94,
+      "threshold": 85,
+      "passed": true,
+      "notes": "Code quality review passed."
+    },
+    "story": "กลางดึกในร้านซักผ้าหยอดเหรียญ เครื่องอบที่ไม่ได้เสียบปลั๊กเริ่มคืนถุงเท้าหายทีละคู่เหมือนกำลังทำพิธีบางอย่าง จนกองถุงเท้าเผยกุญแจทองเหลืองอุ่น ๆ ที่ไม่มีใครรู้ว่ามันเปิดอะไรได้",
+    "hook": "เครื่องอบผ้ากำลังพับถุงเท้าเอง ทั้งที่ไม่มีปลั๊ก",
+    "category": "สยองขำ",
+    "frames": [
+      {
+        "frameId": "F1",
+        "title": "ถุงเท้าคลาน",
+        "imagePrompt": "Coin laundry at midnight, a glowing red dryer faces a wet sock crawling across reflective tiles, eerie playful suspense."
+      },
+      {
+        "frameId": "F2",
+        "title": "ประตูปิดเอง",
+        "imagePrompt": "Laundry room doorway, the dryer door closes alone as a wet sock curls beneath it, flickering fluorescent tension."
+      },
+      {
+        "frameId": "F3",
+        "title": "เครื่องหมุนไร้ปลั๊ก",
+        "imagePrompt": "Unplugged red dryer spinning wildly, loose socks whirl behind round glass, droplets vibrating on worn metal panels."
+      },
+      {
+        "frameId": "F4",
+        "title": "กองผ้าที่จัดตัวเอง",
+        "imagePrompt": "Open lint tray, neatly folded socks slide out and form a trembling tower beside the humming red dryer."
+      },
+      {
+        "frameId": "F5",
+        "title": "กุญแจอุ่น ๆ",
+        "imagePrompt": "The sock tower leans toward a startled floor-level observer, one damp sock pointing at a tiny brass key."
+      },
+      {
+        "frameId": "F6",
+        "title": "ประตูสู่ความมืด",
+        "imagePrompt": "Collapsed socks surround a tiny warm brass key while the silent dryer door stands open in sudden darkness."
+      }
+    ],
+    "videos": [
+      {
+        "videoId": "V1",
+        "fromFrame": "F1",
+        "toFrame": "F2",
+        "durationSec": 8,
+        "videoPrompt": "A wet sock crawls across tiles toward the dryer while its round door slowly swings shut.",
+        "camera": "Low tracking shot",
+        "motion": "Slow crawl and closing door",
+        "audio": "Water drips, metal creak",
+        "dialogue": "เดี๋ยวนะ ถุงเท้ามันเดินเองเหรอ",
+        "mood": "ขำปนระแวง",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking shot",
+              "soundCue": "Water drips, metal creak"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "A wet sock crawls across tiles toward the dryer while its round door slowly swings shut.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking shot",
+              "soundCue": "Water drips, metal creak"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Low tracking shot",
+              "soundCue": "Water drips, metal creak"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง, ประตูเครื่องอบปิดเองพร้อมเสียงล็อก.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "ขำปนระแวง",
+              "cameraMotion": "Low tracking shot",
+              "soundCue": "Water drips, metal creak"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V2",
+        "fromFrame": "F2",
+        "toFrame": "F3",
+        "durationSec": 8,
+        "videoPrompt": "The closed dryer starts rotating without power as loose socks tumble faster behind the glass.",
+        "camera": "Slow push-in",
+        "motion": "Drum accelerates",
+        "audio": "Dryer rumble, rising hum",
+        "dialogue": "มันไม่ได้เสียบปลั๊กนี่",
+        "mood": "ตึงเครียดแปลก ๆ",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง, ประตูเครื่องอบปิดเองพร้อมเสียงล็อก.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Dryer rumble, rising hum"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The closed dryer starts rotating without power as loose socks tumble faster behind the glass.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Dryer rumble, rising hum"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Dryer rumble, rising hum"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง, From the.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "ตึงเครียดแปลก ๆ",
+              "cameraMotion": "Slow push-in",
+              "soundCue": "Dryer rumble, rising hum"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V3",
+        "fromFrame": "F3",
+        "toFrame": "F4",
+        "durationSec": 8,
+        "videoPrompt": "Spinning slows, then folded socks slide from the lint tray and stack into a trembling tower.",
+        "camera": "Side close-up",
+        "motion": "Socks slide and stack",
+        "audio": "Soft fabric shuffling",
+        "dialogue": "ใครพับผ้าเก่งขนาดนี้",
+        "mood": "หลอนแบบน่าขำ",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง, From the.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Side close-up",
+              "soundCue": "Soft fabric shuffling"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Spinning slows, then folded socks slide from the lint tray and stack into a trembling tower.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Side close-up",
+              "soundCue": "Soft fabric shuffling"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Side close-up",
+              "soundCue": "Soft fabric shuffling"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "หลอนแบบน่าขำ",
+              "cameraMotion": "Side close-up",
+              "soundCue": "Soft fabric shuffling"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V4",
+        "fromFrame": "F4",
+        "toFrame": "F5",
+        "durationSec": 8,
+        "videoPrompt": "The sock tower tilts forward, and a single damp sock points toward a small brass key.",
+        "camera": "Floor-level dolly-in",
+        "motion": "Tower leans and points",
+        "audio": "Tiny fabric taps, electrical buzz",
+        "dialogue": "มันกำลังชี้อะไรอยู่",
+        "mood": "ลึกลับชวนสงสัย",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F4: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position, เครื่องอบผ้าสีแดง ถุงเท้าเปียก.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Floor-level dolly-in",
+              "soundCue": "Tiny fabric taps, electrical buzz"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The sock tower tilts forward, and a single damp sock points toward a small brass key.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Floor-level dolly-in",
+              "soundCue": "Tiny fabric taps, electrical buzz"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F5",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Floor-level dolly-in",
+              "soundCue": "Tiny fabric taps, electrical buzz"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F5: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position; progressed by threat.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "ลึกลับชวนสงสัย",
+              "cameraMotion": "Floor-level dolly-in",
+              "soundCue": "Tiny fabric taps, electrical buzz"
+            }
+          ]
+        }
+      },
+      {
+        "videoId": "V5",
+        "fromFrame": "F5",
+        "toFrame": "F6",
+        "durationSec": 8,
+        "videoPrompt": "The tower collapses around the key as the dryer door opens into sudden darkness.",
+        "camera": "Locked wide shot",
+        "motion": "Collapse and door opening",
+        "audio": "Fabric thud, hollow door chime",
+        "dialogue": "กุญแจนี้เปิดอะไรได้กันแน่",
+        "mood": "จบค้างคา",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F5: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position; progressed by threat.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Locked wide shot",
+              "soundCue": "Fabric thud, hollow door chime"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The tower collapses around the key as the dryer door opens into sudden darkness.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Locked wide shot",
+              "soundCue": "Fabric thud, hollow door chime"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F6",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Locked wide shot",
+              "soundCue": "Fabric thud, hollow door chime"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F6: ร้านซักผ้าหยอดเหรียญเก่า, initial beat position; progressed by threat; progressed by.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "จบค้างคา",
+              "cameraMotion": "Locked wide shot",
+              "soundCue": "Fabric thud, hollow door chime"
+            }
+          ]
+        }
+      }
+    ],
+    "voiceScript": "เดี๋ยวนะ ถุงเท้ามันเดินเองเหรอ มันไม่ได้เสียบปลั๊กนี่ ใครพับผ้าเก่งขนาดนี้ มันกำลังชี้อะไรอยู่ กุญแจนี้เปิดอะไรได้กันแน่",
+    "soundEffects": "น้ำหยด เครื่องอบหมุน เสียงผ้าลากพื้น ถาดกรองสั่น ประตูโลหะเปิด",
+    "caption": "ร้านซักผ้านี้ไม่ได้ทำถุงเท้าหาย แต่มันกำลังคืนของบางอย่างให้",
+    "hashtags": [
+      "#Meow",
+      "#เรื่องสยองขำ",
+      "#แมวส้ม",
+      "#ร้านซักผ้าผี",
+      "#HorrorComedy",
+      "#ShortVideo"
+    ],
+    "checklist": {
+      "frames": {
+        "F1": false,
+        "F2": false,
+        "F3": false,
+        "F4": false,
+        "F5": false,
+        "F6": false
+      },
+      "videos": {
+        "V1": false,
+        "V2": false,
+        "V3": false,
+        "V4": false,
+        "V5": false
+      },
+      "editedDone": false,
+      "postedDone": false
+    },
+    "viralScore": 88,
+    "duplicateCheck": {
+      "isDuplicate": false,
+      "similarityScore": 0.04,
+      "matchedEpId": "EP-2026-06-12-1781285034213",
+      "matchedTitle": "กล้องเห็นแมวที่ยังไม่มาถึง"
+    },
+    "parseHealth": {
+      "score": 92,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Image Prompt Assembly",
+        "Videos",
+        "Video Prompt Assembly",
+        "Caption",
+        "Hashtags"
+      ],
+      "missing": [
+        "Quality Review"
+      ],
+      "status": "ok"
+    },
+    "createdAt": "2026-07-05T07:09:42.706Z",
+    "parseDebug": {
+      "epLabel": "EP01",
+      "title": "เครื่องอบคืนถุงเท้า",
+      "format": "40s",
+      "category": "สยองขำ",
+      "viralScore": 88,
+      "story": "กลางดึกในร้านซักผ้าหยอดเหรียญ เครื่องอบที่ไม่ได้เสียบปลั๊กเริ่มคืนถุงเท้าหายทีละคู่เหมือนกำลังทำพิธีบางอย่าง จนกองถุงเท้าเผยกุญแจทองเหลืองอุ่น ๆ ที่ไม่มีใครรู้ว่ามันเปิดอะไรได้",
+      "hook": "เครื่องอบผ้ากำลังพับถุงเท้าเอง ทั้งที่ไม่มีปลั๊ก",
+      "framesCount": 6,
+      "videosCount": 5,
+      "parsedFields": [
+        "Title",
+        "Format",
+        "Category",
+        "Story",
+        "Master Episode Engine",
+        "Hook",
+        "Frames",
+        "Image Prompt Assembly",
+        "Videos",
+        "Video Prompt Assembly",
+        "Caption",
+        "Hashtags"
+      ],
+      "missingFields": [
+        "Quality Review"
+      ]
+    },
+    "updatedAt": "2026-07-05T07:09:43.265Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "ร้านซักผ้าหยอดเหรียญเก่า",
+      "lightingStyle": "หลอดฟลูออเรสเซนต์กระพริบกับแสงแดงจากเครื่องอบ",
+      "continuityAnchor": "ถุงเท้าเปียกหนึ่งข้างเคลื่อนเข้าหาเครื่องอบสีแดง",
+      "mainProps": [
+        "เครื่องอบผ้าสีแดง ถุงเท้าเปียก กุญแจทองเหลือง"
+      ],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:meow:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    }
+  },
+  {
     "id": "EP-2026-06-12-1781290266855",
     "date": "2026-06-12",
     "format": "40s",
@@ -86,7 +2787,7 @@
       "visualAnchor": "main story prop",
       "emotionProgression": "curiosity -> reaction"
     },
-    "characterAnchor": "Meow is the exact same fluffy orange tabby cat in every frame and video. Maintain identical facial proportions, eye shape, fur color, orange striped fur pattern, body size, tail shape, whiskers, and cute expressive face. Use the selected character reference image as the main visual identity. Preserve orange tabby fur pattern, cute expressive face, tail shape, body size, and whiskers. never change species. never change fur color. never turn into a human. never change facial proportions. no subtitles. no caption overlay. no text overlay. no watermark. no logo.",
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
     "voiceProfile": {
       "preset": "Meow",
       "gender": "male",
@@ -287,7 +2988,51 @@
         "motion": "Cat walking and immediately flopping down",
         "audio": "Soft lo-fi workout music playing in background",
         "dialogue": "มนุษย์: Meow... หลบหน่อยลูก แม่จะออกกำลังกาย",
-        "mood": "Calm and defiant"
+        "mood": "Calm and defiant",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: same continuous scene, initial beat position, main story prop, มนุษย์กำลังปูเสื่อโยคะเพื่อออกกำลังกายและรักษาสุขภาพ แต่ในมุมมองของ Meow.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward push towards the cat on the mat",
+              "soundCue": "Soft lo-fi workout music playing in background"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "As soon as the yoga mat hits the floor, the cat immediately steps onto it and plops its heavy body down right in the middle, looking at the camera",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward push towards the cat on the mat",
+              "soundCue": "Soft lo-fi workout music playing in background"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slow forward push towards the cat on the mat",
+              "soundCue": "Soft lo-fi workout music playing in background"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, Meow.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Calm and defiant",
+              "cameraMotion": "Slow forward push towards the cat on the mat",
+              "soundCue": "Soft lo-fi workout music playing in background"
+            }
+          ]
+        }
       },
       {
         "videoId": "V2",
@@ -299,7 +3044,51 @@
         "motion": "Human body moving into position, cat stays perfectly still",
         "audio": "Human heavy breathing from exercise",
         "dialogue": "Meow: ขอบคุณที่สร้างร่มเงาให้ฉันนะมนุษย์ เย็นสบายดีจัง",
-        "mood": "Absurd comedy"
+        "mood": "Absurd comedy",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, Meow เดินเข้ามากลางเสื่อ.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Low angle looking up from under the human's pose",
+              "soundCue": "Human heavy breathing from exercise"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The human attempts to do a downward dog pose over the cat. The cat remains lying down, staring up at the human's face with complete indifference",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Low angle looking up from under the human's pose",
+              "soundCue": "Human heavy breathing from exercise"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Low angle looking up from under the human's pose",
+              "soundCue": "Human heavy breathing from exercise"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Absurd comedy",
+              "cameraMotion": "Low angle looking up from under the human's pose",
+              "soundCue": "Human heavy breathing from exercise"
+            }
+          ]
+        }
       },
       {
         "videoId": "V3",
@@ -311,7 +3100,51 @@
         "motion": "Cat rolling over and stretching lazily",
         "audio": "Soft cat squeak sound",
         "dialogue": "มนุษย์: เจอกล้ามท้องแมวสกัดดาวรุ่งไปไม่เป็นเลยกู...",
-        "mood": "Playful and chaotic"
+        "mood": "Playful and chaotic",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Close up on cat stretching its paws",
+              "soundCue": "Soft cat squeak sound"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The cat suddenly turns onto its back, stretching its hind legs and front paws wide open, taking up even more space and gently tapping the human's nose",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Close up on cat stretching its paws",
+              "soundCue": "Soft cat squeak sound"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Close up on cat stretching its paws",
+              "soundCue": "Soft cat squeak sound"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Playful and chaotic",
+              "cameraMotion": "Close up on cat stretching its paws",
+              "soundCue": "Soft cat squeak sound"
+            }
+          ]
+        }
       },
       {
         "videoId": "V4",
@@ -323,7 +3156,51 @@
         "motion": "Human dropping down, cat blinking slowly",
         "audio": "Thud sound of human hitting the floor",
         "dialogue": "Meow: ท่าโยคะของฉันเรียกว่า 'ท่าแมวอ้วนขวางโลก' เก่งไหมล่ะ",
-        "mood": "Comedic standoff"
+        "mood": "Comedic standoff",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slight pan from human to cat",
+              "soundCue": "Thud sound of human hitting the floor"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The human collapses out of the yoga pose and sits down next to the mat, staring blankly at the cat. The cat looks back and blinks with extreme.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slight pan from human to cat",
+              "soundCue": "Thud sound of human hitting the floor"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F5",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slight pan from human to cat",
+              "soundCue": "Thud sound of human hitting the floor"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Comedic standoff",
+              "cameraMotion": "Slight pan from human to cat",
+              "soundCue": "Thud sound of human hitting the floor"
+            }
+          ]
+        }
       },
       {
         "videoId": "V5",
@@ -335,10 +3212,54 @@
         "motion": "Cat falling asleep, human hand scratching its chin",
         "audio": "Loud rhythmic cat purring",
         "dialogue": "มนุษย์: จบกัน... วันนี้ไม่ต้องงงต้องออกมันแล้วกำลังกาย",
-        "mood": "Cute and heartwarming"
+        "mood": "Cute and heartwarming",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "Slow zoom out showing the cat ruling the mat",
+              "soundCue": "Loud rhythmic cat purring"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The cat closes its eyes and starts purring loudly, completely occupying the mat, while the human just reaches out to scratch its chin in total defeat",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "Slow zoom out showing the cat ruling the mat",
+              "soundCue": "Loud rhythmic cat purring"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F6",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "Slow zoom out showing the cat ruling the mat",
+              "soundCue": "Loud rhythmic cat purring"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F6: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "Cute and heartwarming",
+              "cameraMotion": "Slow zoom out showing the cat ruling the mat",
+              "soundCue": "Loud rhythmic cat purring"
+            }
+          ]
+        }
       }
     ],
-    "voiceScript": "มนุษย์: Meow... หลบหน่อยลูก แม่จะออกกำลังกาย Meow: ขอบคุณที่สร้างร่มเงาให้ฉันนะมนุษย์ เย็นสบายดีจัง มนุษย์: เจอกล้ามท้องแมวสกัดดาวรุ่งไปไม่เป็นเลยกู... Meow: ท่าโยคะของฉันเรียกว่า 'ท่าแมวอ้วนขวางโลก' เก่งไหมล่ะ มนุษย์: จบกัน... วันนี้ไม่ต้องงงต้องออกมันแล้วกำลังกาย",
+    "voiceScript": "มนุษย์: Meow. หลบหน่อยลูก แม่จะออกกำลังกาย Meow: ขอบคุณที่สร้างร่มเงาให้ฉันนะมนุษย์ เย็นสบายดีจัง มนุษย์: เจอกล้ามท้องแมวสกัดดาวรุ่งไปไม่เป็นเลยกู. Meow: ท่าโยคะของฉันเรียกว่า 'ท่าแมวอ้วนขวางโลก' เก่งไหมล่ะ มนุษย์: จบกัน. วันนี้ไม่ต้องงงต้องออกมันแล้วกำลังกาย",
     "soundEffects": "เสียงเสื่อโยคะคลี่ออก, เสียงหายใจเหนื่อยๆ, เสียงแมวพลิกตัว, เสียงครางครืดๆ ในลำคอแมวอย่างสุขใจ",
     "caption": "เมื่อคุณตั้งใจจะเบิร์นแคลอรี่ แต่แมวของคุณบอกว่า 'เสื่อนี้มันนุ่มเกินกว่าจะใช้ออกกำลังกาย' 🧘‍♀️🐾 สรุปวันนี้แมวได้นอน ทาสได้นั่งดู #ตรรกะแมว",
     "hashtags": [
@@ -424,7 +3345,42 @@
         "Quality Review"
       ]
     },
-    "updatedAt": "2026-06-12T18:51:07.216Z"
+    "updatedAt": "2026-06-12T18:51:07.216Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "same continuous scene",
+      "lightingStyle": "cinematic lighting",
+      "continuityAnchor": "same continuous scene, main story prop",
+      "mainProps": [
+        "main story prop"
+      ],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:meow:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    }
   },
   {
     "id": "EP-2026-06-12-1781287127103",
@@ -513,7 +3469,7 @@
       "visualAnchor": "main story prop",
       "emotionProgression": "curiosity -> reaction"
     },
-    "characterAnchor": "Meow is the exact same fluffy orange tabby cat in every frame and video. Maintain identical facial proportions, eye shape, fur color, orange striped fur pattern, body size, tail shape, whiskers, and cute expressive face. Use the selected character reference image as the main visual identity. Preserve orange tabby fur pattern, cute expressive face, tail shape, body size, and whiskers. never change species. never change fur color. never turn into a human. never change facial proportions. no subtitles. no caption overlay. no text overlay. no watermark. no logo.",
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
     "voiceProfile": {
       "preset": "Meow",
       "gender": "male",
@@ -714,7 +3670,51 @@
         "motion": "Meow plants his paws, tail lifts, fur ripples in wind, enemy floats and pulses slowly",
         "audio": "strong rooftop wind, distant city ambience, low energy hum, no music",
         "dialogue": "Meow พูดหนักแน่น: วันนี้ต้องจบตรงนี้",
-        "mood": "epic anime opening with cute intensity"
+        "mood": "epic anime opening with cute intensity",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: same continuous scene, initial beat position, main story prop, บนดาดฟ้าตึกสูงยามเย็น Meow.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "low-angle hero shot slowly pushing toward Meow, slight orbit to show enemy.",
+              "soundCue": "strong rooftop wind, distant city ambience, low energy hum, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow faces the dark cloud-like enemy on the rooftop. Wind rises, the sunset darkens, and Meow lowers into a dramatic anime battle stance as golden.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "low-angle hero shot slowly pushing toward Meow, slight orbit to show enemy.",
+              "soundCue": "strong rooftop wind, distant city ambience, low energy hum, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "low-angle hero shot slowly pushing toward Meow, slight orbit to show enemy.",
+              "soundCue": "strong rooftop wind, distant city ambience, low energy hum, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, พลังเริ่มตื่น, cinematic.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "epic anime opening with cute intensity",
+              "cameraMotion": "low-angle hero shot slowly pushing toward Meow, slight orbit to show enemy.",
+              "soundCue": "strong rooftop wind, distant city ambience, low energy hum, no music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V2",
@@ -726,7 +3726,51 @@
         "motion": "energy spirals faster, Meow's whiskers twitch, one ear turns toward the smell",
         "audio": "energy crackle, wind swirl, tiny stomach growl, no background music",
         "dialogue": "Meow กระซิบ: ไม่... ตอนนี้ห้ามหิว",
-        "mood": "power escalation interrupted by cat instinct"
+        "mood": "power escalation interrupted by cat instinct",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, พลังเริ่มตื่น, cinematic.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "medium close-up on Meow power-up, rack focus to lunch box near rooftop door",
+              "soundCue": "energy crackle, wind swirl, tiny stomach growl, no background music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow gathers more power. The golden aura grows brighter, but a soft steam trail from the lunch box drifts across the rooftop. Meow's focus breaks.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "medium close-up on Meow power-up, rack focus to lunch box near rooftop door",
+              "soundCue": "energy crackle, wind swirl, tiny stomach growl, no background music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "medium close-up on Meow power-up, rack focus to lunch box near rooftop door",
+              "soundCue": "energy crackle, wind swirl, tiny stomach growl, no background music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "power escalation interrupted by cat instinct",
+              "cameraMotion": "medium close-up on Meow power-up, rack focus to lunch box near rooftop door",
+              "soundCue": "energy crackle, wind swirl, tiny stomach growl, no background music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V3",
@@ -738,7 +3782,51 @@
         "motion": "Meow raises both paws, aura expands upward, dust bursts outward, enemy flickers",
         "audio": "rising energy surge, rooftop vibration, wind blast, no music",
         "dialogue": "เดี๋ยวนะ... นั่นเสียงอะไร",
-        "mood": "maximum anime drama"
+        "mood": "maximum anime drama",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "rapid push-in on Meow then tilt up to reveal giant energy mackerel in the sky",
+              "soundCue": "rising energy surge, rooftop vibration, wind blast, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow forces himself to ignore the smell and unleashes a huge surge of energy. A giant golden mackerel-shaped aura forms in the sky, making the.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "rapid push-in on Meow then tilt up to reveal giant energy mackerel in the sky",
+              "soundCue": "rising energy surge, rooftop vibration, wind blast, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "rapid push-in on Meow then tilt up to reveal giant energy mackerel in the sky",
+              "soundCue": "rising energy surge, rooftop vibration, wind blast, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "maximum anime drama",
+              "cameraMotion": "rapid push-in on Meow then tilt up to reveal giant energy mackerel in the sky",
+              "soundCue": "rising energy surge, rooftop vibration, wind blast, no music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V4",
@@ -750,7 +3838,51 @@
         "motion": "lunch box lid pops open, steam rises, Meow stops mid-pose, aura stutters",
         "audio": "sharp box pop, tiny bell-like energy glitch, sudden silence, no music",
         "dialogue": "Meow พูดเบา ๆ: ปลาทูจริง...",
-        "mood": "unexpected comedic interruption"
+        "mood": "unexpected comedic interruption",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "dramatic freeze-style close-up on Meow's hungry eyes, whip pan to open lunch box",
+              "soundCue": "sharp box pop, tiny bell-like energy glitch, sudden silence, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Just before the ultimate move launches, the lunch box lid flips open from the wind. The grilled mackerel is fully revealed. Meow freezes instantly.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "dramatic freeze-style close-up on Meow's hungry eyes, whip pan to open lunch box",
+              "soundCue": "sharp box pop, tiny bell-like energy glitch, sudden silence, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F5",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "dramatic freeze-style close-up on Meow's hungry eyes, whip pan to open lunch box",
+              "soundCue": "sharp box pop, tiny bell-like energy glitch, sudden silence, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "unexpected comedic interruption",
+              "cameraMotion": "dramatic freeze-style close-up on Meow's hungry eyes, whip pan to open lunch box",
+              "soundCue": "sharp box pop, tiny bell-like energy glitch, sudden silence, no music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V5",
@@ -762,10 +3894,54 @@
         "motion": "Meow dashes, sits, eats seriously, golden aura collapses into sparkles, enemy flies away",
         "audio": "quick paw steps, soft whoosh, distant enemy pop, satisfied chewing, no music",
         "dialogue": "Meow พูดนิ่ง ๆ: ภารกิจสำเร็จ แบบตั้งใจอยู่แล้ว",
-        "mood": "epic release turned absurd cute payoff"
+        "mood": "epic release turned absurd cute payoff",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "follow Meow sprinting to lunch box, then pull back wide to show enemy blown.",
+              "soundCue": "quick paw steps, soft whoosh, distant enemy pop, satisfied chewing, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow abandons the ultimate move and rushes to the lunch box. The unstable golden aura deflates behind him, releasing a harmless wind blast that.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "follow Meow sprinting to lunch box, then pull back wide to show enemy blown.",
+              "soundCue": "quick paw steps, soft whoosh, distant enemy pop, satisfied chewing, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F6",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "follow Meow sprinting to lunch box, then pull back wide to show enemy blown.",
+              "soundCue": "quick paw steps, soft whoosh, distant enemy pop, satisfied chewing, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F6: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "epic release turned absurd cute payoff",
+              "cameraMotion": "follow Meow sprinting to lunch box, then pull back wide to show enemy blown.",
+              "soundCue": "quick paw steps, soft whoosh, distant enemy pop, satisfied chewing, no music"
+            }
+          ]
+        }
       }
     ],
-    "voiceScript": "Meow พูดหนักแน่น: วันนี้ต้องจบตรงนี้ Meow กระซิบ: ไม่... ตอนนี้ห้ามหิว เดี๋ยวนะ... นั่นเสียงอะไร Meow พูดเบา ๆ: ปลาทูจริง... Meow พูดนิ่ง ๆ: ภารกิจสำเร็จ แบบตั้งใจอยู่แล้ว",
+    "voiceScript": "Meow พูดหนักแน่น: วันนี้ต้องจบตรงนี้ Meow กระซิบ: ไม่. ตอนนี้ห้ามหิว เดี๋ยวนะ. นั่นเสียงอะไร Meow พูดเบา ๆ: ปลาทูจริง. Meow พูดนิ่ง ๆ: ภารกิจสำเร็จ แบบตั้งใจอยู่แล้ว",
     "soundEffects": "เสียงลมบนดาดฟ้า, เสียงพลังงานอนิเมะสะสม, เสียงฝุ่นหมุน, เสียงกล่องข้าวเปิด, เสียงออร่าดับแบบลูกโป่งแฟบ, เสียงศัตรูปลิวหายไกล ๆ, เสียง Meow เคี้ยวปลาทู, ไม่มีเพลงพื้นหลัง",
     "caption": "ท่าไม้ตายแรงแค่ไหน ก็แพ้ปลาทูอยู่ดี",
     "hashtags": [
@@ -856,7 +4032,42 @@
         "Quality Review"
       ]
     },
-    "updatedAt": "2026-06-12T17:58:47.536Z"
+    "updatedAt": "2026-06-12T17:58:47.536Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "same continuous scene",
+      "lightingStyle": "cinematic lighting",
+      "continuityAnchor": "same continuous scene, main story prop",
+      "mainProps": [
+        "main story prop"
+      ],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:meow:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    }
   },
   {
     "id": "EP-2026-06-12-1781285034213",
@@ -945,7 +4156,7 @@
       "visualAnchor": "main story prop",
       "emotionProgression": "curiosity -> reaction"
     },
-    "characterAnchor": "Meow is the exact same fluffy orange tabby cat in every frame and video. Maintain identical facial proportions, eye shape, fur color, orange striped fur pattern, body size, tail shape, whiskers, and cute expressive face. Use the selected character reference image as the main visual identity. Preserve orange tabby fur pattern, cute expressive face, tail shape, body size, and whiskers. never change species. never change fur color. never turn into a human. never change facial proportions. no subtitles. no caption overlay. no text overlay. no watermark. no logo.",
+    "characterAnchor": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
     "voiceProfile": {
       "preset": "Meow",
       "gender": "male",
@@ -1146,7 +4357,51 @@
         "motion": "Meow rises slowly, paws soft on floor, tail stiff, monitor light flickers gently",
         "audio": "quiet rain outside, soft electrical hum, tiny monitor click, no music",
         "dialogue": "Meow พึมพำเบา ๆ: กล้องเปิดเองเหรอ...",
-        "mood": "normal room turning impossible"
+        "mood": "normal room turning impossible",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F1: same continuous scene, initial beat position, main story prop, กลางดึกในห้องนั่งเล่นเงียบสนิท Meow.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "slow push-in from sofa to monitor, handheld subtle drift, vertical cinematic.",
+              "soundCue": "quiet rain outside, soft electrical hum, tiny monitor click, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow wakes from sleep, ears twitching as the old baby monitor flickers on by itself. He walks cautiously toward the table and leans in. The screen.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "slow push-in from sofa to monitor, handheld subtle drift, vertical cinematic.",
+              "soundCue": "quiet rain outside, soft electrical hum, tiny monitor click, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F2",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "slow push-in from sofa to monitor, handheld subtle drift, vertical cinematic.",
+              "soundCue": "quiet rain outside, soft electrical hum, tiny monitor click, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, ภาพที่ไม่ควรอยู่ในจอ.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "normal room turning impossible",
+              "cameraMotion": "slow push-in from sofa to monitor, handheld subtle drift, vertical cinematic.",
+              "soundCue": "quiet rain outside, soft electrical hum, tiny monitor click, no music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V2",
@@ -1158,7 +4413,51 @@
         "motion": "Meow turns sharply, freezes, then steps backward as pawprints appear in sequence",
         "audio": "low room tone, wet tapping sounds, Meow breathing, no music",
         "dialogue": "Meow กระซิบ: ไม่ใช่เท้าฉัน...",
-        "mood": "quiet dread with impossible evidence"
+        "mood": "quiet dread with impossible evidence",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F2: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop, ภาพที่ไม่ควรอยู่ในจอ.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "over-shoulder shot from monitor to empty room, then slow tilt down to pawprints",
+              "soundCue": "low room tone, wet tapping sounds, Meow breathing, no music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow stares at the monitor, then quickly turns around. Nothing is behind him. As he exhales, wet pawprints begin appearing on the dry wooden floor.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "over-shoulder shot from monitor to empty room, then slow tilt down to pawprints",
+              "soundCue": "low room tone, wet tapping sounds, Meow breathing, no music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F3",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "over-shoulder shot from monitor to empty room, then slow tilt down to pawprints",
+              "soundCue": "low room tone, wet tapping sounds, Meow breathing, no music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "quiet dread with impossible evidence",
+              "cameraMotion": "over-shoulder shot from monitor to empty room, then slow tilt down to pawprints",
+              "soundCue": "low room tone, wet tapping sounds, Meow breathing, no music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V3",
@@ -1170,7 +4469,51 @@
         "motion": "Meow creeps forward, whiskers trembling, door opens slowly with a small creak",
         "audio": "wood floor creaks, wardrobe hinge squeaks, faint bell chime from inside, no music",
         "dialogue": "Meow พูดสั่น ๆ: แล้วอันที่คอฉันคืออะไร...",
-        "mood": "cute horror discovery"
+        "mood": "cute horror discovery",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F3: same continuous scene, initial beat position; progressed by first action / first evidence, main story prop.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "low tracking shot following pawprints, then close-up reveal inside wardrobe",
+              "soundCue": "wood floor creaks, wardrobe hinge squeaks, faint bell chime from inside, no."
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow follows the wet pawprints to the closed wardrobe. He hesitates, raises one paw, and slowly pulls the wardrobe door open. Inside, a duplicate.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "low tracking shot following pawprints, then close-up reveal inside wardrobe",
+              "soundCue": "wood floor creaks, wardrobe hinge squeaks, faint bell chime from inside, no."
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F4",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "low tracking shot following pawprints, then close-up reveal inside wardrobe",
+              "soundCue": "wood floor creaks, wardrobe hinge squeaks, faint bell chime from inside, no."
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "cute horror discovery",
+              "cameraMotion": "low tracking shot following pawprints, then close-up reveal inside wardrobe",
+              "soundCue": "wood floor creaks, wardrobe hinge squeaks, faint bell chime from inside, no."
+            }
+          ]
+        }
       },
       {
         "videoId": "V4",
@@ -1182,7 +4525,51 @@
         "motion": "Meow lifts the bell, his ears flatten, monitor image moves a fraction earlier than real Meow",
         "audio": "sharp tiny bell ring, monitor static, soft rain, no background music",
         "dialogue": "Meow กระซิบ: มันเห็นก่อนที่ฉันจะทำ...",
-        "mood": "time-loop nightmare tension"
+        "mood": "time-loop nightmare tension",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F4: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "close-up on bell in paw, rack focus to glowing monitor behind him",
+              "soundCue": "sharp tiny bell ring, monitor static, soft rain, no background music"
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "Meow carefully picks up the duplicate bell. The baby monitor behind him flickers again. He turns to look and sees the monitor showing himself from a.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "close-up on bell in paw, rack focus to glowing monitor behind him",
+              "soundCue": "sharp tiny bell ring, monitor static, soft rain, no background music"
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F5",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "close-up on bell in paw, rack focus to glowing monitor behind him",
+              "soundCue": "sharp tiny bell ring, monitor static, soft rain, no background music"
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "time-loop nightmare tension",
+              "cameraMotion": "close-up on bell in paw, rack focus to glowing monitor behind him",
+              "soundCue": "sharp tiny bell ring, monitor static, soft rain, no background music"
+            }
+          ]
+        }
       },
       {
         "videoId": "V5",
@@ -1194,10 +4581,54 @@
         "motion": "Meow backs away with tiny shaky steps, tail puffed, head turns toward the wardrobe at final bell sound",
         "audio": "monitor static stops abruptly, silence, one clear bell chime from wardrobe, no music",
         "dialogue": "Meow พูดเบามาก: ใครอยู่ในนั้น...",
-        "mood": "disturbing unanswered ending"
+        "mood": "disturbing unanswered ending",
+        "voiceLockId": "meow:meow:v1",
+        "timingPlan": {
+          "providerDurationSec": 8,
+          "actionDurationSec": 8,
+          "beatCount": 4,
+          "beats": [
+            {
+              "startSec": 0,
+              "endSec": 1.5,
+              "action": "Establish F5: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "hold the exact start frame state",
+              "characterReaction": "",
+              "cameraMotion": "slow zoom into monitor, sudden cut-like blackout, then pull back to show Meow.",
+              "soundCue": "monitor static stops abruptly, silence, one clear bell chime from wardrobe, no."
+            },
+            {
+              "startSec": 1.5,
+              "endSec": 3.5,
+              "action": "The monitor image slowly turns as if the camera inside the screen notices Meow. Meow backs away. The monitor suddenly goes black. The room becomes.",
+              "visualChange": "main motion begins in the same scene",
+              "characterReaction": "",
+              "cameraMotion": "slow zoom into monitor, sudden cut-like blackout, then pull back to show Meow.",
+              "soundCue": "monitor static stops abruptly, silence, one clear bell chime from wardrobe, no."
+            },
+            {
+              "startSec": 3.5,
+              "endSec": 5.8,
+              "action": "Escalate the same action toward F6",
+              "visualChange": "visible change intensifies without cutting",
+              "characterReaction": "",
+              "cameraMotion": "slow zoom into monitor, sudden cut-like blackout, then pull back to show Meow.",
+              "soundCue": "monitor static stops abruptly, silence, one clear bell chime from wardrobe, no."
+            },
+            {
+              "startSec": 5.8,
+              "endSec": 8,
+              "action": "Settle into F6: same continuous scene, initial beat position; progressed by first action / first evidence; progressed by realization / complication.",
+              "visualChange": "end exactly on the target frame state",
+              "characterReaction": "disturbing unanswered ending",
+              "cameraMotion": "slow zoom into monitor, sudden cut-like blackout, then pull back to show Meow.",
+              "soundCue": "monitor static stops abruptly, silence, one clear bell chime from wardrobe, no."
+            }
+          ]
+        }
       }
     ],
-    "voiceScript": "Meow พึมพำเบา ๆ: กล้องเปิดเองเหรอ... Meow กระซิบ: ไม่ใช่เท้าฉัน... Meow พูดสั่น ๆ: แล้วอันที่คอฉันคืออะไร... Meow กระซิบ: มันเห็นก่อนที่ฉันจะทำ... Meow พูดเบามาก: ใครอยู่ในนั้น...",
+    "voiceScript": "Meow พึมพำเบา ๆ: กล้องเปิดเองเหรอ. Meow กระซิบ: ไม่ใช่เท้าฉัน. Meow พูดสั่น ๆ: แล้วอันที่คอฉันคืออะไร. Meow กระซิบ: มันเห็นก่อนที่ฉันจะทำ. Meow พูดเบามาก: ใครอยู่ในนั้น.",
     "soundEffects": "เสียงฝนเบา ๆ, เสียงกล้องเปิดเอง, เสียงไฟฟ้าจากจอมอนิเตอร์, เสียงรอยเท้าเปียกบนพื้นไม้, เสียงบานพับตู้, เสียงกระดิ่งเล็ก ๆ, เสียงจอดับกะทันหัน, ไม่มีเพลงพื้นหลัง",
     "caption": "กล้องไม่ได้ถ่ายอดีต...มันถ่ายสิ่งที่กำลังจะเข้ามา",
     "hashtags": [
@@ -1288,6 +4719,41 @@
         "Quality Review"
       ]
     },
-    "updatedAt": "2026-06-12T17:23:54.661Z"
+    "updatedAt": "2026-06-12T17:23:54.661Z",
+    "visualLock": {
+      "visualLockId": "meow:visual:v1",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "characterCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
+      "styleCapsule": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+      "referenceImageUrls": [],
+      "primaryLocation": "same continuous scene",
+      "lightingStyle": "cinematic lighting",
+      "continuityAnchor": "same continuous scene, main story prop",
+      "mainProps": [
+        "main story prop"
+      ],
+      "locked": true
+    },
+    "voiceLock": {
+      "voiceLockId": "meow:meow:v1",
+      "renderMode": "external_tts",
+      "provider": "manual",
+      "providerVoiceId": "",
+      "referenceAudioUrl": "",
+      "version": "v1",
+      "language": "Thai",
+      "characterId": "meow",
+      "characterName": "Meow",
+      "preset": "Meow",
+      "gender": "male",
+      "age": "young",
+      "tone": "soft",
+      "energy": "medium",
+      "speakingSpeed": "normal",
+      "accent": "thai",
+      "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
+      "locked": true
+    }
   }
 ]

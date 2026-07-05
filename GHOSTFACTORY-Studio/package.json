@@ -6,6 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "validate:video-prompts": "node scripts/validate-video-prompts.mjs",
+    "validate:prompt-optimization": "node scripts/validate-prompt-optimization.mjs",
+    "validate:voice-continuity": "node scripts/validate-voice-continuity.mjs",
+    "validate:visual-continuity": "node scripts/validate-visual-continuity.mjs",
+    "validate:flow-8s": "node scripts/validate-flow-eight-second-timeline.mjs",
     "start": "next start",
     "lint": "next lint"
   },

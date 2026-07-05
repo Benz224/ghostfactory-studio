@@ -1,5 +1,10 @@
 {
   "id": "meow",
+  "name": "Meow",
+  "type": "cat",
+  "description": "fluffy orange tabby cat with orange striped fur, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant",
+  "visualStyle": "Pixar-quality 3D animation, cinematic lighting, commercial quality visuals",
+  "promptCapsule": "Meow, fluffy orange tabby with orange stripes, round expressive face, large dark eyes, pink nose, cream muzzle and paws, black collar, plain round gold pendant, Pixar-quality 3D.",
   "appearance": "Meow is the exact same fluffy orange tabby cat in every frame and video. Maintain identical facial proportions, eye shape, fur color, orange striped fur pattern, body size, tail shape, whiskers, and cute expressive face.",
   "personality": "curious, expressive, funny, slightly timid unless story progression earns a stronger reaction",
   "voice": {

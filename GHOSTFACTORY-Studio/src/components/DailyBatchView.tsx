@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ImagePreview } from "@/components/ImagePicker";
 import { copyWithFeedback, type ActionFeedback } from "@/lib/clipboard";
-import { calculateParseHealth, parseDailyResult, renderImagePrompt, renderVideoPrompt } from "@/lib/ep-generator";
+import { FLOW_VIDEO_DURATION_SEC, IMAGE_PROMPT_MAX_CHARS, VIDEO_PROMPT_MAX_CHARS, buildVoiceManifest, calculateParseHealth, ensureEpLocks, parseDailyResult, renderImagePrompt, renderVideoPrompt, voiceScriptFromManifest } from "@/lib/ep-generator";
 import { appendHistoryToPrompt, buildGeneratorPrompt, createFullDailyPackagePrompt } from "@/lib/prompt-template";
 import type { AffiliateBrief, ContentGoal, DailyBatch, GenerationSetup, GhostCharacter, GhostEp, GhostTemplate, IdeaMemory, Settings, SpokenLanguage } from "@/lib/types";
 
@@ -89,10 +89,11 @@ function frameText(ep: GhostEp, frameId?: string) {
 }
 
 function videoText(ep: GhostEp, videoId?: string) {
-  const videos = videoId ? ep.videos.filter((video) => video.videoId === videoId) : ep.videos;
+  const locked = ensureEpLocks(ep);
+  const videos = videoId ? locked.videos.filter((video) => video.videoId === videoId) : locked.videos;
   return videos
     .filter((video) => video.videoPrompt.trim())
-    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(ep, video)}\nCamera: ${video.camera}\nMotion: ${video.motion}\nAudio: ${video.audio}\nDialogue: ${video.dialogue}\nMood: ${video.mood}`)
+    .map((video) => `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)\n${renderVideoPrompt(locked, video)}`)
     .join("\n\n");
 }
 
@@ -138,7 +139,7 @@ function packageText(ep: GhostEp) {
     videoText(ep),
     "",
     "Voice Script",
-    ep.voiceScript,
+    voiceScriptFromManifest(buildVoiceManifest(ep)),
     "",
     "Sound Effects",
     ep.soundEffects,
@@ -146,6 +147,16 @@ function packageText(ep: GhostEp) {
     "Caption",
     `${ep.caption}\n${ep.hashtags.join(" ")}`
   ].join("\n");
+}
+
+function timingPlanText(ep: GhostEp) {
+  const locked = ensureEpLocks(ep);
+  return locked.videos
+    .map((video) => [
+      `${video.videoId} (${video.fromFrame} -> ${video.toFrame}, ${video.durationSec}s)`,
+      ...(video.timingPlan?.beats ?? []).map((beat) => `${beat.startSec.toFixed(1)}-${beat.endSec.toFixed(1)}s ${beat.action} | ${beat.visualChange}`)
+    ].join("\n"))
+    .join("\n\n");
 }
 
 function Feedback({ feedback }: { feedback: ActionFeedback | null }) {
@@ -177,6 +188,12 @@ function EpResultModal({
   onSave: (ep: GhostEp) => void;
   onCopy: (text: string, label: string) => void;
 }) {
+  const lockedEp = ensureEpLocks(ep);
+  const manifest = buildVoiceManifest(lockedEp);
+  const voiceScript = voiceScriptFromManifest(manifest);
+  const visualLock = lockedEp.visualLock;
+  const voiceLock = lockedEp.voiceLock;
+  const firstTimingPlan = lockedEp.videos[0]?.timingPlan;
   return (
     <div className="fixed inset-0 z-50 bg-[#0F172A]/30 p-3 backdrop-blur-sm md:p-6">
       <div className="mx-auto flex h-full max-w-5xl flex-col overflow-hidden rounded-[28px] bg-white shadow-2xl">
@@ -221,6 +238,18 @@ function EpResultModal({
             </div>
           </section>
 
+          <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+            <div className="mb-3 flex items-center justify-between gap-2">
+              <h3 className="font-semibold">Flow Timeline</h3>
+              <CopyButton label="Timeline" onClick={() => onCopy(timingPlanText(lockedEp), `Copy Timeline ${ep.id}`)} />
+            </div>
+            <div className="grid gap-2 text-xs leading-5 text-[#64748B] md:grid-cols-2">
+              <div><strong>Provider Duration:</strong> {FLOW_VIDEO_DURATION_SEC}s fixed</div>
+              <div><strong>Story Timeline:</strong> {firstTimingPlan?.providerDurationSec ?? FLOW_VIDEO_DURATION_SEC}s planned</div>
+              {(firstTimingPlan?.beats ?? []).map((beat) => <div key={`${beat.startSec}-${beat.endSec}`}><strong>{beat.startSec.toFixed(1)}-{beat.endSec.toFixed(1)}s</strong> {beat.action}</div>)}
+            </div>
+          </section>
+
           <section className="grid gap-3 md:grid-cols-4">
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <h3 className="mb-3 font-semibold">Core Idea</h3>
@@ -248,6 +277,37 @@ function EpResultModal({
             </div>
           </section>
 
+          <section className="grid gap-3 md:grid-cols-2">
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <h3 className="mb-3 font-semibold">Visual Consistency</h3>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                <div><strong>Visual Lock ID:</strong> {visualLock?.visualLockId || "-"}</div>
+                <div><strong>Character Capsule:</strong> {visualLock?.characterCapsule || "-"}</div>
+                <div><strong>Reference Images:</strong> {visualLock?.referenceImageUrls.length || 0}</div>
+                <div><strong>Continuity Reference:</strong> {visualLock?.continuityAnchor || visualLock?.primaryLocation || "-"}</div>
+                <div><strong>Mode:</strong> {visualLock?.referenceImageUrls.length ? "Reference-guided" : "Text-guided"}</div>
+                <div><strong>Status:</strong> {visualLock?.locked ? "Locked" : "Unlocked"}</div>
+              </div>
+              {!visualLock?.referenceImageUrls.length ? <p className="mt-3 rounded-[8px] border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-700">No character image reference is configured. Visual identity is text-guided only.</p> : null}
+            </div>
+            <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <h3 className="font-semibold">Episode Voice Master</h3>
+                <CopyButton label="Manifest" onClick={() => onCopy(JSON.stringify(manifest, null, 2), `Copy Voice Manifest ${ep.id}`)} />
+              </div>
+              <div className="space-y-1 text-xs leading-5 text-[#64748B]">
+                <div><strong>Voice Lock ID:</strong> {voiceLock?.voiceLockId || "-"}</div>
+                <div><strong>Mode:</strong> {voiceLock?.renderMode === "native_video" ? "Native Video Voice" : "External TTS"}</div>
+                <div><strong>Preset:</strong> {voiceLock?.preset || "-"}</div>
+                <div><strong>Provider:</strong> {voiceLock?.provider || "manual"}</div>
+                <div><strong>Provider Voice ID:</strong> {voiceLock?.providerVoiceId || "Not set"}</div>
+                <div><strong>Reference Audio:</strong> {voiceLock?.referenceAudioUrl || "Not set"}</div>
+                <div><strong>Status:</strong> {voiceLock?.providerVoiceId || voiceLock?.referenceAudioUrl || ep.language === "No Dialogue" ? "Ready" : "Voice source required before final TTS export"}</div>
+              </div>
+              {ep.language !== "No Dialogue" && voiceLock?.renderMode === "external_tts" && !voiceLock.providerVoiceId && !voiceLock.referenceAudioUrl ? <p className="mt-3 rounded-[8px] border border-amber-200 bg-amber-50 p-2 text-xs font-semibold text-amber-700">External TTS needs a provider voice ID or reference audio before final voice production.</p> : null}
+            </div>
+          </section>
+
           <section className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
             <h3 className="mb-3 font-semibold">Frames</h3>
             <div className="grid gap-3">
@@ -259,6 +319,7 @@ function EpResultModal({
                     <div className="text-sm font-semibold">{frame.frameId} {frame.title}</div>
                     <CopyButton label={frame.frameId} onClick={() => onCopy(renderedPrompt, `Copy ${frame.frameId}`)} />
                   </div>
+                  <div className="mb-2 text-[11px] font-semibold text-[#94A3B8]">Image prompt: {renderedPrompt.length} / {IMAGE_PROMPT_MAX_CHARS} chars</div>
                   <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{renderedPrompt}</p>
                 </article>
                 );
@@ -281,6 +342,7 @@ function EpResultModal({
                     </div>
                     <CopyButton label={video.videoId} onClick={() => onCopy(renderedPrompt, `Copy ${video.videoId}`)} />
                   </div>
+                  <div className="mb-2 text-[11px] font-semibold text-[#94A3B8]">Video prompt: {renderedPrompt.length} / {VIDEO_PROMPT_MAX_CHARS} chars</div>
                   <p className="min-w-0 whitespace-pre-wrap break-words text-sm leading-6 text-[#64748B]">{renderedPrompt}</p>
                   <div className="mt-3 grid gap-2 text-xs md:grid-cols-5">
                     <div><strong>Camera:</strong> {video.camera || "-"}</div>
@@ -299,9 +361,9 @@ function EpResultModal({
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <h3 className="font-semibold">Voice Script</h3>
-                <CopyButton label="Voice" onClick={() => onCopy(ep.voiceScript, `Copy Voice Script ${ep.id}`)} />
+                <CopyButton label="Voice" onClick={() => onCopy(voiceScript, `Copy Voice Script ${ep.id}`)} />
               </div>
-              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{ep.voiceScript || "No voice script."}</p>
+              <p className="whitespace-pre-wrap text-sm leading-6 text-[#64748B]">{voiceScript || "No voice script."}</p>
             </div>
             <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
               <div className="mb-3 flex items-center justify-between gap-2">
@@ -390,6 +452,7 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
   const framesPerEpisode = generationSetup.autoFrameCount ? Math.max(3, Math.min(6, generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : generationSetup.customFramesEnabled ? Math.max(2, Number(generationSetup.framesPerEpisode || automaticFramesPerEpisode)) : automaticFramesPerEpisode;
   const durationPerVideoSec = Math.max(1, Number(generationSetup.durationPerVideoSec || 8));
   const totalEpisodeDurationSec = videosPerEpisode * durationPerVideoSec;
+  const flowEpisodeDurationSec = videosPerEpisode * FLOW_VIDEO_DURATION_SEC;
 
   const toast = {
     success: (message: string) => setFeedback({ kind: "success", message })
@@ -689,8 +752,9 @@ export function DailyBatchView({ characters, templates, defaultCharacterId, defa
                 <p className="mt-1 text-xs text-[#64748B]">Generate multiple EP options in one batch.</p>
               </div>
               <div className="rounded-[16px] bg-white px-4 py-3 text-sm font-semibold text-[#2563EB]">
-                Each EP: {videosPerEpisode} videos x {durationPerVideoSec}s = {totalEpisodeDurationSec}s total
+                Each EP: {videosPerEpisode} videos x {FLOW_VIDEO_DURATION_SEC}s Flow/Veo = {flowEpisodeDurationSec}s total
               </div>
+              {durationPerVideoSec !== FLOW_VIDEO_DURATION_SEC ? <div className="rounded-[8px] border border-amber-200 bg-amber-50 p-3 text-sm font-semibold text-amber-700">Requested duration: {durationPerVideoSec}s. Flow/Veo output duration: {FLOW_VIDEO_DURATION_SEC}s fixed. Timeline adjusted for full 8-second continuity.</div> : null}
             </div>
             <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
               <label className="text-sm font-semibold">EP Count<input className="control mt-1" min="1" type="number" value={generationSetup.totalEpisodes} onChange={(event) => setGenerationSetup({ ...generationSetup, totalEpisodes: Math.max(1, Number(event.target.value)) })} /></label>

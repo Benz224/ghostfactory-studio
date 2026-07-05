@@ -14,6 +14,23 @@ export type VideoState = {
   endState: string;
 };
 
+export type VideoTemporalBeat = {
+  startSec: number;
+  endSec: number;
+  action: string;
+  visualChange: string;
+  characterReaction?: string;
+  cameraMotion?: string;
+  soundCue?: string;
+};
+
+export type VideoTimingPlan = {
+  providerDurationSec: number;
+  actionDurationSec: number;
+  beatCount: number;
+  beats: VideoTemporalBeat[];
+};
+
 export type VideoPrompt = {
   videoId: string;
   fromFrame: string;
@@ -25,6 +42,8 @@ export type VideoPrompt = {
   audio: string;
   dialogue: string;
   mood: string;
+  voiceLockId?: string;
+  timingPlan?: VideoTimingPlan;
   videoState?: VideoState;
 };
 
@@ -158,6 +177,13 @@ export type GhostCharacter = {
   type: string;
   description: string;
   visualStyle: string;
+  promptCapsule?: string;
+  referenceImageUrl?: string;
+  referenceImageUrls?: string[];
+  voiceProvider?: string;
+  voiceId?: string;
+  referenceAudioUrl?: string;
+  voiceProfile?: Partial<VoiceProfile>;
   personality: string[];
   rules: string[];
   negativeRules: string[];
@@ -172,6 +198,72 @@ export type GhostCharacter = {
   createdAt?: string;
   updatedAt?: string;
   isDefault: boolean;
+};
+
+export type EpisodeVisualLock = {
+  visualLockId: string;
+  characterId: string;
+  characterName: string;
+  characterCapsule: string;
+  styleCapsule: string;
+  referenceImageUrls: string[];
+  primaryLocation: string;
+  lightingStyle: string;
+  continuityAnchor: string;
+  mainProps: string[];
+  locked: boolean;
+};
+
+export type VoiceRenderMode = "external_tts" | "native_video";
+
+export type EpisodeVoiceLock = {
+  voiceLockId: string;
+  renderMode: VoiceRenderMode;
+  provider: string;
+  providerVoiceId: string;
+  referenceAudioUrl: string;
+  version: string;
+  language: string;
+  characterId: string;
+  characterName: string;
+  preset: string;
+  gender: string;
+  age: string;
+  tone: string;
+  energy: string;
+  speakingSpeed: string;
+  accent: string;
+  personality: string;
+  locked: boolean;
+};
+
+export type VoiceManifestClip = {
+  videoId: string;
+  fromFrame: string;
+  toFrame: string;
+  startSec: number;
+  durationSec: number;
+  speechStartSec?: number;
+  speechEndSec?: number;
+  dialogue: string;
+  language: SpokenLanguage;
+  voiceLockId: string;
+  providerVoiceId: string;
+  referenceAudioUrl: string;
+  speakingStyle: string;
+  emotion: string;
+};
+
+export type VoiceManifest = {
+  episodeId: string;
+  voiceLock: {
+    voiceLockId: string;
+    renderMode: VoiceRenderMode;
+    provider: string;
+    providerVoiceId: string;
+    referenceAudioUrl: string;
+  };
+  clips: VoiceManifestClip[];
 };
 
 export type GhostTemplate = {
@@ -233,6 +325,8 @@ export type GhostEp = {
   storyBeats?: StoryBeat[];
   episodeState?: EpisodeState;
   characterAnchor?: string;
+  visualLock?: EpisodeVisualLock;
+  voiceLock?: EpisodeVoiceLock;
   voiceProfile?: VoiceProfile;
   visualStates?: VisualState[];
   dialogueOutline?: DialogueOutlineItem[];

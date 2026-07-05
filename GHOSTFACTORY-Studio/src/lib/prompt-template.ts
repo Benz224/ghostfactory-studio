@@ -65,9 +65,9 @@ export function buildGeneratorPrompt({
   return `คุณคือ GHOSTFACTORY Multi Character Content Factory
 
 Prompt Scope:
-- Write creative content only.
-- GHOSTFACTORY code loads character assets, template config, continuity, voice lock, quality review, and final prompt assembly.
-- Do not recreate character anchor, template rules, quality scores, or memory logic.
+- Return compact creative JSON only.
+- Code adds character capsules, negative rules, voice lock, continuity, quality review, and final image/video prompt assembly.
+- Do not write character anchors, full appearance, section labels, quality scores, or internal implementation rules.
 
 ${buildCharacterLock(character)}
 
@@ -87,10 +87,17 @@ Batch Settings:
 - Total EP duration: ${totalDurationSec} seconds
 
 Content Draft Rules:
-- Generate multiple EP options in one batch.
 - Create exactly ${videosPerEpisode} videos and ${framesPerEpisode} frames per EP.
-- Keep imagePrompt and videoPrompt concise. Code will assemble final structured prompts.
-- Do not add subtitles, caption overlay, text overlay, watermark, or logo.
+- title short; story 1-2 sentences; hook max 14 words.
+- imagePrompt: English, 12-30 words, scene + action + visual intent only.
+- videoPrompt: English, 10-28 words, one continuous action only.
+- temporalPlan: four compact 8-second beats per video: 0-1.5, 1.5-3.5, 3.5-5.8, 5.8-8.0.
+- camera, motion, audio, mood: short.
+- dialogue max 14 words per clip. If language is "No Dialogue", dialogue and voiceScript must be "".
+- Do not put character names, appearance locks, negative rules, no subtitles, watermark, logo, vertical 9:16, or section labels inside imagePrompt/videoPrompt.
+- Do not write actionState, From the previous beat, initial beat position, progressed by discovery/escalation/reveal, curiosity -> reaction, or camera metadata inside imagePrompt/videoPrompt.
+- Do not return incomplete prompt fragments. Every imagePrompt/videoPrompt must contain a complete subject and action.
+- Use positive phrasing. One video clip = one continuous event, not multiple scenes.
 ${affiliateInstructions(contentGoal, affiliateBrief)}
 
 Output Rules:
@@ -115,6 +122,26 @@ JSON schema:
       "language": "${language}",
       "story": "",
       "hook": "",
+      "coreIdea": {
+        "centralIdea": "",
+        "coreConflict": "",
+        "hookMechanic": "",
+        "payoffMechanic": ""
+      },
+      "episodeState": {
+        "primaryLocation": "",
+        "timeOfDay": "",
+        "lightingStyle": "",
+        "mainProps": "",
+        "continuityAnchor": ""
+      },
+      "storyBeats": [
+        {
+          "beatId": "F1",
+          "function": "hook",
+          "beat": ""
+        }
+      ],
       "frames": [
         {
           "frameId": "F1",
@@ -129,6 +156,34 @@ JSON schema:
           "toFrame": "F2",
           "durationSec": ${durationPerVideoSec},
           "videoPrompt": "",
+          "temporalPlan": {
+            "beats": [
+              {
+                "startSec": 0,
+                "endSec": 1.5,
+                "action": "",
+                "visualChange": ""
+              },
+              {
+                "startSec": 1.5,
+                "endSec": 3.5,
+                "action": "",
+                "visualChange": ""
+              },
+              {
+                "startSec": 3.5,
+                "endSec": 5.8,
+                "action": "",
+                "visualChange": ""
+              },
+              {
+                "startSec": 5.8,
+                "endSec": 8,
+                "action": "",
+                "visualChange": ""
+              }
+            ]
+          },
           "camera": "",
           "motion": "",
           "audio": "",
@@ -284,7 +339,7 @@ function cleanMemoryPhrase(value?: string) {
   return value?.replace(/\s+/g, " ").trim();
 }
 
-function addUniquePhrase(list: string[], value?: string, max = 90) {
+function addUniquePhrase(list: string[], value?: string, max = 55) {
   const phrase = cleanMemoryPhrase(value);
   if (!phrase) return;
   const clipped = phrase.length > max ? `${phrase.slice(0, max).trim()}...` : phrase;
@@ -319,15 +374,15 @@ function episodeMemorySummary(history: GhostEp[], limit: number) {
   });
 
   return `Episode Memory Summary:
-${phraseList("usedConcepts", usedConcepts.slice(0, 18))}
+${phraseList("usedConcepts", usedConcepts.slice(0, 8))}
 
-${phraseList("usedLocations", usedLocations.slice(0, 12))}
+${phraseList("usedLocations", usedLocations.slice(0, 6))}
 
-${phraseList("usedHooks", usedHooks.slice(0, 18))}
+${phraseList("usedHooks", usedHooks.slice(0, 8))}
 
-${phraseList("usedPayoffs", usedPayoffs.slice(0, 18))}
+${phraseList("usedPayoffs", usedPayoffs.slice(0, 8))}
 
-${phraseList("usedMechanics", usedMechanics.slice(0, 18))}`;
+${phraseList("usedMechanics", usedMechanics.slice(0, 8))}`.slice(0, 1200);
 }
 
 export function appendHistoryToPrompt(prompt: string, history: GhostEp[], limit = 50, _ideaMemory?: IdeaMemory) {

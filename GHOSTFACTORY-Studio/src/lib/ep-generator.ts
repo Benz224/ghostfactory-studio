@@ -1,21 +1,32 @@
-import type { CharacterProfile, ContentGoal, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeState, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VisualState, VoiceProfile } from "./types";
+import type { CharacterProfile, ContentGoal, ContinuitySelfCheck, CoreIdea, DailyBatch, DialogueOutlineItem, EpisodeState, EpisodeVoiceLock, GeneratorSelection, GhostEp, IdeaMemory, ParseDebug, ParseHealth, QualityReview, Settings, SpokenLanguage, StoryBeat, VideoPrompt, VideoTimingPlan, VisualState, VoiceManifest, VoiceProfile } from "./types";
 import { createChecklistFromParts } from "./checklist";
 import { frameCountForTemplatePack, getTemplatePack } from "./template-packs";
-import { buildCharacterAnchorFromAsset, getCharacterAsset } from "./character-assets";
+import { buildCharacterAnchorFromAsset, buildCharacterPromptCapsule, ensureEpisodeVisualLock, findCharacterAsset, getCharacterAsset } from "./character-assets";
 
 const DEBUG_PARSE = false;
-const CHARACTER_LOCK =
-  "Meow, fluffy orange tabby cat, orange striped fur, cute expressive face, high quality fur, Pixar-quality 3D animation";
-const DEFAULT_CHARACTER_ANCHOR = buildCharacterAnchorFromAsset(getCharacterAsset("meow"));
+export const IMAGE_PROMPT_MAX_CHARS = 650;
+export const VIDEO_PROMPT_MAX_CHARS = 950;
+export const FLOW_VIDEO_PROMPT_MAX_CHARS = 1250;
+export const DRAFT_IMAGE_PROMPT_MAX_CHARS = 260;
+export const DRAFT_VIDEO_PROMPT_MAX_CHARS = 260;
+export const FLOW_VIDEO_DURATION_SEC = 8;
+type PromptRenderMode = "production" | "debug";
+const DEFAULT_CHARACTER_ANCHOR = buildCharacterPromptCapsule({ asset: getCharacterAsset("meow") });
 const GLOBAL_NEGATIVE_RULES =
   "no subtitles, no caption overlay, no text overlay, no watermark, no logo, no background music by default, vertical 9:16, commercial quality visuals";
+const IMAGE_NEGATIVE_SUFFIX = "Vertical 9:16. No readable text, captions, watermark, logo, UI; no lettering on accessories.";
+const VIDEO_NEGATIVE_SUFFIX = "No readable text, captions, watermark, logo, UI, background music, or lettering on accessories.";
+const LEGACY_CHARACTER_LOCKS = [
+  "Meow, fluffy orange tabby cat, orange striped fur, cute expressive face, high quality fur, Pixar-quality 3D animation",
+  buildCharacterAnchorFromAsset(getCharacterAsset("meow"))
+];
 
-export function ensureLockedPrompt(prompt: string) {
+export function ensureLockedPrompt(prompt: string, characterAnchor = DEFAULT_CHARACTER_ANCHOR) {
   const clean = prompt.trim();
   if (!clean) return "";
-  const hasCharacter = clean.toLowerCase().includes("meow") && clean.toLowerCase().includes("orange");
+  const hasCharacter = characterAnchor && clean.toLowerCase().includes(characterAnchor.slice(0, 24).toLowerCase());
   const hasRules = clean.toLowerCase().includes("no subtitles") && clean.toLowerCase().includes("vertical 9:16");
-  return `${hasCharacter ? "" : `${CHARACTER_LOCK}. `}${clean}${hasRules ? "" : `. ${GLOBAL_NEGATIVE_RULES}`}`;
+  return `${hasCharacter ? "" : `${characterAnchor}. `}${clean}${hasRules ? "" : `. ${GLOBAL_NEGATIVE_RULES}`}`;
 }
 
 function todayString() {
@@ -135,9 +146,136 @@ function generationStructure(selection?: Partial<GeneratorSelection>) {
   const videosPerEpisode = autoFrameCount ? Math.max(1, autoFrames - 1) : Math.max(1, Number(setup?.videosPerEpisode ?? 3));
   const automaticFrames = videosPerEpisode + 1;
   const framesPerEpisode = autoFrameCount ? autoFrames : Math.max(2, Number(setup?.customFramesEnabled ? setup.framesPerEpisode : automaticFrames));
-  const durationPerVideoSec = Math.max(1, Number(setup?.durationPerVideoSec ?? 8));
+  const durationPerVideoSec = FLOW_VIDEO_DURATION_SEC;
   const totalDurationSec = videosPerEpisode * durationPerVideoSec;
   return { durationPerVideoSec, framesPerEpisode, format: `${totalDurationSec}s`, totalDurationSec, videosPerEpisode };
+}
+
+function characterCapsuleForSelection(selection?: Partial<GeneratorSelection>) {
+  return buildCharacterPromptCapsule({
+    asset: findCharacterAsset(selection?.character?.id),
+    character: selection?.character,
+    fallbackName: selection?.character?.name ?? "Character",
+    fallbackStyle: selection?.character?.visualStyle ?? "cinematic 3D"
+  });
+}
+
+function characterCapsuleForEp(ep: Pick<GhostEp, "characterId" | "characterName" | "characterAnchor">) {
+  const asset = findCharacterAsset(ep.characterId);
+  if (asset) return buildCharacterPromptCapsule({ asset });
+  const existing = compactText(stripAssemblySections(ep.characterAnchor || ""), 220);
+  if (existing && !isMeowLeakForNonMeow(ep, existing)) return existing;
+  return buildCharacterPromptCapsule({
+    character: {
+      id: ep.characterId,
+      name: ep.characterName || "Character",
+      type: "",
+      description: "",
+      visualStyle: "cinematic 3D"
+    },
+    fallbackName: ep.characterName || "Character"
+  });
+}
+
+function voiceLockIdFor(characterId?: string, preset?: string) {
+  const cleanId = (characterId || "character").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  const cleanPreset = (preset || "manual").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+  return `${cleanId}:${cleanPreset}:v1`;
+}
+
+export function ensureEpisodeVoiceLock(ep: Pick<GhostEp, "characterId" | "characterName" | "language" | "voiceProfile" | "voiceLock">): EpisodeVoiceLock {
+  const asset = findCharacterAsset(ep.characterId);
+  const assetVoice: Partial<VoiceProfile> | undefined = asset?.voiceProfile ?? asset?.voice;
+  const preset = ep.voiceLock?.preset || ep.voiceProfile?.preset || assetVoice?.preset || "";
+  const voiceLockId = ep.voiceLock?.voiceLockId || voiceLockIdFor(ep.characterId, preset || "manual");
+  return {
+    voiceLockId,
+    renderMode: ep.voiceLock?.renderMode ?? "external_tts",
+    provider: ep.voiceLock?.provider || asset?.voiceProvider || "manual",
+    providerVoiceId: ep.voiceLock?.providerVoiceId || asset?.voiceId || "",
+    referenceAudioUrl: ep.voiceLock?.referenceAudioUrl || asset?.referenceAudioUrl || "",
+    version: ep.voiceLock?.version || "v1",
+    language: ep.voiceLock?.language || ep.language,
+    characterId: ep.voiceLock?.characterId || ep.characterId,
+    characterName: ep.voiceLock?.characterName || ep.characterName,
+    preset,
+    gender: ep.voiceLock?.gender || ep.voiceProfile?.gender || assetVoice?.gender || "",
+    age: ep.voiceLock?.age || ep.voiceProfile?.age || assetVoice?.age || "",
+    tone: ep.voiceLock?.tone || ep.voiceProfile?.tone || assetVoice?.tone || "",
+    energy: ep.voiceLock?.energy || ep.voiceProfile?.energy || assetVoice?.energy || "",
+    speakingSpeed: ep.voiceLock?.speakingSpeed || ep.voiceProfile?.speakingSpeed || assetVoice?.speakingSpeed || "",
+    accent: ep.voiceLock?.accent || ep.voiceProfile?.accent || assetVoice?.accent || "",
+    personality: ep.voiceLock?.personality || ep.voiceProfile?.personality || assetVoice?.personality || "",
+    locked: ep.voiceLock?.locked ?? true
+  };
+}
+
+function normalizeBeatText(value: string, fallback: string) {
+  return compactText(sanitizeCreativePrompt(value, 150) || fallback, 150);
+}
+
+export function buildVideoTimingPlan(ep: GhostEp, video: GhostEp["videos"][number]): VideoTimingPlan {
+  const fromState = visualStateForFrame(ep, video.fromFrame);
+  const toState = visualStateForFrame(ep, video.toFrame);
+  const existing = video.timingPlan?.beats?.length === 4 ? video.timingPlan.beats : [];
+  const action = sanitizeCreativePrompt(video.videoPrompt || video.motion, DRAFT_VIDEO_PROMPT_MAX_CHARS) || `move from ${video.fromFrame} to ${video.toFrame}`;
+  const startState = compactVisualState(fromState) || frameTitle(ep, video.fromFrame);
+  const endState = compactVisualState(toState) || frameTitle(ep, video.toFrame);
+  const camera = compactText(video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "slow push-in", 80);
+  const audio = compactText(video.audio || ep.episodeState?.environmentAudio || ep.soundEffects || "ambient SFX", 80);
+  const template = [
+    { startSec: 0, endSec: 1.5, action: `Establish ${video.fromFrame}: ${startState}`, visualChange: "hold the exact start frame state" },
+    { startSec: 1.5, endSec: 3.5, action, visualChange: "main motion begins in the same scene" },
+    { startSec: 3.5, endSec: 5.8, action: `Escalate the same action toward ${video.toFrame}`, visualChange: "visible change intensifies without cutting" },
+    { startSec: 5.8, endSec: FLOW_VIDEO_DURATION_SEC, action: `Settle into ${video.toFrame}: ${endState}`, visualChange: "end exactly on the target frame state" }
+  ];
+  const beats = template.map((beat, index) => ({
+    startSec: beat.startSec,
+    endSec: beat.endSec,
+    action: normalizeBeatText(existing[index]?.action || beat.action, beat.action),
+    visualChange: normalizeBeatText(existing[index]?.visualChange || beat.visualChange, beat.visualChange),
+    characterReaction: compactText(existing[index]?.characterReaction || (index === 3 ? video.mood || ep.episodeState?.emotionProgression || "held reaction" : ""), 90),
+    cameraMotion: compactText(existing[index]?.cameraMotion || camera, 90),
+    soundCue: compactText(existing[index]?.soundCue || audio, 90)
+  }));
+  return {
+    providerDurationSec: FLOW_VIDEO_DURATION_SEC,
+    actionDurationSec: FLOW_VIDEO_DURATION_SEC,
+    beatCount: beats.length,
+    beats
+  };
+}
+
+export function ensureEpLocks(ep: GhostEp): GhostEp {
+  const asset = findCharacterAsset(ep.characterId);
+  const visualLock = ensureEpisodeVisualLock({
+    lock: ep.visualLock,
+    character: {
+      id: ep.characterId,
+      name: ep.characterName,
+      visualStyle: ep.visualLock?.styleCapsule
+    },
+    asset,
+    episodeState: ep.episodeState
+  });
+  const voiceLock = ensureEpisodeVoiceLock(ep);
+  return {
+    ...ep,
+    characterAnchor: visualLock.characterCapsule,
+    visualLock,
+    voiceLock,
+    videos: ep.videos.map((video) => ({
+      ...video,
+      durationSec: FLOW_VIDEO_DURATION_SEC,
+      voiceLockId: video.voiceLockId || voiceLock.voiceLockId,
+      timingPlan: buildVideoTimingPlan({ ...ep, visualLock, voiceLock }, { ...video, durationSec: FLOW_VIDEO_DURATION_SEC })
+    }))
+  };
+}
+
+function isMeowLeakForNonMeow(ep: Pick<GhostEp, "characterId" | "characterName">, text: string) {
+  const isMeow = ep.characterId?.toLowerCase() === "meow" || ep.characterName?.toLowerCase() === "meow";
+  return !isMeow && /\b(meow|orange tabby|gold pendant|black collar)\b/i.test(text);
 }
 
 function blankEp(date: string, index: number, format = "24s", category = "Uncategorized", selection?: Partial<GeneratorSelection>): GhostEp {
@@ -146,7 +284,7 @@ function blankEp(date: string, index: number, format = "24s", category = "Uncate
   const videoCount = selection?.generationSetup ? structure.videosPerEpisode : format.includes("24") ? 3 : 2;
   const frameCount = selection?.generationSetup ? structure.framesPerEpisode : videoCount + 1;
   const durationPerVideoSec = selection?.generationSetup ? structure.durationPerVideoSec : 8;
-  return {
+  const ep: GhostEp = {
     id: makeId(date, index),
     date,
     format: normalizedFormat,
@@ -177,7 +315,7 @@ function blankEp(date: string, index: number, format = "24s", category = "Uncate
     coreIdea: defaultCoreIdea(),
     storyBeats: [],
     episodeState: defaultEpisodeState(),
-    characterAnchor: DEFAULT_CHARACTER_ANCHOR,
+    characterAnchor: characterCapsuleForSelection(selection),
     voiceProfile: defaultVoiceProfile(),
     visualStates: [],
     dialogueOutline: [],
@@ -219,6 +357,7 @@ function blankEp(date: string, index: number, format = "24s", category = "Uncate
     parseHealth: defaultParseHealth(),
     createdAt: new Date().toISOString()
   };
+  return ensureEpLocks(ep);
 }
 
 function categoryPlan(character?: CharacterProfile, ideaMemory?: IdeaMemory) {
@@ -632,39 +771,32 @@ function hasContinuityState(ep: GhostEp) {
 function hasTransitionVideoPrompts(ep: GhostEp) {
   return ep.videos.every((video) => {
     const text = renderVideoPrompt(ep, video).toLowerCase();
-    return [
-      "clip instruction:",
-      "references:",
-      "important audio rule:",
-      "voice continuity lock:",
-      "character:",
-      "scene:",
-      "story continuity:",
-      "action timeline:",
-      "0-2s:",
-      "2-4s:",
-      "4-6s:",
-      "6-8s:",
-      "camera:",
-      "lighting:",
-      "audio:",
-      "dialogue:",
-      "mood:",
-      "negative:"
-    ].every((section) => text.includes(section));
+    return Boolean(
+      text.length <= FLOW_VIDEO_PROMPT_MAX_CHARS &&
+      characterCapsuleForEp(ep) &&
+      text.includes("start") &&
+      text.includes("end") &&
+      text.includes("camera") &&
+      text.includes("audio") &&
+      text.includes("continuous") &&
+      text.includes("no cuts") &&
+      text.includes("no scene changes") &&
+      text.includes("no text") &&
+      !hasLegacySectionLabel(text)
+    );
   });
 }
 
 function hasStructuredImagePrompts(ep: GhostEp) {
   return ep.frames.every((frame, index) => {
     const text = renderImagePrompt(ep, frame, index).toLowerCase();
-    return [
-      "section a - character anchor",
-      "section b - episode state",
-      "section c - visual state",
-      "section d - frame action",
-      "section e - global visual style"
-    ].every((section) => text.includes(section));
+    return Boolean(
+      text.length <= IMAGE_PROMPT_MAX_CHARS &&
+      characterCapsuleForEp(ep) &&
+      text.includes("vertical 9:16") &&
+      text.includes("no text") &&
+      !hasLegacySectionLabel(text)
+    );
   });
 }
 
@@ -674,62 +806,10 @@ function hasPassingContinuitySelfCheck(ep: GhostEp) {
 }
 
 export function ensureAnchorPrompt(prompt: string, characterAnchor = DEFAULT_CHARACTER_ANCHOR) {
-  const locked = ensureLockedPrompt(prompt);
+  const locked = ensureLockedPrompt(prompt, characterAnchor);
   if (!locked) return "";
   const hasAnchor = characterAnchor && locked.toLowerCase().includes(characterAnchor.slice(0, 24).toLowerCase());
   return hasAnchor ? locked : `${characterAnchor}. ${locked}`;
-}
-
-function formatSection(label: string, value: string) {
-  return `${label}\n${value.trim() || "-"}`;
-}
-
-function episodeStatePrompt(state?: EpisodeState) {
-  if (!state) return "";
-  return [
-    `primaryLocation: ${state.primaryLocation || state.location}`,
-    `timeOfDay: ${state.timeOfDay}`,
-    `lightingStyle: ${state.lightingStyle || state.lighting}`,
-    `mainProps: ${state.mainProps || state.props}`,
-    `continuityAnchor: ${state.continuityAnchor}`,
-    `cameraLanguage: ${state.cameraLanguage || state.camera}`,
-    `environmentAudio: ${state.environmentAudio}`,
-    `visualAnchor: ${state.visualAnchor}`,
-    `emotionProgression: ${state.emotionProgression}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
-}
-
-function visualStatePrompt(state?: VisualState) {
-  if (!state) return "";
-  return [
-    `locationLayout: ${state.locationLayout}`,
-    `characterPosition: ${state.characterPosition}`,
-    `characterFacingDirection: ${state.characterFacingDirection}`,
-    `cameraPosition: ${state.cameraPosition}`,
-    `cameraAngle: ${state.cameraAngle}`,
-    `cameraDistance: ${state.cameraDistance}`,
-    `mainPropPosition: ${state.mainPropPosition}`,
-    `lightingDirection: ${state.lightingDirection}`,
-    `emotionState: ${state.emotionState}`,
-    `actionState: ${state.actionState}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
-}
-
-function voiceProfilePrompt(profile?: VoiceProfile) {
-  if (!profile) return "";
-  return [
-    `preset: ${profile.preset}`,
-    `gender: ${profile.gender}`,
-    `age: ${profile.age}`,
-    `tone: ${profile.tone}`,
-    `energy: ${profile.energy}`,
-    `speakingSpeed: ${profile.speakingSpeed}`,
-    `accent: ${profile.accent}`,
-    `personality: ${profile.personality}`,
-    `sentenceLength: ${profile.sentenceLength}`,
-    `vocabularyStyle: ${profile.vocabularyStyle}`,
-    `emotionalRange: ${profile.emotionalRange}`
-  ].filter((line) => !line.endsWith(": ")).join("\n");
 }
 
 function storyBeatForFrame(ep: GhostEp, frameId: string, index: number) {
@@ -740,48 +820,117 @@ function visualStateForFrame(ep: GhostEp, frameId: string) {
   return ep.visualStates?.find((state) => state.frameId.toLowerCase() === frameId.toLowerCase());
 }
 
-function dialogueOutlineForVideo(ep: GhostEp, videoId: string) {
-  return ep.dialogueOutline?.find((item) => item.videoId.toLowerCase() === videoId.toLowerCase());
+function compactText(input?: string, max = Number.POSITIVE_INFINITY) {
+  const clean = (input ?? "")
+    .replace(/\b(undefined|null)\b/gi, "")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([.,;:!?])/g, "$1")
+    .replace(/([.,;:!?]){2,}/g, "$1")
+    .replace(/\s+-\s*$/g, "")
+    .trim();
+  if (clean.length <= max) return clean;
+  const clipped = clean.slice(0, Math.max(0, max - 1)).replace(/\s+\S*$/, "").trim();
+  return clipped.replace(/[.,;:!?]*$/, ".");
+}
+
+function hasLegacySectionLabel(prompt: string) {
+  return /\b(section\s+[a-i]\s*-|clip instruction:|references:|voice continuity lock:|action timeline:|story continuity:|negative:)\b/i.test(prompt);
 }
 
 function stripAssemblySections(prompt: string) {
   return prompt
-    .replace(/SECTION\s+[A-I]\s*-\s*[A-Z ]+:/gi, "")
+    .replace(/SECTION\s+[A-I]\s*-\s*[A-Z ]+:/gi, " ")
     .replace(/\b(Clip instruction|References|IMPORTANT AUDIO RULE|VOICE CONTINUITY LOCK|Character|Scene|Story continuity|Action timeline|Camera|Lighting|Audio|Dialogue|Mood|Negative):/gi, "")
     .replace(/\b(START STATE|TRANSITION|END STATE|CAMERA|MOTION|AUDIO|DIALOGUE):/gi, "")
+    .replace(/\b0-2s:|\b2-4s:|\b4-6s:|\b6-8s:/gi, "")
+    .replace(/\b(actionState|initial beat position)\s*:/gi, "")
+    .replace(/\bFrom the previous beat\b/gi, "")
+    .replace(/\bprogressed by (discovery|escalation|reveal)\b/gi, "")
+    .replace(/\bcuriosity\s*->\s*reaction\b/gi, "")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+function sanitizeCreativePrompt(prompt: string, max = DRAFT_IMAGE_PROMPT_MAX_CHARS) {
+  const noLegacy = stripAssemblySections(prompt);
+  const withoutLocks = LEGACY_CHARACTER_LOCKS.reduce((text, lock) => text.replaceAll(lock, " "), noLegacy)
+    .replace(GLOBAL_NEGATIVE_RULES, " ")
+    .replace(/\b(no subtitles?|no captions?|caption overlay|text overlay|watermark|logo|vertical\s*9:16|no background music|no ui)\b/gi, " ")
+    .replace(/\b(use uploaded character reference|strict character identity|same character voice)\b/gi, " ");
+  const clean = compactText(withoutLocks, max).replace(/^\s*[.,;:-]\s*/, "").trim();
+  if (/\b(faces|as|with|beside|near|toward|into|at)\s*\.$/i.test(clean)) return "";
+  return clean;
 }
 
 function leanPrompt(prompt: string) {
-  return stripAssemblySections(prompt)
-    .replace(CHARACTER_LOCK, "")
-    .replace(GLOBAL_NEGATIVE_RULES, "")
-    .replace(/\s*\.?\s*$/, "")
-    .replace(/^\s*[.,;:-]\s*/, "")
-    .replace(/\s+/g, " ")
-    .trim();
+  return sanitizeCreativePrompt(prompt, DRAFT_IMAGE_PROMPT_MAX_CHARS);
 }
 
-export function renderImagePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index = ep.frames.findIndex((item) => item.frameId === frame.frameId)) {
-  const characterAnchor = ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR;
+function trimPromptToLimit(body: string, suffix: string, maxChars: number) {
+  const cleanSuffix = compactText(suffix);
+  const separator = body.trim().endsWith(".") ? " " : ". ";
+  const allowance = maxChars - cleanSuffix.length - separator.length;
+  const cleanBody = compactText(body, Math.max(0, allowance));
+  return compactText(`${cleanBody}${separator}${cleanSuffix}`, maxChars);
+}
+
+function compactEpisodeState(state?: EpisodeState) {
+  if (!state) return "";
+  return compactText([state.primaryLocation || state.location, state.mainProps || state.props, state.timeOfDay, state.lightingStyle || state.lighting].filter(Boolean).join(", "), 140);
+}
+
+function compactVisualState(state?: VisualState) {
+  if (!state) return "";
+  return compactText([state.locationLayout, state.characterPosition, state.mainPropPosition, state.actionState, state.cameraAngle, state.lightingDirection].filter(Boolean).join(", "), 160);
+}
+
+function buildProductionNegativeSuffix(kind: "image" | "video") {
+  return kind === "image" ? IMAGE_NEGATIVE_SUFFIX : VIDEO_NEGATIVE_SUFFIX;
+}
+
+function buildImageProductionPrompt(ep: GhostEp, frame: GhostEp["frames"][number], index = ep.frames.findIndex((item) => item.frameId === frame.frameId)) {
+  const lockedEp = ensureEpLocks(ep);
+  const characterAnchor = lockedEp.visualLock?.characterCapsule || characterCapsuleForEp(lockedEp);
   const visualState = visualStateForFrame(ep, frame.frameId);
   const frameIndex = index >= 0 ? index : 0;
   const beat = storyBeatForFrame(ep, frame.frameId, frameIndex);
-  const frameAction = [
+  const previousFrame = frameIndex > 0 ? ep.frames[frameIndex - 1] : undefined;
+  const scene = compactText([lockedEp.visualLock?.primaryLocation, lockedEp.visualLock?.mainProps.join(", "), lockedEp.visualLock?.lightingStyle].filter(Boolean).join(", "), 160) || compactEpisodeState(ep.episodeState) || compactVisualState(visualState) || ep.story || ep.title || "a cinematic scene";
+  const frameAction = compactText([
     frame.title,
-    beat ? `${beat.function}: ${beat.beat}` : "",
-    visualState?.actionState ? `actionState: ${visualState.actionState}` : "",
-    stripAssemblySections(frame.imagePrompt)
-  ].filter(Boolean).join("\n");
+    beat?.beat,
+    visualState?.actionState,
+    sanitizeCreativePrompt(frame.imagePrompt, DRAFT_IMAGE_PROMPT_MAX_CHARS)
+  ].filter(Boolean).join(". "), 220);
+  const cameraLighting = compactText([
+    visualState?.cameraAngle || ep.episodeState?.cameraLanguage || ep.episodeState?.camera,
+    ep.episodeState?.lightingStyle || ep.episodeState?.lighting || visualState?.lightingDirection,
+    frameIndex === 0 ? ep.hook : "",
+    ep.episodeState?.emotionProgression
+  ].filter(Boolean).join(", "), 150);
+  const continuity = previousFrame ? `Continuity: follows ${previousFrame.frameId} ${sanitizeCreativePrompt(previousFrame.title || previousFrame.imagePrompt, 80)}.` : "";
+  const style = lockedEp.visualLock?.styleCapsule || (ep.characterId === "meow" ? "" : "cinematic 3D, commercial quality visuals");
+  const body = [
+    characterAnchor,
+    scene ? `In ${scene}.` : "",
+    continuity,
+    frameAction || "A clear character action in the scene.",
+    cameraLighting || "Cinematic lighting and clear composition.",
+    style
+  ].filter(Boolean).join(" ");
+  return trimPromptToLimit(body, buildProductionNegativeSuffix("image"), IMAGE_PROMPT_MAX_CHARS);
+}
 
+function buildImageDebugPrompt(ep: GhostEp, frame: GhostEp["frames"][number], index: number) {
   return [
-    formatSection("SECTION A - CHARACTER ANCHOR:", characterAnchor),
-    formatSection("SECTION B - EPISODE STATE:", episodeStatePrompt(ep.episodeState)),
-    formatSection("SECTION C - VISUAL STATE:", visualStatePrompt(visualState)),
-    formatSection("SECTION D - FRAME ACTION:", frameAction),
-    formatSection("SECTION E - GLOBAL VISUAL STYLE:", GLOBAL_NEGATIVE_RULES)
-  ].join("\n\n");
+    buildImageProductionPrompt(ep, frame, index),
+    `Debug state: ${compactEpisodeState(ep.episodeState) || "-"}`,
+    `Debug visual: ${compactVisualState(visualStateForFrame(ep, frame.frameId)) || "-"}`
+  ].join("\n");
+}
+
+export function renderImagePrompt(ep: GhostEp, frame: GhostEp["frames"][number], index = ep.frames.findIndex((item) => item.frameId === frame.frameId), mode: PromptRenderMode = "production") {
+  return mode === "debug" ? buildImageDebugPrompt(ep, frame, index) : buildImageProductionPrompt(ep, frame, index);
 }
 
 function frameTitle(ep: GhostEp, frameId: string) {
@@ -789,182 +938,106 @@ function frameTitle(ep: GhostEp, frameId: string) {
   return frame?.title || frame?.imagePrompt || frameId;
 }
 
-function compactLine(input: string, fallback: string) {
-  const clean = stripAssemblySections(input).replace(/\s+/g, " ").trim();
-  return clean || fallback;
-}
-
-function clipIndex(ep: GhostEp, video: GhostEp["videos"][number], fallbackIndex = 0) {
-  const byId = ep.videos.findIndex((item) => item.videoId === video.videoId);
-  return byId >= 0 ? byId : fallbackIndex;
-}
-
-function renderImportantAudioRule(ep: GhostEp, index: number, totalVideos: number) {
-  if (ep.language === "No Dialogue") {
-    return [
-      "IMPORTANT AUDIO RULE:",
-      "No spoken voice and no narration should be generated for this clip.",
-      "Keep dialogue empty and voiceScript empty.",
-      "Use only environment sound and listed SFX."
-    ].join("\n");
-  }
-
-  if (totalVideos > 0 && index === totalVideos - 1) {
-    return [
-      "IMPORTANT AUDIO RULE:",
-      "This is the final clip of the same episode. Continue using the exact same voice from all previous clips and end with the same voice identity."
-    ].join("\n");
-  }
-
-  if (index === 0) {
-    return [
-      "IMPORTANT AUDIO RULE:",
-      "This is the first clip of the same episode. Establish the voice and keep it consistent for all later clips."
-    ].join("\n");
-  }
-
-  return [
-    "IMPORTANT AUDIO RULE:",
-    "This is part of the same episode. Continue using the exact same voice from all previous clips. Same pitch, same rhythm, same accent, same speaking speed, and same emotional style."
-  ].join("\n");
-}
-
-function renderVoiceContinuityLock(ep: GhostEp) {
-  if (ep.language === "No Dialogue") {
-    return [
-      "VOICE CONTINUITY LOCK:",
-      "No spoken dialogue, no narration, and no generated voice.",
-      "Keep dialogue empty.",
-      "Keep voiceScript empty.",
-      "Use environment sound only.",
-      "No background music by default.",
-      "No subtitles.",
-      "No text on screen."
-    ].join("\n");
-  }
-
-  return [
-    "VOICE CONTINUITY LOCK:",
-    "Use the exact same voice in every clip of this episode.",
-    `Voice identity: ${ep.characterName || "Character"}'s Thai adult cute animated character voice.`,
-    `Language: ${ep.language}.`,
-    "Voice style: cute, soft, curious, slightly scared, funny but not exaggerated.",
-    "Pitch: medium-high cute voice.",
-    "Timbre: soft, rounded, slightly nasal, playful but nervous.",
-    "Speaking speed: natural and clear, not too fast.",
-    "Emotion progression must follow the episode mood but keep the same voice identity.",
-    "Do not change voice actor.",
-    "Do not change accent.",
-    "Do not change pitch.",
-    "Do not change speaking speed.",
-    "Do not make the voice deep, old, robotic, ghostly, angry, or human-realistic.",
-    "No background music by default.",
-    "No subtitles.",
-    "No text on screen."
-  ].join("\n");
-}
-
-function renderCharacterInstruction(ep: GhostEp, characterAnchor: string) {
-  const name = ep.characterName || "Character";
-  const base = [
-    `${name} is the selected character.`,
+function buildVideoProductionPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
+  const lockedEp = ensureEpLocks(ep);
+  const characterAnchor = lockedEp.visualLock?.characterCapsule || characterCapsuleForEp(lockedEp);
+  const voiceLock = lockedEp.voiceLock || ensureEpisodeVoiceLock(lockedEp);
+  const timingPlan = video.timingPlan || buildVideoTimingPlan(lockedEp, video);
+  const fromState = visualStateForFrame(lockedEp, video.fromFrame);
+  const toState = visualStateForFrame(lockedEp, video.toFrame);
+  const durationSec = FLOW_VIDEO_DURATION_SEC;
+  const action = compactText(sanitizeCreativePrompt(video.videoPrompt || video.motion, DRAFT_VIDEO_PROMPT_MAX_CHARS) || `move from ${video.fromFrame} to ${video.toFrame}`, 220);
+  const startState = compactText(video.videoState?.startState || compactVisualState(fromState) || frameTitle(ep, video.fromFrame), 140);
+  const endState = compactText(video.videoState?.endState || compactVisualState(toState) || frameTitle(ep, video.toFrame), 140);
+  const camera = compactText(video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "slow cinematic camera", 120);
+  const lighting = compactText(ep.episodeState?.lightingStyle || ep.episodeState?.lighting || fromState?.lightingDirection || "continuous lighting", 100);
+  const audio = compactText(video.audio || ep.episodeState?.environmentAudio || ep.soundEffects || "ambience and subtle SFX", 130);
+  const mood = compactText(video.mood || ep.episodeState?.emotionProgression || "controlled cinematic tension", 90);
+  const audioRule = voiceLock.renderMode === "native_video" && ep.language !== "No Dialogue"
+    ? (voiceLock.providerVoiceId || voiceLock.referenceAudioUrl
+      ? `Voice lock: ${voiceLock.voiceLockId}. Use the attached voice reference or provider voice ID for this clip. Keep the same speaker identity across this episode.`
+      : "Voice consistency cannot be guaranteed without a provider voice ID or reference audio.")
+    : `Audio: ${audio} only. No spoken dialogue or narration; voice-over will be added in post-production.`;
+  const timeline = timingPlan.beats
+    .map((beat) => `${beat.startSec.toFixed(1)}-${beat.endSec.toFixed(1)}s: ${beat.action}; ${beat.visualChange}${beat.characterReaction ? `; ${beat.characterReaction}` : ""}`)
+    .join(" ");
+  const body = [
     characterAnchor,
-    ep.voiceProfile ? `Voice profile: ${voiceProfilePrompt(ep.voiceProfile)}` : ""
-  ].filter(Boolean).join("\n");
-
-  if (name.toLowerCase() === "meow" || ep.characterId === "meow") {
-    return [
-      base,
-      "Meow is the only character.",
-      "Meow must stay as the same cute Pixar-quality 3D orange tabby cat from the reference.",
-      "Keep fluffy orange striped fur, large glossy eyes, round cute face, pink nose, black collar, and round gold pendant.",
-      "Do not make Meow a realistic adult cat.",
-      "Do not remove collar or pendant.",
-      "Do not add readable text on the pendant."
-    ].join("\n");
-  }
-
-  return base;
+    `Start from ${startState}.`,
+    `${action}.`,
+    `End at ${endState}.`,
+    timeline,
+    `Camera: ${camera}.`,
+    `Lighting: ${lighting}.`,
+    audioRule,
+    `Mood: ${mood}.`,
+    `Continuous ${durationSec}-second vertical 9:16 cinematic shot, no cuts, no scene changes.`
+  ].filter(Boolean).join(" ");
+  return trimPromptToLimit(body, buildProductionNegativeSuffix("video"), FLOW_VIDEO_PROMPT_MAX_CHARS);
 }
 
-export function renderVideoBeatTimeline(video: GhostEp["videos"][number], ep: GhostEp, index = clipIndex(ep, video), totalVideos = ep.videos.length) {
-  const from = frameTitle(ep, video.fromFrame);
-  const to = frameTitle(ep, video.toFrame);
-  const fromState = visualStateForFrame(ep, video.fromFrame);
-  const toState = visualStateForFrame(ep, video.toFrame);
-  const motion = compactLine(video.motion || video.videoPrompt, `continue from ${video.fromFrame} toward ${video.toFrame}`);
-  const action = compactLine(video.videoPrompt || video.motion, motion);
-  const camera = compactLine(video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "", "keep the same camera axis and follow the character gently");
-  const audio = compactLine(video.audio || ep.episodeState?.environmentAudio || "", "keep continuous environment sound and subtle SFX");
-  const mood = compactLine(video.mood || ep.episodeState?.emotionProgression || "", "curious, tense, and funny but controlled");
-  const location = compactLine(ep.episodeState?.primaryLocation || ep.episodeState?.location || fromState?.locationLayout || "", "the same location");
-  const prop = compactLine(ep.episodeState?.mainProps || ep.episodeState?.props || fromState?.mainPropPosition || "", "the same main prop");
-  const transitionTarget = totalVideos > 0 && index === totalVideos - 1 ? "hold the final reaction without starting a new scene" : `hold a visual cue that naturally connects into ${video.toFrame}`;
-
+function buildVideoDebugPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
   return [
-    "Action timeline:",
-    `0-2s:\nEstablish the exact current frame state from ${video.fromFrame}: ${from}. Keep ${location}, ${prop}, same lighting, and same camera axis.`,
-    `2-4s:\n${ep.characterName} investigates or reacts in one continuous movement: ${motion}. Do not cut away or change scene.`,
-    `4-6s:\nReveal the main impossible evidence or key action: ${action}. Preserve visual continuity toward ${video.toFrame}: ${to}.`,
-    `6-8s:\nHold the reaction with ${mood}. ${transitionTarget}. Maintain ${camera}; audio stays continuous: ${audio}.`
+    buildVideoProductionPrompt(ep, video),
+    `Debug start: ${compactVisualState(visualStateForFrame(ep, video.fromFrame)) || "-"}`,
+    `Debug end: ${compactVisualState(visualStateForFrame(ep, video.toFrame)) || "-"}`
   ].join("\n");
 }
 
-export function renderVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number]) {
-  const characterAnchor = ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR;
-  const fromState = visualStateForFrame(ep, video.fromFrame);
-  const toState = visualStateForFrame(ep, video.toFrame);
-  const outline = dialogueOutlineForVideo(ep, video.videoId);
-  const index = clipIndex(ep, video);
-  const durationSec = Math.max(1, Number(video.durationSec || 8));
-  const isEightSecondClip = durationSec === 8;
-  const cleanPrompt = compactLine(video.videoPrompt, `connect ${video.fromFrame} to ${video.toFrame}`);
-  const location = ep.episodeState?.primaryLocation || ep.episodeState?.location || fromState?.locationLayout || "same location";
-  const prop = ep.episodeState?.mainProps || ep.episodeState?.props || fromState?.mainPropPosition || "same main prop";
-  const lighting = ep.episodeState?.lightingStyle || ep.episodeState?.lighting || fromState?.lightingDirection || "same lighting";
-  const camera = video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "same camera axis, vertical 9:16 cinematic camera";
-  const audio = video.audio || ep.episodeState?.environmentAudio || "continuous environment sound and subtle SFX";
-  const dialogueText = ep.language === "No Dialogue" ? "" : video.dialogue;
-  const previousText = index === 0 ? `This clip starts the episode from ${video.fromFrame}.` : `This clip continues exactly after ${ep.videos[index - 1]?.videoId || `V${index}`}.`;
-  const nextText = index === ep.videos.length - 1 ? "This clip ends the episode with a held moment." : `It leads naturally into ${ep.videos[index + 1]?.videoId || "the next video"} and ${video.toFrame}.`;
-  const storyContinuity = [
-    previousText,
-    `The visual state moves from ${video.fromFrame} (${frameTitle(ep, video.fromFrame)}) to ${video.toFrame} (${frameTitle(ep, video.toFrame)}).`,
-    cleanPrompt,
-    nextText
-  ].join(" ");
-  const scene = [
-    `Same location: ${location}.`,
-    `Same main prop: ${prop}.`,
-    `Same lighting: ${lighting}.`,
-    `Same camera axis: ${camera}.`,
-    ep.episodeState?.continuityAnchor ? `Continuity anchor: ${ep.episodeState.continuityAnchor}.` : "",
-    outline?.dialogueIntent ? `Episode/video continuity: ${outline.dialogueIntent}.` : ""
-  ].filter(Boolean).join("\n");
+export function renderVideoPrompt(ep: GhostEp, video: GhostEp["videos"][number], mode: PromptRenderMode = "production") {
+  return mode === "debug" ? buildVideoDebugPrompt(ep, video) : buildVideoProductionPrompt(ep, video);
+}
 
-  return [
-    formatSection("Clip instruction:", `Create one continuous vertical 9:16 cinematic video clip, ${durationSec} seconds.\nNo fast cuts.\nKeep same location, same camera axis, same main prop, same lighting.\nPreserve visual continuity from previous frame to next frame.\nEnd with a held moment that naturally connects to the next video.\nThe timeline is continuous from ${video.fromFrame} to ${video.toFrame}; do not treat each beat as a separate scene.`),
-    formatSection("References:", `Use uploaded character reference as strict character identity.\nUse ${video.fromFrame} and ${video.toFrame} as strict visual continuity references.\nStart state: ${visualStatePrompt(fromState) || `${video.fromFrame} visual state`}.\nEnd state: ${visualStatePrompt(toState) || `${video.toFrame} visual state`}.`),
-    renderImportantAudioRule(ep, index, ep.videos.length),
-    renderVoiceContinuityLock(ep),
-    formatSection("Character:", renderCharacterInstruction(ep, characterAnchor)),
-    formatSection("Scene:", scene),
-    formatSection("Story continuity:", storyContinuity),
-    isEightSecondClip ? renderVideoBeatTimeline(video, ep, index, ep.videos.length) : formatSection("Action timeline:", `Use a continuous ${durationSec}-second transition from ${video.fromFrame} to ${video.toFrame}: ${cleanPrompt}`),
-    formatSection("Camera:", `${camera}\nDetailed direction: keep a continuous vertical 9:16 cinematic camera move; no fast cuts, no new angle that breaks continuity.`),
-    formatSection("Lighting:", `${lighting}\nKeep lighting continuous from ${video.fromFrame} to ${video.toFrame}.`),
-    formatSection("Audio:", `${audio}\nNo background music by default. Keep SFX and environment sound continuous.`),
-    formatSection("Dialogue:", ep.language === "No Dialogue" ? "No spoken dialogue. No narration. dialogue must remain empty and voiceScript must remain empty." : `${ep.language} only. Use same character voice. Do not include subtitles.\ndialogue: ${dialogueText}\n${outline?.speechPattern ? `speechPattern: ${outline.speechPattern}` : ""}\n${outline?.forbiddenToneShift ? `forbiddenToneShift: ${outline.forbiddenToneShift}` : ""}`),
-    formatSection("Mood:", video.mood || ep.episodeState?.emotionProgression || "curious, slightly scared, funny but not exaggerated"),
-    formatSection("Negative:", "No subtitles, no caption overlay, no text overlay, no watermark, no logo, no UI, no background music.")
-  ].join("\n\n");
+export function buildVoiceManifest(ep: GhostEp): VoiceManifest {
+  const lockedEp = ensureEpLocks(ep);
+  const voiceLock = lockedEp.voiceLock || ensureEpisodeVoiceLock(lockedEp);
+  let startSec = 0;
+  const clips = lockedEp.videos.map((video) => {
+    const durationSec = FLOW_VIDEO_DURATION_SEC;
+    const dialogue = lockedEp.language === "No Dialogue" ? "" : compactText(video.dialogue, 120);
+    const speechDuration = Math.min(5.4, Math.max(1.2, dialogue.length / 12));
+    const speechStartSec = 0.8;
+    const speechEndSec = Math.min(6.2, Number((speechStartSec + speechDuration).toFixed(1)));
+    const clip = {
+      videoId: video.videoId,
+      fromFrame: video.fromFrame,
+      toFrame: video.toFrame,
+      startSec,
+      durationSec,
+      ...(dialogue ? { speechStartSec, speechEndSec } : {}),
+      dialogue,
+      language: lockedEp.language,
+      voiceLockId: voiceLock.voiceLockId,
+      providerVoiceId: voiceLock.providerVoiceId,
+      referenceAudioUrl: voiceLock.referenceAudioUrl,
+      speakingStyle: compactText([voiceLock.tone, voiceLock.energy, voiceLock.personality].filter(Boolean).join(", "), 90),
+      emotion: compactText(video.mood || lockedEp.episodeState?.emotionProgression || "", 80)
+    };
+    startSec += durationSec;
+    return clip;
+  });
+  return {
+    episodeId: lockedEp.id,
+    voiceLock: {
+      voiceLockId: voiceLock.voiceLockId,
+      renderMode: voiceLock.renderMode,
+      provider: voiceLock.provider,
+      providerVoiceId: voiceLock.providerVoiceId,
+      referenceAudioUrl: voiceLock.referenceAudioUrl
+    },
+    clips
+  };
+}
+
+export function voiceScriptFromManifest(manifest: VoiceManifest) {
+  return manifest.clips.map((clip) => clip.dialogue).filter(Boolean).join(" ");
 }
 
 export function assembleEpPrompts(ep: GhostEp): GhostEp {
-  const next: GhostEp = {
+  const next: GhostEp = ensureEpLocks({
     ...ep,
-    characterAnchor: ep.characterAnchor || DEFAULT_CHARACTER_ANCHOR
-  };
+    characterAnchor: characterCapsuleForEp(ep)
+  });
   next.frames = next.frames.map((frame, index) => ({
     ...frame,
     imagePrompt: renderImagePrompt(next, frame, index)
@@ -973,7 +1046,7 @@ export function assembleEpPrompts(ep: GhostEp): GhostEp {
     ...video,
     videoPrompt: renderVideoPrompt(next, video)
   }));
-  next.voiceScript = buildVoiceScriptFromDialogue(next.videos, next.voiceScript, next.language);
+  next.voiceScript = next.language === "No Dialogue" ? "" : voiceScriptFromManifest(buildVoiceManifest(next));
   return next;
 }
 
@@ -1016,7 +1089,7 @@ export function generateCoreIdea(ep: GhostEp): CoreIdea {
     coreConflict: ep.coreIdea?.coreConflict || pack.coreConflict,
     hookMechanic: ep.coreIdea?.hookMechanic || ep.hook || "opening hook",
     payoffMechanic: ep.coreIdea?.payoffMechanic || ep.story.split(/[.!?。！？]/).filter(Boolean).pop()?.trim() || pack.payoffMechanic,
-    emotionTarget: ep.coreIdea?.emotionTarget || ep.episodeState?.emotionProgression || "curiosity -> reaction",
+    emotionTarget: ep.coreIdea?.emotionTarget || ep.episodeState?.emotionProgression || "curious tension to payoff",
     noveltyAngle: ep.coreIdea?.noveltyAngle || `${ep.category || ep.templateName} angle`,
     templateLogic
   };
@@ -1053,8 +1126,8 @@ export function generateEpisodeState(ep: GhostEp): EpisodeState {
     lightingStyle: lighting,
     mainProps: props,
     continuityAnchor: old.continuityAnchor || `${location}, ${props}`,
-    characterStartPosition: old.characterStartPosition || "initial beat position",
-    characterEndPosition: old.characterEndPosition || "final beat position",
+    characterStartPosition: old.characterStartPosition || "opening position",
+    characterEndPosition: old.characterEndPosition || "ending position",
     lighting,
     props,
     voice: old.voice || ep.voiceProfile?.preset || ep.characterName,
@@ -1105,7 +1178,7 @@ function buildFrameState(ep: GhostEp, frame: GhostEp["frames"][number], index: n
   return {
     frameId: frame.frameId,
     locationLayout: previous?.locationLayout || state.primaryLocation || state.location,
-    characterPosition: index === 0 ? state.characterStartPosition : `${previous?.characterPosition || state.characterStartPosition}; progressed by ${beat?.function || `beat ${index + 1}`}`,
+    characterPosition: index === 0 ? state.characterStartPosition : `${previous?.characterPosition || state.characterStartPosition}; continues into ${beat?.function || `beat ${index + 1}`}`,
     characterFacingDirection: previous?.characterFacingDirection || "toward the continuity anchor",
     cameraPosition: previous?.cameraPosition || state.cameraLanguage || state.camera,
     cameraAngle: previous?.cameraAngle || "cinematic angle",
@@ -1128,7 +1201,7 @@ export function generateFrames(ep: GhostEp): GhostEp {
     frames: ep.frames.map((frame) => ({
       frameId: frame.frameId,
       title: frame.title,
-      imagePrompt: stripAssemblySections(frame.imagePrompt)
+      imagePrompt: sanitizeCreativePrompt(frame.imagePrompt, DRAFT_IMAGE_PROMPT_MAX_CHARS)
     })),
     visualStates
   };
@@ -1139,30 +1212,34 @@ function videoStateText(state?: VisualState) {
 }
 
 export function generateVideos(ep: GhostEp): GhostEp {
+  const voiceLock = ensureEpisodeVoiceLock(ep);
   const videos = ep.videos.map((video): VideoPrompt => {
     const fromState = visualStateForFrame(ep, video.fromFrame);
     const toState = visualStateForFrame(ep, video.toFrame);
-    const transition = stripAssemblySections(video.videoPrompt) || `connect ${video.fromFrame} to ${video.toFrame}`;
+    const transition = sanitizeCreativePrompt(video.videoPrompt, DRAFT_VIDEO_PROMPT_MAX_CHARS) || `connect ${video.fromFrame} to ${video.toFrame}`;
     return {
       videoId: video.videoId,
       fromFrame: video.fromFrame,
       toFrame: video.toFrame,
-      durationSec: video.durationSec,
+      durationSec: FLOW_VIDEO_DURATION_SEC,
       videoPrompt: transition,
       camera: video.camera || ep.episodeState?.cameraLanguage || ep.episodeState?.camera || "",
       audio: video.audio || ep.episodeState?.environmentAudio || "",
       motion: video.motion || transition,
       dialogue: ep.language === "No Dialogue" ? "" : video.dialogue,
-      mood: video.mood
+      mood: video.mood,
+      voiceLockId: video.voiceLockId || voiceLock.voiceLockId,
+      timingPlan: buildVideoTimingPlan(ep, { ...video, durationSec: FLOW_VIDEO_DURATION_SEC, videoPrompt: transition })
     };
   });
   return { ...ep, videos };
 }
 
 export function generateVoiceScript(ep: GhostEp): GhostEp {
+  const lockedEp = ensureEpLocks(ep);
   return {
-    ...ep,
-    voiceScript: buildVoiceScriptFromDialogue(ep.videos, ep.voiceScript, ep.language)
+    ...lockedEp,
+    voiceScript: lockedEp.language === "No Dialogue" ? "" : voiceScriptFromManifest(buildVoiceManifest(lockedEp))
   };
 }
 
@@ -1207,11 +1284,11 @@ export function rewriteStoryBeats(beats: StoryBeat[], coreIdea?: CoreIdea) {
   if (!result.failedIndexes.length) return beats;
   return beats.map((beat, index) => {
     if (!result.failedIndexes.includes(index)) return beat;
-    const previous = beats[index - 1];
-    return {
-      ...beat,
-      beat: `From the previous beat (${previous.beat}), ${beat.beat || coreIdea?.centralIdea || "the same situation continues"}`
-    };
+      const previous = beats[index - 1];
+      return {
+        ...beat,
+        beat: `Continuing after ${previous.beat}, ${beat.beat || coreIdea?.centralIdea || "the same situation continues"}`
+      };
   });
 }
 
@@ -1355,11 +1432,11 @@ export function outputJSON(ep: GhostEp): GhostEp {
 }
 
 export function runInternalGeneratorPipeline(ep: GhostEp): GhostEp {
-  let next: GhostEp = {
+  let next: GhostEp = ensureEpLocks({
     ...ep,
     coreIdea: generateCoreIdea(ep),
-    characterAnchor: ep.characterAnchor || buildCharacterAnchorFromAsset(getCharacterAsset(ep.characterId))
-  };
+    characterAnchor: characterCapsuleForEp(ep)
+  });
   next.storyBeats = rewriteStoryBeats(generateStoryBeats(next), next.coreIdea);
   next.episodeState = generateEpisodeState(next);
   next.voiceProfile = generateVoiceProfile(next);
@@ -1369,6 +1446,7 @@ export function runInternalGeneratorPipeline(ep: GhostEp): GhostEp {
   next = rewriteVideoPrompts(next);
   next = rewriteDialogue(next);
   next = generateVoiceScript(next);
+  next = ensureEpLocks(next);
   next.qualityReview = runQualityReview(next);
   next.parseHealth = calculateParseHealth(next);
   return outputJSON(leanEpOutput(next));
@@ -1500,31 +1578,59 @@ function mapJsonFrame(item: unknown, index: number) {
 function mapJsonVideo(item: unknown, index: number) {
   const video = asRecord(item);
   const prompt = stringValue(video, ["prompt", "videoPrompt", "video_prompt", "คำสั่งวิดีโอ", "พรอมป์วิดีโอ"]);
+  const timingInput = asRecord(firstValue(video, ["timingPlan", "timing_plan", "temporalPlan", "temporal_plan"]));
+  const beatsInput = arrayValue(timingInput, ["beats"]);
+  const timingPlan = beatsInput.length
+    ? {
+        providerDurationSec: FLOW_VIDEO_DURATION_SEC,
+        actionDurationSec: FLOW_VIDEO_DURATION_SEC,
+        beatCount: 4,
+        beats: beatsInput.slice(0, 4).map((beat, beatIndex) => {
+          const item = asRecord(beat);
+          const fallbackStarts = [0, 1.5, 3.5, 5.8];
+          const fallbackEnds = [1.5, 3.5, 5.8, 8];
+          return {
+            startSec: numberValue(item, ["startSec", "start_sec", "start"]) || fallbackStarts[beatIndex] || 0,
+            endSec: numberValue(item, ["endSec", "end_sec", "end"]) || fallbackEnds[beatIndex] || FLOW_VIDEO_DURATION_SEC,
+            action: sanitizeCreativePrompt(stringValue(item, ["action"]), 140),
+            visualChange: sanitizeCreativePrompt(stringValue(item, ["visualChange", "visual_change"]), 140),
+            characterReaction: sanitizeCreativePrompt(stringValue(item, ["characterReaction", "character_reaction"]), 80),
+            cameraMotion: sanitizeCreativePrompt(stringValue(item, ["cameraMotion", "camera_motion"]), 80),
+            soundCue: sanitizeCreativePrompt(stringValue(item, ["soundCue", "sound_cue"]), 80)
+          };
+        })
+      } satisfies VideoTimingPlan
+    : undefined;
   return {
     videoId: stringValue(video, ["videoId", "video_id", "id", "video"]) || `V${index + 1}`,
     fromFrame: stringValue(video, ["fromFrame", "from_frame", "from", "จาก"]) || `F${index + 1}`,
     toFrame: stringValue(video, ["toFrame", "to_frame", "to", "ถึง"]) || `F${index + 2}`,
-    durationSec: numberValue(video, ["durationSec", "duration_sec", "duration", "seconds", "ความยาว"]) || 8,
+    durationSec: FLOW_VIDEO_DURATION_SEC,
     videoPrompt: leanPrompt(prompt || (typeof item === "string" ? item : "")),
     camera: stringValue(video, ["camera", "กล้อง"]),
     motion: stringValue(video, ["motion", "movement", "การเคลื่อนไหว"]),
     audio: stringValue(video, ["audio", "เสียง"]),
     dialogue: stringValue(video, ["dialogue", "dialog", "บทพูดในคลิป"]),
-    mood: stringValue(video, ["mood", "emotion", "อารมณ์"])
+    mood: stringValue(video, ["mood", "emotion", "อารมณ์"]),
+    timingPlan
   };
 }
 
-function mapJsonEp(source: Record<string, unknown>, index: number, date: string): GhostEp {
+function mapJsonEp(source: Record<string, unknown>, index: number, date: string, selection?: Partial<GeneratorSelection>): GhostEp {
   const framesInput = arrayValue(source, ["frames", "frame_prompts", "framePrompts"]);
   const videosInput = arrayValue(source, ["videos", "video_prompts", "videoPrompts"]);
   const format = inferJsonFormat(source, framesInput, videosInput);
   const videoCount = Math.max(videosInput.length || 0, numberValue(source, ["videosPerEpisode", "videos_per_episode", "videoCount", "video_count"]) || (format.includes("24") ? 3 : 2));
   const frameCount = Math.max(framesInput.length || 0, numberValue(source, ["framesPerEpisode", "frames_per_episode", "frameCount", "frame_count"]) || videoCount + 1);
-  const ep = blankEp(date, index + 1, format);
+  const ep = blankEp(date, index + 1, format, "Uncategorized", selection);
 
   ep.title = stringValue(source, ["title", "ep_title", "name"]);
   ep.characterId = stringValue(source, ["characterId", "character_id"]) || ep.characterId;
   ep.characterName = stringValue(source, ["characterName", "character_name"]) || ep.characterName;
+  if (selection?.character && (ep.characterId === "meow" || ep.characterName === "Meow")) {
+    ep.characterId = selection.character.id;
+    ep.characterName = selection.character.name;
+  }
   ep.templateId = stringValue(source, ["templateId", "template_id"]) || ep.templateId;
   ep.templateName = stringValue(source, ["templateName", "template_name"]) || ep.templateName;
   ep.contentGoal = (stringValue(source, ["contentGoal", "content_goal"]) || ep.contentGoal) as ContentGoal;
@@ -1536,7 +1642,7 @@ function mapJsonEp(source: Record<string, unknown>, index: number, date: string)
   ep.coreIdea = mapCoreIdea(source);
   ep.storyBeats = arrayValue(source, ["storyBeats", "story_beats", "beats"]).map(mapStoryBeat);
   ep.episodeState = mapEpisodeState(source);
-  ep.characterAnchor = stringValue(source, ["characterAnchor", "character_anchor"]) || DEFAULT_CHARACTER_ANCHOR;
+  ep.characterAnchor = stringValue(source, ["characterAnchor", "character_anchor"]) || characterCapsuleForEp(ep);
   ep.voiceProfile = mapVoiceProfile(source);
   ep.visualStates = arrayValue(source, ["visualStates", "visual_states"]).map(mapVisualState);
   ep.dialogueOutline = arrayValue(source, ["dialogueOutline", "dialogue_outline"]).map(mapDialogueOutlineItem);
@@ -1613,7 +1719,7 @@ function buildParseDebug(ep: GhostEp, index: number): ParseDebug {
 
 function applySelection(ep: GhostEp, selection?: Partial<GeneratorSelection>) {
   if (!selection) return ep;
-  return {
+  const next = {
     ...ep,
     characterId: ep.characterId === "meow" ? (selection.character?.id ?? ep.characterId) : ep.characterId,
     characterName: ep.characterName === "Meow" ? (selection.character?.name ?? ep.characterName) : ep.characterName,
@@ -1622,12 +1728,16 @@ function applySelection(ep: GhostEp, selection?: Partial<GeneratorSelection>) {
     contentGoal: selection.contentGoal ?? ep.contentGoal,
     language: selection.language ?? ep.language
   };
+  return ensureEpLocks({
+    ...next,
+    characterAnchor: characterCapsuleForEp(next)
+  });
 }
 
 export function parseDailyResult(raw: string, date = todayString(), selection?: Partial<GeneratorSelection>): GhostEp[] {
   const jsonObjects = parseJsonObjects(raw);
   if (jsonObjects.length) {
-    return jsonObjects.map((item, index) => applySelection(mapJsonEp(item, index, date), selection));
+    return jsonObjects.map((item, index) => mapJsonEp(item, index, date, selection));
   }
 
   return splitEpBlocks(raw).map((rawBlock, index) => {
@@ -1645,7 +1755,7 @@ export function parseDailyResult(raw: string, date = todayString(), selection?: 
     const fallbackVideoCount = format.includes("24") ? 3 : 2;
     const videoCount = Math.max(detectedVideoIds.length ? Math.max(...detectedVideoIds) : 0, fallbackVideoCount);
     const frameCount = Math.max(detectedFrameIds.length ? Math.max(...detectedFrameIds) : 0, videoCount + 1);
-    const ep = blankEp(date, index + 1, format);
+    const ep = blankEp(date, index + 1, format, "Uncategorized", selection);
 
     ep.title = debugFieldValue("TITLE", topBlock, labels.title) || epHeadingTitle(block, `EP${String(index + 1).padStart(2, "0")}`);
     ep.category = categoryText || "Uncategorized";
@@ -1656,7 +1766,7 @@ export function parseDailyResult(raw: string, date = todayString(), selection?: 
     ep.coreIdea = defaultCoreIdea();
     ep.storyBeats = [];
     ep.episodeState = defaultEpisodeState();
-    ep.characterAnchor = DEFAULT_CHARACTER_ANCHOR;
+    ep.characterAnchor = characterCapsuleForEp(ep);
     ep.voiceProfile = defaultVoiceProfile();
     ep.visualStates = [];
     ep.dialogueOutline = [];
@@ -1697,7 +1807,7 @@ export function parseDailyResult(raw: string, date = todayString(), selection?: 
         videoId,
         fromFrame: fieldValue(videoBlock, labels.from, videoStops) || `F${videoIndex + 1}`,
         toFrame: fieldValue(videoBlock, labels.to, videoStops) || `F${videoIndex + 2}`,
-        durationSec: Number(fieldValue(videoBlock, labels.duration, videoStops).match(/\d+(\.\d+)?/)?.[0] ?? 8),
+        durationSec: FLOW_VIDEO_DURATION_SEC,
         videoPrompt: leanPrompt(fieldValue(videoBlock, labels.videoPrompt, videoStops)),
         camera: fieldValue(videoBlock, labels.camera, videoStops),
         motion: fieldValue(videoBlock, labels.motion, videoStops),
